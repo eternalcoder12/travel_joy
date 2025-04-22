@@ -81,49 +81,56 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
   // 今日信息
   final String _todayInfo = "晴天 25°C，适合户外探索";
 
-  // 功能卡片数据 - 减少到6个主要功能
+  // 默认渐变颜色 - 用于任何卡片没有指定颜色时
+  final List<Color> _defaultGradient = [
+    const Color(0xFF3A1C71),
+    const Color(0xFFD76D77),
+    const Color(0xFFFFAF7B),
+  ];
+
+  // 功能卡片数据 - 使用非空颜色列表
   final List<Map<String, dynamic>> _featureCards = [
     {
       'title': '热门景点',
       'icon': Icons.location_on,
       'tag': '热门',
       'tagColor': Colors.orange,
-      'gradientColors': [Color(0xFF614385), Color(0xFF516395)],
+      'gradientColors': <Color>[Color(0xFF614385), Color(0xFF516395)],
     },
     {
       'title': '行程规划',
       'icon': Icons.calendar_today,
       'tag': '推荐',
       'tagColor': Colors.green,
-      'gradientColors': [Color(0xFF02AABB), Color(0xFF00CDAC)],
+      'gradientColors': <Color>[Color(0xFF02AABB), Color(0xFF00CDAC)],
     },
     {
       'title': '美食推荐',
       'icon': Icons.restaurant,
       'tag': '美食',
       'tagColor': Colors.red,
-      'gradientColors': [Color(0xFFFF5F6D), Color(0xFFFFC371)],
+      'gradientColors': <Color>[Color(0xFFFF5F6D), Color(0xFFFFC371)],
     },
     {
       'title': '旅行笔记',
       'icon': Icons.book,
       'tag': '记录',
       'tagColor': Colors.blue,
-      'gradientColors': [Color(0xFF396AFC), Color(0xFF2948FF)],
+      'gradientColors': <Color>[Color(0xFF396AFC), Color(0xFF2948FF)],
     },
     {
       'title': '导航助手',
       'icon': Icons.map,
       'tag': '实用',
       'tagColor': Colors.purple,
-      'gradientColors': [Color(0xFF6A11CB), Color(0xFF2575FC)],
+      'gradientColors': <Color>[Color(0xFF6A11CB), Color(0xFF2575FC)],
     },
     {
       'title': '行李清单',
       'icon': Icons.checklist,
       'tag': '工具',
       'tagColor': Colors.teal,
-      'gradientColors': [Color(0xFF11998E), Color(0xFF38EF7D)],
+      'gradientColors': <Color>[Color(0xFF11998E), Color(0xFF38EF7D)],
     },
   ];
 
@@ -278,13 +285,19 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                   ),
                   itemCount: _featureCards.length,
                   itemBuilder: (context, index) {
+                    // 提取卡片数据，确保渐变颜色非空
+                    final cardData = _featureCards[index];
+                    final List<Color> gradientColors =
+                        (cardData['gradientColors'] as List<Color>?) ??
+                        _defaultGradient;
+
                     return _buildFeatureCard(
                       context: context,
-                      title: _featureCards[index]['title'],
-                      icon: _featureCards[index]['icon'],
-                      tag: _featureCards[index]['tag'],
-                      tagColor: _featureCards[index]['tagColor'],
-                      gradientColors: _featureCards[index]['gradientColors'],
+                      title: cardData['title'] as String,
+                      icon: cardData['icon'] as IconData,
+                      tag: cardData['tag'] as String,
+                      tagColor: cardData['tagColor'] as Color,
+                      gradientColors: gradientColors,
                       animation: _slideAnimations?[index],
                     );
                   },
@@ -307,6 +320,10 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
     required List<Color> gradientColors,
     required Animation<Offset>? animation,
   }) {
+    // 确保渐变颜色非空，否则使用默认颜色
+    final colors =
+        gradientColors.isNotEmpty ? gradientColors : _defaultGradient;
+
     return SlideTransition(
       position: animation ?? const AlwaysStoppedAnimation<Offset>(Offset.zero),
       child: Transform.scale(
@@ -316,7 +333,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
             borderRadius: BorderRadius.circular(20.0), // 圆角更大
             boxShadow: [
               BoxShadow(
-                color: gradientColors[0].withOpacity(0.3),
+                color: colors.first.withOpacity(0.3),
                 blurRadius: 15.0,
                 spreadRadius: 1.0,
                 offset: const Offset(0, 5),
@@ -345,7 +362,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: gradientColors,
+                    colors: colors,
                   ),
                   border: Border.all(
                     color: Colors.white.withOpacity(0.2),
