@@ -68,72 +68,124 @@ class _HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
-  late AnimationController _cardAnimationController;
-  late AnimationController _toolsAnimationController;
-  late AnimationController _communityAnimationController;
-  late AnimationController _buttonAnimationController;
+  // 动画控制器
+  AnimationController? _cardsAnimationController;
+  AnimationController? _hoverAnimationController;
 
-  // Unsplash图片URL
-  final String _communityImageUrl =
-      'https://images.unsplash.com/photo-1516815231560-8f41ec531527?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'; // 巴厘岛
+  // 卡片滑入动画
+  List<Animation<Offset>>? _slideAnimations;
 
-  // 搜索控制器
-  final TextEditingController _searchController = TextEditingController();
+  // 悬浮效果动画值
+  double _hoverScale = 0.9;
+
+  // 今日信息
+  final String _todayInfo = "晴天 25°C，适合户外探索";
+
+  // 功能卡片数据
+  final List<Map<String, dynamic>> _featureCards = [
+    {
+      'title': '热门景点',
+      'icon': Icons.location_on,
+      'description': '发现附近热门景点',
+      'tag': '热门',
+      'tagColor': Colors.orange,
+    },
+    {
+      'title': '行程规划',
+      'icon': Icons.calendar_today,
+      'description': '定制专属旅行计划',
+      'tag': '推荐',
+      'tagColor': Colors.green,
+    },
+    {
+      'title': '美食推荐',
+      'icon': Icons.restaurant,
+      'description': '品尝当地特色美食',
+      'tag': '美食',
+      'tagColor': Colors.red,
+    },
+    {
+      'title': '旅行笔记',
+      'icon': Icons.book,
+      'description': '记录精彩旅行瞬间',
+      'tag': '记录',
+      'tagColor': Colors.blue,
+    },
+    {
+      'title': '导航助手',
+      'icon': Icons.map,
+      'description': '轻松到达目的地',
+      'tag': '实用',
+      'tagColor': Colors.purple,
+    },
+    {
+      'title': '行李清单',
+      'icon': Icons.checklist,
+      'description': '旅行必备物品清单',
+      'tag': '工具',
+      'tagColor': Colors.teal,
+    },
+  ];
 
   @override
   void initState() {
     super.initState();
 
-    // 初始化卡片动画控制器
-    _cardAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    )..forward();
+    // 初始化动画
+    _initAnimations();
+  }
 
-    // 初始化工具区域动画控制器
-    _toolsAnimationController = AnimationController(
+  // 安全初始化所有动画
+  void _initAnimations() {
+    // 卡片滑入动画控制器
+    _cardsAnimationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 600),
     );
 
-    // 初始化社区内容动画控制器
-    _communityAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-
-    // 初始化按钮动画控制器
-    _buttonAnimationController = AnimationController(
+    // 卡片悬浮动画控制器
+    _hoverAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
-      value: 0.8,
     );
 
-    // 延迟200毫秒启动工具区域动画
-    Future.delayed(const Duration(milliseconds: 200), () {
+    // 为每张卡片创建滑入动画，按顺序延迟显示
+    _slideAnimations = List.generate(
+      _featureCards.length,
+      (index) =>
+          Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
+            CurvedAnimation(
+              parent: _cardsAnimationController!,
+              curve: Interval(
+                index * 0.1, // 每张卡片延迟0.1的时间
+                0.6 + index * 0.1,
+                curve: Curves.easeOutQuart,
+              ),
+            ),
+          ),
+    );
+
+    // 添加卡片悬浮动画监听
+    _hoverAnimationController!.addListener(() {
       if (mounted) {
-        _toolsAnimationController.forward();
+        setState(() {
+          _hoverScale = 0.9 + (_hoverAnimationController!.value * 0.1);
+        });
       }
     });
 
-    // 延迟400毫秒启动社区内容动画
-    Future.delayed(const Duration(milliseconds: 400), () {
-      if (mounted) {
-        _communityAnimationController.forward();
-      }
-    });
+    // 启动动画
+    _cardsAnimationController!.forward();
 
-    // 启动按钮动画
-    _buttonAnimationController.forward();
+    // 循环播放悬浮动画
+    _hoverAnimationController!.repeat(reverse: true);
   }
 
   @override
   void dispose() {
-    _cardAnimationController.dispose();
-    _toolsAnimationController.dispose();
-    _communityAnimationController.dispose();
-    _buttonAnimationController.dispose();
-    _searchController.dispose();
+    // 安全释放动画控制器
+    _cardsAnimationController?.dispose();
+    _hoverAnimationController?.dispose();
     super.dispose();
   }
 
@@ -155,214 +207,73 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 搜索栏和筛选按钮
+                // 今日信息提醒
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // 搜索输入框
                     Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: '搜索景点、酒店...',
-                          hintStyle: TextStyle(color: AppTheme.hintTextColor),
-                          prefixIcon: Icon(
-                            Icons.search,
-                            color: AppTheme.iconColor,
-                          ),
-                          filled: true,
-                          fillColor: AppTheme.cardColor,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(18.0),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12.0,
-                          ),
-                        ),
+                      child: Text(
+                        _todayInfo,
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ),
-                    // 筛选按钮
-                    Container(
-                      margin: const EdgeInsets.only(left: 12.0),
-                      decoration: BoxDecoration(
-                        color: AppTheme.cardColor,
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.filter_list,
-                          color: AppTheme.iconColor,
-                        ),
-                        onPressed: () {
-                          print('点击了筛选按钮');
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          print('点击了今日信息图标');
                         },
+                        borderRadius: BorderRadius.circular(20),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Icon(
+                            Icons.calendar_today,
+                            color: AppTheme.iconColor,
+                            size: 24.0,
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
 
-                const SizedBox(height: 16.0), // 搜索栏与标题间距
+                const SizedBox(height: 16.0), // 今日信息与标题间距
                 // 标题
                 Text(
-                  '发现旅途乐趣',
+                  '开启小众之旅',
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
+
                 const SizedBox(height: 8.0), // 标题与副标题间距
                 // 副标题
                 Text(
-                  '探索小众景点，畅游治愈之旅',
+                  '发现隐秘美景，享受独特旅途',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                const SizedBox(height: 24.0), // 副标题与功能卡片间距
-                // 功能入口卡片（2x2网格）
-                AnimatedBuilder(
-                  animation: _cardAnimationController,
-                  builder: (context, child) {
-                    return Opacity(
-                      opacity: _cardAnimationController.value,
-                      child: child,
+
+                const SizedBox(height: 24.0), // 副标题与卡片间距
+                // 功能卡片网格（3x2）
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 16.0,
+                    mainAxisSpacing: 16.0,
+                    childAspectRatio: 0.75, // 使卡片垂直方向更长一些
+                  ),
+                  itemCount: _featureCards.length,
+                  itemBuilder: (context, index) {
+                    return _buildFeatureCard(
+                      context: context,
+                      title: _featureCards[index]['title'],
+                      icon: _featureCards[index]['icon'],
+                      description: _featureCards[index]['description'],
+                      tag: _featureCards[index]['tag'],
+                      tagColor: _featureCards[index]['tagColor'],
+                      animation: _slideAnimations?[index],
                     );
                   },
-                  child: SizedBox(
-                    height: 270, // 设置更大的固定高度
-                    child: GridView.count(
-                      physics: const NeverScrollableScrollPhysics(), // 禁止滚动
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16.0,
-                      mainAxisSpacing: 16.0,
-                      children: [
-                        _buildFeatureCard(
-                          context: context,
-                          icon: Icons.location_on,
-                          title: '热门景点',
-                        ),
-                        _buildFeatureCard(
-                          context: context,
-                          icon: Icons.hotel,
-                          title: '酒店预订',
-                        ),
-                        _buildFeatureCard(
-                          context: context,
-                          icon: Icons.restaurant,
-                          title: '餐厅推荐',
-                        ),
-                        _buildFeatureCard(
-                          context: context,
-                          icon: Icons.map,
-                          title: '旅行攻略',
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 24.0), // 功能卡片与辅助工具区域间距
-                // 辅助工具区域
-                AnimatedBuilder(
-                  animation: _toolsAnimationController,
-                  builder: (context, child) {
-                    return Opacity(
-                      opacity: _toolsAnimationController.value,
-                      child: child,
-                    );
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 辅助工具标题
-                      Text(
-                        '实用工具',
-                        style: Theme.of(context).textTheme.labelLarge,
-                      ),
-                      const SizedBox(height: 16.0), // 辅助工具标题与工具卡片间距
-                      // 工具卡片（水平排列）
-                      Row(
-                        children: [
-                          // 地图导航卡片
-                          Expanded(
-                            child: _buildToolCard(
-                              context: context,
-                              icon: Icons.map_outlined,
-                              title: '地图导航',
-                            ),
-                          ),
-                          const SizedBox(width: 16.0), // 工具卡片之间间距
-                          // 旅行清单卡片
-                          Expanded(
-                            child: _buildToolCard(
-                              context: context,
-                              icon: Icons.checklist,
-                              title: '旅行清单',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24.0), // 辅助工具区域与社区推荐预览间距
-                // 社区推荐预览
-                AnimatedBuilder(
-                  animation: _communityAnimationController,
-                  builder: (context, child) {
-                    return Opacity(
-                      opacity: _communityAnimationController.value,
-                      child: child,
-                    );
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 社区推荐标题和副标题
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '旅友推荐',
-                            style: Theme.of(context).textTheme.labelLarge,
-                          ),
-                          Text(
-                            '看看大家都在分享什么',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16.0), // 社区推荐标题与内容间距
-                      // 社区推荐内容
-                      _buildCommunityPreview(
-                        context: context,
-                        username: '旅行者1',
-                        content: '这是我在巴厘岛的难忘旅行，非常推荐大家前往，水清沙白，景色宜人...',
-                        likes: '120',
-                        comments: '50',
-                        imageUrl: _communityImageUrl,
-                      ),
-
-                      const SizedBox(height: 16.0), // 内容与"查看更多"按钮间距
-                      // "查看更多"按钮
-                      Center(
-                        child: AnimatedBuilder(
-                          animation: _buttonAnimationController,
-                          builder: (context, child) {
-                            return Transform.scale(
-                              scale: _buttonAnimationController.value,
-                              child: child,
-                            );
-                          },
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/discover');
-                              print('跳转到发现页面');
-                            },
-                            style:
-                                AppTheme.getTheme().elevatedButtonTheme.style,
-                            child: const Text('查看更多'),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ],
             ),
@@ -372,230 +283,96 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
     );
   }
 
-  // 圆形功能卡片 - 更大尺寸
+  // 方形功能卡片
   Widget _buildFeatureCard({
     required BuildContext context,
-    required IconData icon,
     required String title,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          // 功能卡片点击处理
-          print('点击了: $title');
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('您点击了: $title'),
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 1),
-            ),
-          );
-        },
-        customBorder: const CircleBorder(),
-        splashColor: AppTheme.accentColor.withOpacity(0.3),
-        highlightColor: AppTheme.accentColor.withOpacity(0.1),
-        child: Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppTheme.cardColor,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                spreadRadius: 1,
-                blurRadius: 8, // 增大阴影模糊度
-                offset: const Offset(0, 4), // 增大阴影偏移
-              ),
-            ],
-            // 渐变边框
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withOpacity(0.5),
-                Colors.white.withOpacity(0.1),
-              ],
-            ),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1.5,
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: AppTheme.iconColor, size: 40.0), // 增大图标尺寸
-              const SizedBox(height: 12), // 增大间距
-              Text(title, style: Theme.of(context).textTheme.labelLarge),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // 辅助工具卡片
-  Widget _buildToolCard({
-    required BuildContext context,
     required IconData icon,
-    required String title,
+    required String description,
+    required String tag,
+    required Color tagColor,
+    required Animation<Offset>? animation,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          // 工具卡片点击处理
-          print('点击了工具: $title');
-        },
-        borderRadius: BorderRadius.circular(12.0),
-        splashColor: AppTheme.accentColor.withOpacity(0.3),
-        highlightColor: AppTheme.accentColor.withOpacity(0.1),
-        child: Container(
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: AppTheme.cardColor,
+    return SlideTransition(
+      position: animation ?? const AlwaysStoppedAnimation<Offset>(Offset.zero),
+      child: Transform.scale(
+        scale: _hoverScale,
+        child: Card(
+          elevation: 8.0,
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                spreadRadius: 1,
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: AppTheme.iconColor, size: 32.0),
-              const SizedBox(height: 8.0),
-              Text(title, style: Theme.of(context).textTheme.labelLarge),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // 社区推荐预览项
-  Widget _buildCommunityPreview({
-    required BuildContext context,
-    required String username,
-    required String content,
-    required String likes,
-    required String comments,
-    required String imageUrl,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          print('查看详情: $username 的分享');
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppTheme.cardColor,
-            borderRadius: BorderRadius.circular(12),
-            // 渐变边框
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1.0,
-            ),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.white.withOpacity(0.1), Colors.transparent],
-              stops: const [0.0, 0.5],
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 图片（Unsplash图片）
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      // 加载错误时显示占位图
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: AppTheme.accentColor.withOpacity(0.2),
-                          child: Center(
-                            child: Icon(
-                              Icons.image,
-                              color: AppTheme.iconColor.withOpacity(0.5),
-                              size: 40,
-                            ),
-                          ),
-                        );
-                      },
-                      // 加载中显示进度指示器
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          color: AppTheme.cardColor,
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              color: AppTheme.accentColor,
-                              value:
-                                  loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                            ),
-                          ),
-                        );
-                      },
+          color: AppTheme.cardColor,
+          child: InkWell(
+            onTap: () {
+              print('点击了: $title');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('您选择了: $title'),
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 1),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(12.0),
+            splashColor: AppTheme.accentColor.withOpacity(0.3),
+            highlightColor: AppTheme.accentColor.withOpacity(0.1),
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 顶部标签
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 2.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: tagColor.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      child: Text(
+                        tag,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: tagColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 8.0),
 
-                // 用户昵称
-                Text(
-                  username,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4.0),
+                  const SizedBox(height: 8.0),
 
-                // 内容摘要
-                Text(
-                  content,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8.0),
+                  // 图标
+                  Icon(icon, color: AppTheme.iconColor, size: 40.0),
 
-                // 互动元素：点赞和评论
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Icon(Icons.favorite, color: AppTheme.iconColor, size: 18),
-                    const SizedBox(width: 4.0),
-                    Text(likes, style: Theme.of(context).textTheme.bodyMedium),
-                    const SizedBox(width: 16.0),
-                    Icon(
-                      Icons.chat_bubble_outline,
-                      color: AppTheme.iconColor,
-                      size: 18,
+                  const SizedBox(height: 12.0),
+
+                  // 标题
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.labelLarge,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  const SizedBox(height: 4.0),
+
+                  // 描述
+                  Text(
+                    description,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.secondaryTextColor,
+                      fontSize: 12.0,
                     ),
-                    const SizedBox(width: 4.0),
-                    Text(
-                      comments,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
-                ),
-              ],
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
