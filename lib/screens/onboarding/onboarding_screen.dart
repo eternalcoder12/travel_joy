@@ -247,44 +247,64 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   // 构建底部按钮
   Widget _buildBottomButton(BuildContext context) {
     if (_currentPage == _pages.length - 1) {
-      return ScaleTransition(
-        scale: _scaleAnimation,
-        child: Container(
-          width: 220,
-          height: 60,
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.buttonColor.withOpacity(0.4),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
+      return Column(
+        children: [
+          ScaleTransition(
+            scale: _scaleAnimation,
+            child: Container(
+              width: 220,
+              height: 60,
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.buttonColor.withOpacity(0.4),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
               ),
-            ],
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pushReplacementNamed(context, '/home');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.buttonColor,
+                  foregroundColor: AppTheme.backgroundColor,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 30,
+                    vertical: 15,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.0),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  '开始旅行✈️',
+                  style: TextStyle(
+                    color: AppTheme.backgroundColor,
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
+            ),
           ),
-          child: ElevatedButton(
+          const SizedBox(height: 16),
+          TextButton(
             onPressed: () {
-              Navigator.pushReplacementNamed(context, '/home');
+              Navigator.pushNamed(context, '/login');
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.buttonColor,
-              foregroundColor: AppTheme.backgroundColor,
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30.0),
-              ),
-              elevation: 0,
-            ),
             child: Text(
-              '开始旅行✈️',
+              '已有账号？登录',
               style: TextStyle(
-                color: AppTheme.backgroundColor,
-                fontSize: 20.0,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 1,
+                color: AppTheme.primaryTextColor,
+                fontSize: 16.0,
               ),
             ),
           ),
-        ),
+        ],
       );
     } else {
       return Container(
