@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' show sin, pi;
 import '../../app_theme.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -8,9 +9,14 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
+  int _previousIndex = 0;
+  AnimationController? _pageAnimationController;
+  Animation<double>? _pageAnimation;
 
+  // 主屏幕列表
   final List<Widget> _screens = [
     const _HomeTab(),
     const Center(child: Text('探索', style: TextStyle(color: Colors.white))),
@@ -19,34 +25,111 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+
+    // 初始化页面切换动画
+    _pageAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    _pageAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _pageAnimationController!,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pageAnimationController?.dispose();
+    super.dispose();
+  }
+
+  // 切换标签页，播放动画
+  void _changeTab(int index) {
+    if (index == _currentIndex) return;
+
+    setState(() {
+      _previousIndex = _currentIndex;
+      _currentIndex = index;
+    });
+
+    // 重置并播放页面切换动画
+    _pageAnimationController!.reset();
+    _pageAnimationController!.forward();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      body: _screens[_currentIndex],
-      bottomNavigationBar: Material(
-        color: Colors.transparent,
-        child: Theme(
-          data: ThemeData(
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
+      body: AnimatedBuilder(
+        animation: _pageAnimationController!,
+        builder: (context, child) {
+          return Stack(
+            children: [
+              // 前一个页面淡出
+              if (_pageAnimation!.value < 1)
+                Opacity(
+                  opacity: 1 - _pageAnimation!.value,
+                  child: Transform.translate(
+                    offset: Offset(
+                      -MediaQuery.of(context).size.width *
+                          _pageAnimation!.value,
+                      0,
+                    ),
+                    child: _screens[_previousIndex],
+                  ),
+                ),
+
+              // 当前页面淡入
+              Opacity(
+                opacity: _pageAnimation!.value,
+                child: Transform.translate(
+                  offset: Offset(
+                    MediaQuery.of(context).size.width *
+                        (1 - _pageAnimation!.value),
+                    0,
+                  ),
+                  child: _screens[_currentIndex],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+      bottomNavigationBar: Theme(
+        data: ThemeData(
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppTheme.cardColor,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 10,
+                offset: const Offset(0, -2),
+              ),
+            ],
           ),
           child: BottomNavigationBar(
             currentIndex: _currentIndex,
-            onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-            backgroundColor: AppTheme.cardColor,
+            onTap: _changeTab,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
             selectedItemColor: AppTheme.primaryTextColor,
             unselectedItemColor: AppTheme.secondaryTextColor,
-            type: BottomNavigationBarType.fixed, // 确保4个项目时也显示文字
+            type: BottomNavigationBarType.fixed,
             showSelectedLabels: true,
             showUnselectedLabels: true,
-            enableFeedback: false, // 禁用触感反馈
             selectedFontSize: 14.0,
-            unselectedFontSize: 14.0, // 使选中和未选中字体大小相同，防止动画
-            iconSize: 24.0, // 固定图标大小
+            unselectedFontSize: 14.0,
+            iconSize: 24.0,
             items: const [
               BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
               BottomNavigationBarItem(icon: Icon(Icons.explore), label: '探索'),
@@ -303,17 +386,21 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: _featureCards.length,
                   itemBuilder: (context, index) {
-                    // 提取卡片数据，确保渐变颜色非空
+                    // 提取卡片数据，确保所有字段都非空
                     final cardData = _featureCards[index];
+
+                    // 提取所有必要数据并添加空值检查
+                    final String title = cardData['title'] as String? ?? "功能";
+                    final String subtitle =
+                        cardData['subtitle'] as String? ?? "了解更多信息";
+                    final IconData icon =
+                        cardData['icon'] as IconData? ?? Icons.star;
+                    final String tag = cardData['tag'] as String? ?? "";
+                    final Color tagColor =
+                        cardData['tagColor'] as Color? ?? Colors.grey;
                     final List<Color> gradientColors =
                         (cardData['gradientColors'] as List<Color>?) ??
                         _defaultGradient;
-
-                    // 提取标题和副标题（添加空值检查）
-                    final String title = cardData['title'] as String;
-                    final String subtitle =
-                        (cardData['subtitle'] as String?) ??
-                        "了解更多信息"; // 提供默认副标题
 
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16.0),
@@ -321,11 +408,12 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                         context: context,
                         title: title,
                         subtitle: subtitle,
-                        icon: cardData['icon'] as IconData,
-                        tag: cardData['tag'] as String,
-                        tagColor: cardData['tagColor'] as Color,
+                        icon: icon,
+                        tag: tag,
+                        tagColor: tagColor,
                         gradientColors: gradientColors,
                         animation: _slideAnimations?[index],
+                        index: index,
                       ),
                     );
                   },
@@ -348,136 +436,194 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
     required Color tagColor,
     required List<Color> gradientColors,
     required Animation<Offset>? animation,
+    required int index,
   }) {
     // 确保渐变颜色非空，否则使用默认颜色
     final colors =
         gradientColors.isNotEmpty ? gradientColors : _defaultGradient;
 
+    // 为卡片创建随机角度的抖动动画，使每张卡片摇摆角度不同
+    final double rotationAngle =
+        (index % 2 == 0 ? 0.015 : -0.015) * (index + 1) / 2;
+
     return SlideTransition(
       position: animation ?? const AlwaysStoppedAnimation<Offset>(Offset.zero),
       child: Transform.scale(
         scale: _hoverScale,
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(16.0),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () {
-              print('点击了: $title');
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('您选择了: $title'),
-                  behavior: SnackBarBehavior.floating,
-                  duration: const Duration(seconds: 1),
-                ),
-              );
-            },
-            splashColor: Colors.white.withOpacity(0.1),
-            highlightColor: Colors.white.withOpacity(0.05),
-            child: Container(
-              height: 100, // 固定高度
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: colors,
-                ),
-                borderRadius: BorderRadius.circular(16.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: colors.first.withOpacity(0.3),
-                    blurRadius: 8.0,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Stack(
-                children: [
-                  // 标签
-                  Positioned(
-                    top: 10,
-                    right: 10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0,
-                        vertical: 3.0,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20.0),
-                      ),
-                      child: Text(
-                        tag,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12.0,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // 主要内容 - 水平布局
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
-                    child: Row(
-                      children: [
-                        // 图标容器 - 圆形背景
-                        Container(
-                          width: 56.0,
-                          height: 56.0,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(icon, color: Colors.white, size: 28.0),
-                        ),
-
-                        const SizedBox(width: 16.0),
-
-                        // 文字内容 - 左对齐
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // 标题
-                              Text(
-                                title,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18.0,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-
-                              const SizedBox(height: 4.0),
-
-                              // 副标题
-                              Text(
-                                subtitle,
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.75),
-                                  fontSize: 14.0,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // 箭头图标
-                        const Icon(
-                          Icons.arrow_forward_ios,
-                          color: Colors.white,
-                          size: 16.0,
+        child: Transform.rotate(
+          angle: rotationAngle * _hoverAnimationController!.value,
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(16.0),
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              children: [
+                // 闪光效果 - 随着悬浮动画移动
+                Positioned(
+                  top: -20,
+                  left: -20 + (_hoverAnimationController!.value * 280),
+                  child: Container(
+                    width: 60,
+                    height: 150,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.1),
+                          blurRadius: 10,
+                          spreadRadius: 5,
                         ),
                       ],
                     ),
+                    transform: Matrix4.rotationZ(0.8),
                   ),
-                ],
-              ),
+                ),
+
+                // 主卡片内容
+                Ink(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: colors,
+                    ),
+                    borderRadius: BorderRadius.circular(16.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colors.first.withOpacity(0.3),
+                        blurRadius: 8.0,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: InkWell(
+                    onTap: () {
+                      print('点击了: $title');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('您选择了: $title'),
+                          behavior: SnackBarBehavior.floating,
+                          duration: const Duration(seconds: 1),
+                        ),
+                      );
+                    },
+                    splashFactory: InkRipple.splashFactory,
+                    splashColor: Colors.white.withOpacity(0.2),
+                    highlightColor: Colors.white.withOpacity(0.1),
+                    child: Container(
+                      height: 100, // 固定高度
+                      child: Stack(
+                        children: [
+                          // 标签
+                          Positioned(
+                            top: 10,
+                            right: 10,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10.0,
+                                vertical: 3.0,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(20.0),
+                              ),
+                              child: Text(
+                                tag,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12.0,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          // 主要内容 - 水平布局
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              20.0,
+                              10.0,
+                              20.0,
+                              10.0,
+                            ),
+                            child: Row(
+                              children: [
+                                // 图标容器 - 圆形背景
+                                Container(
+                                  width: 56.0,
+                                  height: 56.0,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    icon,
+                                    color: Colors.white,
+                                    size: 28.0,
+                                  ),
+                                ),
+
+                                const SizedBox(width: 16.0),
+
+                                // 文字内容 - 左对齐
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      // 标题
+                                      Text(
+                                        title,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 18.0,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+
+                                      const SizedBox(height: 4.0),
+
+                                      // 副标题
+                                      Text(
+                                        subtitle,
+                                        style: TextStyle(
+                                          color: Colors.white.withOpacity(0.75),
+                                          fontSize: 14.0,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                // 箭头图标 - 添加动画效果
+                                TweenAnimationBuilder<double>(
+                                  tween: Tween(begin: 0.0, end: 4.0),
+                                  duration: const Duration(seconds: 1),
+                                  curve: Curves.easeInOut,
+                                  builder: (context, value, child) {
+                                    return Transform.translate(
+                                      offset: Offset(sin(value) * 3, 0),
+                                      child: const Icon(
+                                        Icons.arrow_forward_ios,
+                                        color: Colors.white,
+                                        size: 16.0,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
