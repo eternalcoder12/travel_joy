@@ -1,5 +1,9 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
+import '../../widgets/glass_card.dart';
+import '../../widgets/gradient_button.dart';
+import '../../widgets/micro_interaction_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -15,6 +19,11 @@ class _LoginScreenState extends State<LoginScreen>
   bool _isPasswordVisible = false;
   late AnimationController _animationController;
   late Animation<Offset> _slideAnimation;
+
+  // 添加错误状态变量
+  String? _emailError;
+  String? _passwordError;
+  String? _apiError; // API错误消息
 
   @override
   void initState() {
@@ -42,42 +51,63 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
+  // 验证表单输入
+  bool _validateInputs() {
+    bool isValid = true;
+
+    // 重置所有错误信息
+    setState(() {
+      _emailError = null;
+      _passwordError = null;
+      _apiError = null;
+    });
+
+    // 验证邮箱
+    if (_emailController.text.isEmpty) {
+      setState(() {
+        _emailError = '请输入邮箱地址';
+      });
+      isValid = false;
+    } else if (!RegExp(
+      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+    ).hasMatch(_emailController.text)) {
+      setState(() {
+        _emailError = '请输入有效的邮箱地址';
+      });
+      isValid = false;
+    }
+
+    // 验证密码
+    if (_passwordController.text.isEmpty) {
+      setState(() {
+        _passwordError = '请输入密码';
+      });
+      isValid = false;
+    } else if (_passwordController.text.length < 6) {
+      setState(() {
+        _passwordError = '密码至少需要6个字符';
+      });
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
   void _login() {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.error_outline, color: AppTheme.primaryTextColor),
-              const SizedBox(width: 10),
-              Text(
-                '请输入邮箱和密码',
-                style: TextStyle(color: AppTheme.primaryTextColor),
-              ),
-            ],
-          ),
-          backgroundColor: AppTheme.errorColor,
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          duration: const Duration(seconds: 3),
-          action: SnackBarAction(
-            label: '知道了',
-            textColor: AppTheme.primaryTextColor,
-            onPressed: () {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            },
-          ),
-        ),
-      );
+    // 先验证输入
+    if (!_validateInputs()) {
       return;
     }
 
     print('登录信息: 邮箱=${_emailController.text}, 密码=${_passwordController.text}');
 
     // TODO: 实现登录逻辑
+    // 模拟API错误示例:
+    // setState(() {
+    //   _apiError = "账号或密码错误，请重试";
+    // });
+    // return;
+
     Navigator.pushReplacementNamed(context, '/home');
   }
 
@@ -89,31 +119,70 @@ class _LoginScreenState extends State<LoginScreen>
       backgroundColor: AppTheme.backgroundColor,
       body: Stack(
         children: [
+          // 背景渐变装饰
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.topLeft,
+                  radius: 1.8,
+                  colors: [
+                    AppTheme.accentColor.withOpacity(0.2),
+                    AppTheme.backgroundColor,
+                  ],
+                ),
+              ),
+            ),
+          ),
+
           // 背景装饰元素
           Positioned(
             top: -120,
             right: -100,
             child: Container(
-              width: 250,
-              height: 250,
+              width: 280,
+              height: 280,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppTheme.cardColor.withOpacity(0.2),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppTheme.neonBlue.withOpacity(0.3),
+                    AppTheme.neonPurple.withOpacity(0.2),
+                  ],
+                ),
               ),
             ),
           ),
           Positioned(
-            bottom: -100,
-            left: -60,
+            bottom: -140,
+            left: -80,
             child: Container(
-              width: 180,
-              height: 180,
+              width: 230,
+              height: 230,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppTheme.cardColor.withOpacity(0.2),
+                gradient: LinearGradient(
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                  colors: [
+                    AppTheme.neonPurple.withOpacity(0.3),
+                    AppTheme.neonTeal.withOpacity(0.2),
+                  ],
+                ),
               ),
             ),
           ),
+
+          // 登录表单容器
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(color: Colors.transparent),
+            ),
+          ),
+
           // 主内容
           SafeArea(
             child: SingleChildScrollView(
@@ -124,20 +193,100 @@ class _LoginScreenState extends State<LoginScreen>
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     SizedBox(height: size.height * 0.05),
-                    // 标题
-                    SlideTransition(
-                      position: _slideAnimation,
-                      child: Text(
-                        '欢迎回来',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.headlineMedium?.copyWith(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
+
+                    // API错误消息（如果有）
+                    if (_apiError != null)
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.errorColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppTheme.errorColor,
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              color: AppTheme.errorColor,
+                              size: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                _apiError!,
+                                style: TextStyle(
+                                  color: AppTheme.errorColor,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+
+                    // 标题和品牌标识
+                    SlideTransition(
+                      position: _slideAnimation,
+                      child: Column(
+                        children: [
+                          Container(
+                            height: 80,
+                            width: 80,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppTheme.neonPurple,
+                                  AppTheme.neonBlue,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.neonPurple.withOpacity(0.4),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.flight_takeoff,
+                                color: Colors.white,
+                                size: 40,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                          Text(
+                            '欢迎回来',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(
+                              context,
+                            ).textTheme.headlineMedium?.copyWith(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.primaryTextColor,
+                              shadows: [
+                                Shadow(
+                                  color: AppTheme.neonPurple.withOpacity(0.5),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+
                     const SizedBox(height: 12),
                     SlideTransition(
                       position: _slideAnimation,
@@ -150,13 +299,25 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                       ),
                     ),
-                    SizedBox(height: size.height * 0.06),
-                    // 表单区域
+
+                    SizedBox(height: size.height * 0.05),
+
+                    // 表单区域 - 使用毛玻璃效果
                     SlideTransition(
                       position: _slideAnimation,
-                      child: _buildFormArea(),
+                      child: GlassCard(
+                        borderRadius: 24,
+                        blur: 10,
+                        opacity: 0.1,
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: _buildFormArea(),
+                        ),
+                      ),
                     ),
+
                     const SizedBox(height: 20),
+
                     // 忘记密码链接
                     SlideTransition(
                       position: _slideAnimation,
@@ -168,41 +329,30 @@ class _LoginScreenState extends State<LoginScreen>
                           child: Text(
                             '忘记密码?',
                             style: TextStyle(
-                              color: AppTheme.primaryTextColor,
+                              color: AppTheme.neonBlue,
                               fontWeight: FontWeight.w600,
+                              fontSize: 16,
                             ),
                           ),
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 30),
+
                     // 登录按钮
                     SlideTransition(
                       position: _slideAnimation,
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: ElevatedButton(
-                          onPressed: _login,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.buttonColor,
-                            foregroundColor: AppTheme.primaryTextColor,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          child: const Text(
-                            '登录',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
+                      child: MicroInteractionButton(
+                        text: '登录',
+                        icon: Icons.login,
+                        backgroundColor: AppTheme.buttonColor,
+                        onPressed: _login,
                       ),
                     ),
+
                     const SizedBox(height: 30),
+
                     // 注册新账号链接
                     SlideTransition(
                       position: _slideAnimation,
@@ -223,7 +373,7 @@ class _LoginScreenState extends State<LoginScreen>
                             child: Text(
                               '立即注册',
                               style: TextStyle(
-                                color: AppTheme.buttonColor,
+                                color: AppTheme.neonPurple,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                               ),
@@ -249,17 +399,25 @@ class _LoginScreenState extends State<LoginScreen>
         // 邮箱输入框
         _buildTextField(
           controller: _emailController,
-          hint: '请输入您的邮箱',
-          icon: Icons.email_outlined,
+          hint: '请输入邮箱',
+          icon: Icons.email,
           keyboardType: TextInputType.emailAddress,
+          errorText: _emailError,
         ),
         const SizedBox(height: 20),
         // 密码输入框
         _buildTextField(
           controller: _passwordController,
-          hint: '请输入您的密码',
-          icon: Icons.lock_outline,
+          hint: '请输入密码',
+          icon: Icons.lock,
           isPassword: true,
+          isPasswordVisible: _isPasswordVisible,
+          onTogglePassword: () {
+            setState(() {
+              _isPasswordVisible = !_isPasswordVisible;
+            });
+          },
+          errorText: _passwordError,
         ),
       ],
     );
@@ -269,57 +427,89 @@ class _LoginScreenState extends State<LoginScreen>
     required TextEditingController controller,
     required String hint,
     required IconData icon,
-    TextInputType keyboardType = TextInputType.text,
     bool isPassword = false,
+    bool isPasswordVisible = false,
+    VoidCallback? onTogglePassword,
+    TextInputType keyboardType = TextInputType.text,
+    String? errorText,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start, // 改为左对齐
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: AppTheme.cardColor.withOpacity(0.6),
+            borderRadius: BorderRadius.circular(14),
+            boxShadow:
+                errorText != null
+                    ? [
+                      BoxShadow(
+                        color: AppTheme.errorColor.withOpacity(0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                    : [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+            border:
+                errorText != null
+                    ? Border.all(color: AppTheme.errorColor, width: 1)
+                    : null,
           ),
-        ],
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: isPassword && !_isPasswordVisible,
-        keyboardType: keyboardType,
-        style: TextStyle(color: AppTheme.primaryTextColor, fontSize: 16),
-        textAlign: TextAlign.center,
-        decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 20,
-            horizontal: 20,
+          child: TextField(
+            controller: controller,
+            obscureText: isPassword && !isPasswordVisible,
+            keyboardType: keyboardType,
+            style: TextStyle(color: AppTheme.primaryTextColor),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(color: AppTheme.hintTextColor),
+              prefixIcon: Icon(icon, color: AppTheme.secondaryTextColor),
+              suffixIcon:
+                  isPassword
+                      ? IconButton(
+                        icon: Icon(
+                          isPasswordVisible
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: AppTheme.secondaryTextColor,
+                        ),
+                        onPressed: onTogglePassword,
+                      )
+                      : null,
+              border: OutlineInputBorder(
+                borderSide: BorderSide.none,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 16,
+                horizontal: 20,
+              ),
+            ),
           ),
-          border: InputBorder.none,
-          hintText: hint,
-          hintStyle: TextStyle(color: AppTheme.hintTextColor),
-          prefixIcon: Icon(
-            icon,
-            color: AppTheme.primaryTextColor.withOpacity(0.7),
-          ),
-          suffixIcon:
-              isPassword
-                  ? IconButton(
-                    icon: Icon(
-                      _isPasswordVisible
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      color: AppTheme.primaryTextColor.withOpacity(0.7),
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
-                  )
-                  : null,
         ),
-      ),
+        if (errorText != null)
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(top: 6, left: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start, // 错误提示左对齐
+              children: [
+                Icon(Icons.error_outline, size: 14, color: AppTheme.errorColor),
+                const SizedBox(width: 5),
+                Text(
+                  errorText,
+                  style: TextStyle(color: AppTheme.errorColor, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }

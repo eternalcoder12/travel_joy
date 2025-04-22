@@ -252,26 +252,6 @@ class _RegisterScreenState extends State<RegisterScreen>
                   children: [
                     SizedBox(height: size.height * 0.04),
 
-                    // 返回按钮
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: GlassCard(
-                        borderRadius: 50,
-                        blur: 10,
-                        opacity: 0.1,
-                        padding: EdgeInsets.all(8),
-                        onTap: () {
-                          Navigator.pop(context);
-                        },
-                        child: Icon(
-                          Icons.arrow_back,
-                          color: AppTheme.primaryTextColor,
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(height: 20),
-
                     // API错误消息（如果有）
                     if (_apiError != null)
                       Container(

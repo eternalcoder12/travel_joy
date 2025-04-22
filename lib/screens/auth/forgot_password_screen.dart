@@ -407,7 +407,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
         Container(
           decoration: BoxDecoration(
             color: AppTheme.cardColor.withOpacity(0.6),
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
             boxShadow:
                 _emailError != null
                     ? [
@@ -433,14 +433,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             style: TextStyle(color: AppTheme.primaryTextColor),
-            textAlign: TextAlign.center,
             decoration: InputDecoration(
               hintText: '请输入您的邮箱',
               hintStyle: TextStyle(color: AppTheme.hintTextColor),
               prefixIcon: Icon(Icons.email, color: AppTheme.secondaryTextColor),
               border: OutlineInputBorder(
                 borderSide: BorderSide.none,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(16),
               ),
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 16,
