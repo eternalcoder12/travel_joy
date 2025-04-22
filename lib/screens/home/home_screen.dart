@@ -88,7 +88,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
     const Color(0xFFFFAF7B),
   ];
 
-  // 功能卡片数据 - 使用非空颜色列表
+  // 功能卡片数据 - 使用非空颜色列表和副标题
   final List<Map<String, dynamic>> _featureCards = [
     {
       'title': '热门景点',
@@ -309,12 +309,18 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                         (cardData['gradientColors'] as List<Color>?) ??
                         _defaultGradient;
 
+                    // 提取标题和副标题（添加空值检查）
+                    final String title = cardData['title'] as String;
+                    final String subtitle =
+                        (cardData['subtitle'] as String?) ??
+                        "了解更多信息"; // 提供默认副标题
+
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16.0),
                       child: _buildFeatureCard(
                         context: context,
-                        title: cardData['title'] as String,
-                        subtitle: cardData['subtitle'] as String,
+                        title: title,
+                        subtitle: subtitle,
                         icon: cardData['icon'] as IconData,
                         tag: cardData['tag'] as String,
                         tagColor: cardData['tagColor'] as Color,
