@@ -163,14 +163,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
       backgroundColor: AppTheme.backgroundColor,
       body: Stack(
         children: [
+          // 底色背景
+          Positioned.fill(child: Container(color: AppTheme.backgroundColor)),
+
+          // 背景渐变装饰
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
                 gradient: RadialGradient(
-                  center: Alignment.topRight,
-                  radius: 1.8,
+                  center: Alignment.topCenter,
+                  radius: 2.5,
                   colors: [
-                    AppTheme.neonBlue.withOpacity(0.2),
+                    AppTheme.accentColor.withOpacity(0.2),
                     AppTheme.backgroundColor,
                   ],
                 ),
@@ -178,45 +182,69 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
             ),
           ),
 
+          // 顶部装饰圆形
           Positioned(
-            top: -120,
-            right: -100,
+            top: -100,
+            right: -80,
             child: Container(
-              width: 280,
-              height: 280,
+              width: 400,
+              height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    AppTheme.neonTeal.withOpacity(0.3),
-                    AppTheme.neonBlue.withOpacity(0.2),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -140,
-            left: -80,
-            child: Container(
-              width: 230,
-              height: 230,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
-                  colors: [
-                    AppTheme.neonPurple.withOpacity(0.3),
-                    AppTheme.neonPink.withOpacity(0.2),
+                    AppTheme.neonBlue.withOpacity(0.3),
+                    AppTheme.neonTeal.withOpacity(0.2),
                   ],
                 ),
               ),
             ),
           ),
 
+          // 底部装饰圆形
+          Positioned(
+            bottom: -140,
+            left: -60,
+            child: Container(
+              width: 350,
+              height: 350,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                  colors: [
+                    AppTheme.neonBlue.withOpacity(0.3),
+                    AppTheme.neonPurple.withOpacity(0.2),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // 添加额外的底部背景元素，确保无缝覆盖
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.of(context).size.height * 0.5,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppTheme.backgroundColor.withOpacity(0.0),
+                    AppTheme.backgroundColor,
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // 模糊效果
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -227,180 +255,184 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
           SafeArea(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(height: size.height * 0.06),
-
-                    if (_apiError != null)
-                      Container(
-                        width: double.infinity,
-                        margin: const EdgeInsets.only(bottom: 16),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppTheme.errorColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppTheme.errorColor,
-                            width: 1,
+              child: Container(
+                height: MediaQuery.of(context).size.height - 60,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (_apiError != null)
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.errorColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppTheme.errorColor,
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                color: AppTheme.errorColor,
+                                size: 24,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  _apiError!,
+                                  style: TextStyle(
+                                    color: AppTheme.errorColor,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+
+                      SlideTransition(
+                        position: _slideAnimation,
+                        child: Column(
                           children: [
-                            Icon(
-                              Icons.error_outline,
-                              color: AppTheme.errorColor,
-                              size: 24,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                _apiError!,
-                                style: TextStyle(
-                                  color: AppTheme.errorColor,
-                                  fontSize: 14,
+                            Container(
+                              height: 70,
+                              width: 70,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppTheme.neonBlue,
+                                    AppTheme.neonPurple,
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppTheme.neonBlue.withOpacity(0.4),
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
+                              ),
+                              child: const Center(
+                                child: Icon(
+                                  Icons.lock_reset,
+                                  color: Colors.white,
+                                  size: 36,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
+                              '忘记密码',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(
+                                context,
+                              ).textTheme.headlineMedium?.copyWith(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryTextColor,
+                                shadows: [
+                                  Shadow(
+                                    color: AppTheme.neonBlue.withOpacity(0.5),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
 
-                    SlideTransition(
-                      position: _slideAnimation,
-                      child: Column(
-                        children: [
-                          Container(
-                            height: 70,
-                            width: 70,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppTheme.neonBlue,
-                                  AppTheme.neonPurple,
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppTheme.neonBlue.withOpacity(0.4),
-                                  blurRadius: 15,
-                                  offset: const Offset(0, 5),
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.lock_reset,
-                                color: Colors.white,
-                                size: 36,
-                              ),
-                            ),
+                      const SizedBox(height: 12),
+                      SlideTransition(
+                        position: _slideAnimation,
+                        child: Text(
+                          '请输入您的邮箱地址，我们将发送重置密码链接',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(
+                            fontSize: 16,
+                            color: AppTheme.secondaryTextColor,
                           ),
-                          const SizedBox(height: 24),
-                          Text(
-                            '忘记密码',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.headlineMedium?.copyWith(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.primaryTextColor,
-                              shadows: [
-                                Shadow(
-                                  color: AppTheme.neonBlue.withOpacity(0.5),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-                    SlideTransition(
-                      position: _slideAnimation,
-                      child: Text(
-                        '请输入您的邮箱地址，我们将发送重置密码链接',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontSize: 16,
-                          color: AppTheme.secondaryTextColor,
                         ),
                       ),
-                    ),
 
-                    SizedBox(height: size.height * 0.06),
+                      SizedBox(height: size.height * 0.06),
 
-                    SlideTransition(
-                      position: _slideAnimation,
-                      child: GlassCard(
-                        borderRadius: 24,
-                        blur: 10,
-                        opacity: 0.1,
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: _buildEmailField(),
+                      SlideTransition(
+                        position: _slideAnimation,
+                        child: GlassCard(
+                          borderRadius: 24,
+                          blur: 10,
+                          opacity: 0.1,
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: _buildEmailField(),
+                          ),
                         ),
                       ),
-                    ),
 
-                    const SizedBox(height: 30),
+                      const SizedBox(height: 30),
 
-                    SlideTransition(
-                      position: _slideAnimation,
-                      child:
-                          _linkSent
-                              ? _buildLinkSentConfirmation()
-                              : MicroInteractionButton(
-                                text: '发送重置链接',
-                                onPressed: () {
-                                  if (_formKey.currentState?.validate() ==
-                                      true) {
-                                    _resetPassword();
-                                  }
-                                },
-                              ),
-                    ),
+                      SlideTransition(
+                        position: _slideAnimation,
+                        child:
+                            _linkSent
+                                ? _buildLinkSentConfirmation()
+                                : MicroInteractionButton(
+                                  text: '发送重置链接',
+                                  onPressed: () {
+                                    if (_formKey.currentState?.validate() ==
+                                        true) {
+                                      _resetPassword();
+                                    }
+                                  },
+                                ),
+                      ),
 
-                    const SizedBox(height: 24),
-                    SlideTransition(
-                      position: _slideAnimation,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '记起密码了？',
-                            style: TextStyle(
-                              color: AppTheme.secondaryTextColor,
-                              fontSize: 16,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text(
-                              '登录',
+                      const SizedBox(height: 24),
+                      SlideTransition(
+                        position: _slideAnimation,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '记起密码了？',
                               style: TextStyle(
-                                color: AppTheme.neonBlue,
-                                fontWeight: FontWeight.bold,
+                                color: AppTheme.secondaryTextColor,
                                 fontSize: 16,
                               ),
                             ),
-                          ),
-                        ],
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: Text(
+                                '登录',
+                                style: TextStyle(
+                                  color: AppTheme.neonBlue,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

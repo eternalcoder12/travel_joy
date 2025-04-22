@@ -99,16 +99,9 @@ class _RegisterScreenState extends State<RegisterScreen>
         ),
         backgroundColor: AppTheme.errorColor,
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(top: 50, right: 16, left: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         duration: const Duration(seconds: 3),
-        action: SnackBarAction(
-          label: '知道了',
-          textColor: AppTheme.primaryTextColor,
-          onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          },
-        ),
       ),
     );
   }
@@ -165,21 +158,84 @@ class _RegisterScreenState extends State<RegisterScreen>
       isValid = false;
     }
 
-    // 验证是否同意协议
-    if (!_agreeToTerms) {
-      _showErrorSnackBar('请同意用户协议和隐私政策');
-      isValid = false;
-    }
-
+    // 移除对协议的验证，让它在_register方法中单独处理
     return isValid;
   }
 
+  void _showAgreementDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.cardColor.withOpacity(0.9),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            '用户协议与隐私政策',
+            style: TextStyle(
+              color: AppTheme.primaryTextColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            '请阅读并同意我们的用户协议和隐私政策，以继续完成注册。',
+            style: TextStyle(color: AppTheme.secondaryTextColor),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: Text(
+                '取消',
+                style: TextStyle(color: AppTheme.secondaryTextColor),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.neonTeal,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text('同意并继续'),
+            ),
+          ],
+        );
+      },
+    ).then((agreed) {
+      if (agreed == true) {
+        setState(() {
+          _agreeToTerms = true;
+        });
+        // 同意后继续注册流程
+        print(
+          '注册信息: 用户名=${_usernameController.text}, 邮箱=${_emailController.text}, 密码=${_passwordController.text}',
+        );
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    });
+  }
+
   void _register() {
-    // 先验证输入
+    // 先验证表单输入
     if (!_validateInputs()) {
       return;
     }
 
+    // 如果表单验证通过，但没有勾选协议，则显示协议对话框
+    if (!_agreeToTerms) {
+      _showAgreementDialog();
+      return;
+    }
+
+    // 如果已勾选协议，则直接进行注册
     print(
       '注册信息: 用户名=${_usernameController.text}, 邮箱=${_emailController.text}, 密码=${_passwordController.text}',
     );
@@ -202,15 +258,18 @@ class _RegisterScreenState extends State<RegisterScreen>
       backgroundColor: AppTheme.backgroundColor,
       body: Stack(
         children: [
+          // 底色背景
+          Positioned.fill(child: Container(color: AppTheme.backgroundColor)),
+
           // 背景渐变装饰
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
                 gradient: RadialGradient(
                   center: Alignment.topRight,
-                  radius: 1.8,
+                  radius: 2.5,
                   colors: [
-                    AppTheme.neonPurple.withOpacity(0.2),
+                    AppTheme.accentColor.withOpacity(0.2),
                     AppTheme.backgroundColor,
                   ],
                 ),
@@ -218,40 +277,62 @@ class _RegisterScreenState extends State<RegisterScreen>
             ),
           ),
 
-          // 背景装饰元素
+          // 顶部装饰圆形
           Positioned(
-            top: -120,
-            right: -100,
+            top: -100,
+            left: -80,
             child: Container(
-              width: 280,
-              height: 280,
+              width: 400,
+              height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    AppTheme.neonTeal.withOpacity(0.3),
-                    AppTheme.neonPurple.withOpacity(0.2),
+                    AppTheme.neonPurple.withOpacity(0.3),
+                    AppTheme.neonTeal.withOpacity(0.2),
                   ],
                 ),
               ),
             ),
           ),
+
+          // 底部装饰圆形
           Positioned(
             bottom: -140,
-            left: -80,
+            right: -60,
             child: Container(
-              width: 230,
-              height: 230,
+              width: 350,
+              height: 350,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
                   begin: Alignment.topRight,
                   end: Alignment.bottomLeft,
                   colors: [
-                    AppTheme.neonBlue.withOpacity(0.3),
-                    AppTheme.neonPink.withOpacity(0.2),
+                    AppTheme.neonTeal.withOpacity(0.3),
+                    AppTheme.neonBlue.withOpacity(0.2),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // 添加额外的底部背景元素，确保无缝覆盖
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.of(context).size.height * 0.5,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppTheme.backgroundColor.withOpacity(0.0),
+                    AppTheme.backgroundColor,
                   ],
                 ),
               ),
@@ -270,244 +351,173 @@ class _RegisterScreenState extends State<RegisterScreen>
           SafeArea(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(height: size.height * 0.04),
+              child: Container(
+                height: MediaQuery.of(context).size.height - 60, // 调整高度以居中显示
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center, // 调整为居中
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(height: size.height * 0.04),
 
-                    // API错误消息（如果有）
-                    if (_apiError != null)
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
-                          child: Text(
-                            _apiError!,
-                            style: TextStyle(
-                              color: AppTheme.errorColor,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                    // 标题
-                    Text(
-                      '创建您的旅行者账户',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.headlineMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // 描述文字
-                    Text(
-                      '加入我们，探索无限旅行体验',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontSize: 16,
-                        color: AppTheme.secondaryTextColor,
-                      ),
-                    ),
-
-                    const SizedBox(height: 30),
-
-                    // 注册表单
-                    GlassCard(
-                      borderRadius: 24,
-                      blur: 10,
-                      opacity: 0.1,
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // 用户名输入框
-                              _buildTextField(
-                                controller: _usernameController,
-                                hint: '请输入用户名',
-                                icon: Icons.person,
-                                errorText: _usernameError,
-                              ),
-                              if (_usernameError != null)
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(
-                                      top: 8.0,
-                                      bottom: 16.0,
-                                    ),
-                                    child: Text(
-                                      _usernameError!,
-                                      style: TextStyle(
-                                        color: AppTheme.errorColor,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              const SizedBox(height: 20),
-                              // 邮箱输入框
-                              _buildTextField(
-                                controller: _emailController,
-                                hint: '请输入邮箱',
-                                icon: Icons.email,
-                                keyboardType: TextInputType.emailAddress,
-                                errorText: _emailError,
-                              ),
-                              if (_emailError != null)
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(
-                                      top: 8.0,
-                                      bottom: 16.0,
-                                    ),
-                                    child: Text(
-                                      _emailError!,
-                                      style: TextStyle(
-                                        color: AppTheme.errorColor,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              const SizedBox(height: 20),
-                              // 密码输入框
-                              _buildTextField(
-                                controller: _passwordController,
-                                hint: '请输入密码',
-                                icon: Icons.lock,
-                                isPassword: true,
-                                isPasswordVisible: _isPasswordVisible,
-                                onTogglePassword: () {
-                                  setState(() {
-                                    _isPasswordVisible = !_isPasswordVisible;
-                                  });
-                                },
-                                errorText: _passwordError,
-                              ),
-                              if (_passwordError != null)
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(
-                                      top: 8.0,
-                                      bottom: 16.0,
-                                    ),
-                                    child: Text(
-                                      _passwordError!,
-                                      style: TextStyle(
-                                        color: AppTheme.errorColor,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // 用户协议和隐私政策
-                    Padding(
-                      padding: const EdgeInsets.only(top: 12.0, bottom: 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start, // 左对齐
-                        children: [
-                          Checkbox(
-                            value: _agreeToTerms,
-                            onChanged: (value) {
-                              setState(() {
-                                _agreeToTerms = value ?? false;
-                              });
-                            },
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4.0),
-                            ),
-                          ),
-                          Expanded(
+                      // API错误消息（如果有）
+                      if (_apiError != null)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
                             child: Text(
-                              '我已阅读并同意用户协议和隐私政策',
+                              _apiError!,
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.8),
+                                color: AppTheme.errorColor,
                                 fontSize: 14,
                               ),
                             ),
                           ),
-                        ],
+                        ),
+
+                      // 标题
+                      Text(
+                        '创建您的旅行者账户',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.headlineMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 12),
 
-                    // 注册按钮
-                    MicroInteractionButton(
-                      text: '注册',
-                      onPressed: () {
-                        // 验证表单
-                        if (_formKey.currentState?.validate() == true) {
-                          _register();
-                        }
-                      },
-                    ),
+                      // 描述文字
+                      Text(
+                        '加入我们，探索无限旅行体验',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontSize: 16,
+                          color: AppTheme.secondaryTextColor,
+                        ),
+                      ),
 
-                    // 协议说明
-                    const SizedBox(height: 20),
-                    Align(
-                      alignment: Alignment.centerLeft, // 左对齐
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: Checkbox(
-                              value: _agreeToTerms,
-                              activeColor: AppTheme.neonBlue,
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  _agreeToTerms = value ?? false;
-                                });
-                              },
+                      const SizedBox(height: 30),
+
+                      // 注册表单
+                      GlassCard(
+                        borderRadius: 24,
+                        blur: 10,
+                        opacity: 0.1,
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // 用户名输入框
+                                _buildTextField(
+                                  controller: _usernameController,
+                                  hint: '请输入用户名',
+                                  icon: Icons.person_outline,
+                                  errorText: _usernameError,
+                                ),
+
+                                const SizedBox(height: 16),
+
+                                // 邮箱输入框
+                                _buildTextField(
+                                  controller: _emailController,
+                                  hint: '请输入邮箱',
+                                  icon: Icons.email_outlined,
+                                  keyboardType: TextInputType.emailAddress,
+                                  errorText: _emailError,
+                                ),
+
+                                const SizedBox(height: 16),
+
+                                // 密码输入框
+                                _buildTextField(
+                                  controller: _passwordController,
+                                  hint: '请输入密码',
+                                  icon: Icons.lock_outline,
+                                  isPassword: true,
+                                  isPasswordVisible: _isPasswordVisible,
+                                  onTogglePassword: () {
+                                    setState(() {
+                                      _isPasswordVisible = !_isPasswordVisible;
+                                    });
+                                  },
+                                  errorText: _passwordError,
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 8),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // 注册按钮
+                      MicroInteractionButton(
+                        text: '注册',
+                        onPressed: () {
+                          // 只验证表单，不验证协议
+                          if (_formKey.currentState!.validate()) {
+                            _register();
+                          }
+                        },
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // 用户协议复选框和文本（左对齐）
+                      Row(
+                        children: [
+                          SizedBox(width: 10),
+                          Checkbox(
+                            value: _agreeToTerms,
+                            activeColor: AppTheme.neonTeal,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                _agreeToTerms = value ?? false;
+                              });
+                            },
+                          ),
                           Expanded(
-                            child: RichText(
-                              text: TextSpan(
+                            child: Text.rich(
+                              TextSpan(
+                                text: '我已阅读并同意 ',
                                 style: TextStyle(
                                   color: AppTheme.secondaryTextColor,
                                   fontSize: 14,
                                 ),
                                 children: [
-                                  const TextSpan(text: '我已阅读并同意 '),
                                   TextSpan(
                                     text: '用户协议',
                                     style: TextStyle(
-                                      color: AppTheme.neonBlue,
+                                      color: AppTheme.neonPurple,
                                       fontWeight: FontWeight.bold,
                                     ),
-                                    recognizer: _termsGestureRecognizer,
+                                    recognizer:
+                                        TapGestureRecognizer()
+                                          ..onTap = () {
+                                            // 打开用户协议
+                                            // Navigator.pushNamed(context, '/terms');
+                                          },
                                   ),
-                                  const TextSpan(text: ' 和 '),
+                                  TextSpan(text: ' 和 '),
                                   TextSpan(
                                     text: '隐私政策',
                                     style: TextStyle(
                                       color: AppTheme.neonBlue,
                                       fontWeight: FontWeight.bold,
                                     ),
-                                    recognizer: _privacyGestureRecognizer,
+                                    recognizer:
+                                        TapGestureRecognizer()
+                                          ..onTap = () {
+                                            // 打开隐私政策
+                                            // Navigator.pushNamed(context, '/privacy');
+                                          },
                                   ),
                                 ],
                               ),
@@ -515,38 +525,39 @@ class _RegisterScreenState extends State<RegisterScreen>
                           ),
                         ],
                       ),
-                    ),
 
-                    // 已有账号链接
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '已有账号? ',
-                          style: TextStyle(
-                            color: AppTheme.secondaryTextColor,
-                            fontSize: 16,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/login');
-                          },
-                          child: Text(
-                            '立即登录',
+                      const SizedBox(height: 16),
+
+                      // 已有账号链接
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '已有账号? ',
                             style: TextStyle(
-                              color: AppTheme.neonPurple,
-                              fontWeight: FontWeight.bold,
+                              color: AppTheme.secondaryTextColor,
                               fontSize: 16,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-
-                    // 删除底部返回登录按钮，只保留空间
-                    SizedBox(height: 30),
-                  ],
+                          TextButton(
+                            onPressed: () {
+                              // 切换到登录页面时重置验证状态
+                              _formKey.currentState?.reset();
+                              Navigator.pushReplacementNamed(context, '/login');
+                            },
+                            child: Text(
+                              '立即登录',
+                              style: TextStyle(
+                                color: AppTheme.neonPurple,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -556,6 +567,7 @@ class _RegisterScreenState extends State<RegisterScreen>
     );
   }
 
+  // 修改表单输入框样式
   Widget _buildTextField({
     required TextEditingController controller,
     required String hint,
@@ -566,44 +578,70 @@ class _RegisterScreenState extends State<RegisterScreen>
     TextInputType keyboardType = TextInputType.text,
     String? errorText,
   }) {
+    final borderRadius = BorderRadius.circular(15);
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start, // 改为左对齐
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           decoration: BoxDecoration(
-            color: AppTheme.cardColor.withOpacity(0.6),
-            borderRadius: BorderRadius.circular(14),
-            boxShadow:
-                errorText != null
-                    ? [
-                      BoxShadow(
-                        color: AppTheme.errorColor.withOpacity(0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                    : [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-            border:
-                errorText != null
-                    ? Border.all(color: AppTheme.errorColor, width: 1)
-                    : null,
+            color: Colors.black.withOpacity(0.3),
+            borderRadius: borderRadius,
+            // 使用不可见边框保持圆角的一致性
+            border: Border.all(
+              color:
+                  errorText != null ? AppTheme.errorColor : Colors.transparent,
+              width: 1,
+            ),
           ),
+          // 使Container与输入框紧密贴合，避免边距不一致
+          clipBehavior: Clip.antiAlias,
           child: TextField(
             controller: controller,
             obscureText: isPassword && !isPasswordVisible,
             keyboardType: keyboardType,
-            style: TextStyle(color: AppTheme.primaryTextColor),
-            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white),
             decoration: InputDecoration(
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 15,
+              ),
+              filled: true,
+              fillColor: Colors.transparent,
+              // 设置TextField的边框
+              border: OutlineInputBorder(
+                borderRadius: borderRadius,
+                borderSide: BorderSide(
+                  color:
+                      errorText != null
+                          ? AppTheme.errorColor
+                          : Colors.transparent,
+                  width: 1,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: borderRadius,
+                borderSide: BorderSide(
+                  color:
+                      errorText != null
+                          ? AppTheme.errorColor
+                          : Colors.transparent,
+                  width: 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: borderRadius,
+                borderSide: BorderSide(
+                  color:
+                      errorText != null
+                          ? AppTheme.errorColor
+                          : Colors.transparent,
+                  width: 1,
+                ),
+              ),
               hintText: hint,
-              hintStyle: TextStyle(color: AppTheme.hintTextColor),
-              prefixIcon: Icon(icon, color: AppTheme.secondaryTextColor),
+              hintStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+              prefixIcon: Icon(icon, color: Colors.white70),
               suffixIcon:
                   isPassword
                       ? IconButton(
@@ -611,19 +649,11 @@ class _RegisterScreenState extends State<RegisterScreen>
                           isPasswordVisible
                               ? Icons.visibility_off
                               : Icons.visibility,
-                          color: AppTheme.secondaryTextColor,
+                          color: Colors.white70,
                         ),
                         onPressed: onTogglePassword,
                       )
                       : null,
-              border: OutlineInputBorder(
-                borderSide: BorderSide.none,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 16,
-                horizontal: 20,
-              ),
             ),
           ),
         ),
@@ -632,7 +662,7 @@ class _RegisterScreenState extends State<RegisterScreen>
             width: double.infinity,
             margin: const EdgeInsets.only(top: 6, left: 8),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.start, // 改为左对齐
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Icon(Icons.error_outline, size: 14, color: AppTheme.errorColor),
                 const SizedBox(width: 5),

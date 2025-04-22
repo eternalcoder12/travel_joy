@@ -119,13 +119,16 @@ class _LoginScreenState extends State<LoginScreen>
       backgroundColor: AppTheme.backgroundColor,
       body: Stack(
         children: [
+          // 底色背景
+          Positioned.fill(child: Container(color: AppTheme.backgroundColor)),
+
           // 背景渐变装饰
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
                 gradient: RadialGradient(
                   center: Alignment.topLeft,
-                  radius: 1.8,
+                  radius: 2.5,
                   colors: [
                     AppTheme.accentColor.withOpacity(0.2),
                     AppTheme.backgroundColor,
@@ -135,13 +138,13 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
 
-          // 背景装饰元素
+          // 顶部装饰圆形
           Positioned(
-            top: -120,
-            right: -100,
+            top: -100,
+            right: -80,
             child: Container(
-              width: 280,
-              height: 280,
+              width: 400,
+              height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
@@ -155,12 +158,14 @@ class _LoginScreenState extends State<LoginScreen>
               ),
             ),
           ),
+
+          // 底部装饰圆形
           Positioned(
             bottom: -140,
-            left: -80,
+            left: -60,
             child: Container(
-              width: 230,
-              height: 230,
+              width: 350,
+              height: 350,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
@@ -172,6 +177,34 @@ class _LoginScreenState extends State<LoginScreen>
                   ],
                 ),
               ),
+            ),
+          ),
+
+          // 添加额外的底部背景元素，确保无缝覆盖
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.of(context).size.height * 0.5,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppTheme.backgroundColor.withOpacity(0.0),
+                    AppTheme.backgroundColor,
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // 模糊效果
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(color: Colors.transparent),
             ),
           ),
 
@@ -312,25 +345,6 @@ class _LoginScreenState extends State<LoginScreen>
 
                     const SizedBox(height: 20),
 
-                    // 忘记密码链接
-                    Center(
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/forgot_password');
-                        },
-                        child: Text(
-                          '忘记密码?',
-                          style: TextStyle(
-                            color: AppTheme.neonBlue,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 30),
-
                     // 登录按钮
                     MicroInteractionButton(
                       text: '登录',
@@ -342,7 +356,7 @@ class _LoginScreenState extends State<LoginScreen>
                       },
                     ),
 
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 20),
 
                     // 注册新账号链接
                     Row(
@@ -369,6 +383,25 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                         ),
                       ],
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // 忘记密码链接移到底部
+                    Center(
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/forgot_password');
+                        },
+                        child: Text(
+                          '忘记密码?',
+                          style: TextStyle(
+                            color: AppTheme.neonBlue,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -422,32 +455,12 @@ class _LoginScreenState extends State<LoginScreen>
     String? errorText,
   }) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start, // 改为左对齐
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           decoration: BoxDecoration(
             color: AppTheme.cardColor.withOpacity(0.6),
             borderRadius: BorderRadius.circular(14),
-            boxShadow:
-                errorText != null
-                    ? [
-                      BoxShadow(
-                        color: AppTheme.errorColor.withOpacity(0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                    : [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-            border:
-                errorText != null
-                    ? Border.all(color: AppTheme.errorColor, width: 1)
-                    : null,
           ),
           child: TextField(
             controller: controller,
@@ -471,8 +484,25 @@ class _LoginScreenState extends State<LoginScreen>
                       )
                       : null,
               border: OutlineInputBorder(
-                borderSide: BorderSide.none,
                 borderRadius: BorderRadius.circular(14),
+                borderSide:
+                    errorText != null
+                        ? BorderSide(color: AppTheme.errorColor, width: 1)
+                        : BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide:
+                    errorText != null
+                        ? BorderSide(color: AppTheme.errorColor, width: 1)
+                        : BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide:
+                    errorText != null
+                        ? BorderSide(color: AppTheme.errorColor, width: 1)
+                        : BorderSide.none,
               ),
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 16,
@@ -486,7 +516,7 @@ class _LoginScreenState extends State<LoginScreen>
             width: double.infinity,
             margin: const EdgeInsets.only(top: 6, left: 8),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.start, // 错误提示左对齐
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Icon(Icons.error_outline, size: 14, color: AppTheme.errorColor),
                 const SizedBox(width: 5),
