@@ -1,5 +1,9 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../app_theme.dart';
+import '../../widgets/glass_card.dart';
+import '../../widgets/gradient_button.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({Key? key}) : super(key: key);
@@ -22,26 +26,31 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       'icon': Icons.travel_explore,
       'title': '探索小众景点',
       'description': '发现鲜为人知的绝美目的地\n体验独特的旅行路线',
+      'color': AppTheme.neonPurple,
     },
     {
       'icon': Icons.emoji_events,
       'title': '旅行成就系统',
       'description': '完成旅行挑战，解锁独特成就徽章\n登上旅行者排行榜',
+      'color': AppTheme.neonBlue,
     },
     {
       'icon': Icons.trending_up,
       'title': '旅行等级与积分',
       'description': '每次旅行提升等级，累积旅行值\n解锁更多专属特权',
+      'color': AppTheme.neonTeal,
     },
     {
       'icon': Icons.card_giftcard,
       'title': '积分兑换好礼',
       'description': '用旅行积分兑换精美礼品\n专属优惠和限定体验',
+      'color': AppTheme.neonOrange,
     },
     {
       'icon': Icons.photo_camera,
       'title': '分享旅行记忆',
       'description': '记录并分享你的独特旅行故事\n与志同道合的旅行者互动',
+      'color': AppTheme.neonPink,
     },
   ];
 
@@ -78,46 +87,110 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     }
   }
 
+  // 标记已看过引导页
+  Future<void> _markOnboardingComplete() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('hasSeenOnboarding', true);
+
+    if (mounted) {
+      Navigator.pushReplacementNamed(context, '/home');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // 添加右上角跳过按钮
-            if (_currentPage != _pages.length - 1)
-              Positioned(
-                top: 20,
-                right: 20,
-                child: TextButton(
-                  onPressed: () {
-                    // 直接跳转到主页面
-                    Navigator.pushReplacementNamed(context, '/home');
-                  },
-                  style: TextButton.styleFrom(
-                    backgroundColor: AppTheme.cardColor.withOpacity(0.7),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                  ),
-                  child: Text(
-                    '跳过',
-                    style: TextStyle(
-                      color: AppTheme.primaryTextColor,
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.w500,
-                    ),
+      body: Stack(
+        children: [
+          // 背景渐变装饰
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.topRight,
+                  radius: 1.5,
+                  colors: [
+                    _currentPage < _pages.length
+                        ? _pages[_currentPage]['color'].withOpacity(0.2)
+                        : AppTheme.neonPurple.withOpacity(0.2),
+                    AppTheme.backgroundColor,
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // 装饰圆形
+          Positioned(
+            top: -120,
+            right: -80,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    _currentPage < _pages.length
+                        ? _pages[_currentPage]['color'].withOpacity(0.3)
+                        : AppTheme.neonPurple.withOpacity(0.3),
+                    AppTheme.backgroundColor.withOpacity(0.1),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          Positioned(
+            bottom: -100,
+            left: -80,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    _currentPage < _pages.length
+                        ? _pages[_currentPage]['color'].withOpacity(0.3)
+                        : AppTheme.neonPurple.withOpacity(0.3),
+                    AppTheme.backgroundColor.withOpacity(0.1),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // 添加右上角跳过按钮
+          if (_currentPage != _pages.length - 1)
+            Positioned(
+              top: 60,
+              right: 20,
+              child: GlassCard(
+                borderRadius: 25,
+                blur: 10,
+                opacity: 0.1,
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                onTap: () {
+                  // 直接跳转到主页面
+                  Navigator.pushReplacementNamed(context, '/home');
+                },
+                child: Text(
+                  '跳过',
+                  style: TextStyle(
+                    color: AppTheme.primaryTextColor,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
-            Column(
+            ),
+
+          SafeArea(
+            child: Column(
               children: [
-                const SizedBox(height: 30), // 顶部增加间距
+                const SizedBox(height: 50), // 顶部增加间距
                 Expanded(
                   child: PageView.builder(
                     controller: _pageController,
@@ -134,6 +207,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                         icon: _pages[index]['icon'],
                         title: _pages[index]['title'],
                         description: _pages[index]['description'],
+                        color: _pages[index]['color'],
                         index: index,
                       );
                     },
@@ -144,8 +218,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 const SizedBox(height: 40), // 底部增加间距
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -156,6 +230,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     required IconData icon,
     required String title,
     required String description,
+    required Color color,
     required int index,
   }) {
     // 使用TweenAnimationBuilder实现淡入效果
@@ -177,21 +252,46 @@ class _OnboardingScreenState extends State<OnboardingScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // 图标
+            // 图标带3D效果
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(30),
               decoration: BoxDecoration(
                 color: AppTheme.cardColor,
                 shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [color.withOpacity(0.7), color.withOpacity(0.3)],
+                ),
                 boxShadow: [
+                  // 外阴影
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 15,
-                    offset: const Offset(0, 5),
+                    color: color.withOpacity(0.5),
+                    blurRadius: 25,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 10),
+                  ),
+                  // 内亮光
+                  BoxShadow(
+                    color: Colors.white.withOpacity(0.15),
+                    blurRadius: 10,
+                    spreadRadius: -1,
+                    offset: const Offset(-5, -5),
                   ),
                 ],
               ),
-              child: Icon(icon, size: 80.0, color: AppTheme.iconColor),
+              child: Icon(
+                icon,
+                size: 70.0,
+                color: AppTheme.primaryTextColor,
+                shadows: [
+                  Shadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 5,
+                    offset: const Offset(2, 2),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 60),
             // 标题
@@ -200,6 +300,15 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 fontSize: 28,
                 letterSpacing: 0.5,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.primaryTextColor,
+                shadows: [
+                  Shadow(
+                    color: color.withOpacity(0.5),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               textAlign: TextAlign.center,
             ),
@@ -207,9 +316,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             // 描述
             Text(
               description,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(fontSize: 18, height: 1.5),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontSize: 18,
+                height: 1.5,
+                color: AppTheme.secondaryTextColor,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -234,9 +345,19 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             decoration: BoxDecoration(
               color:
                   _currentPage == index
-                      ? AppTheme.primaryTextColor
+                      ? _pages[index]['color']
                       : AppTheme.secondaryTextColor.withOpacity(0.5),
               borderRadius: BorderRadius.circular(5),
+              boxShadow:
+                  _currentPage == index
+                      ? [
+                        BoxShadow(
+                          color: _pages[index]['color'].withOpacity(0.5),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                      : null,
             ),
           ),
         ),
@@ -247,96 +368,42 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   // 构建底部按钮
   Widget _buildBottomButton(BuildContext context) {
     if (_currentPage == _pages.length - 1) {
-      return Column(
-        children: [
-          ScaleTransition(
-            scale: _scaleAnimation,
-            child: Container(
-              width: 220,
-              height: 60,
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.buttonColor.withOpacity(0.4),
-                    blurRadius: 15,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/home');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.buttonColor,
-                  foregroundColor: AppTheme.backgroundColor,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 30,
-                    vertical: 15,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30.0),
-                  ),
-                  elevation: 0,
+      return AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30.0),
+              child: GradientButton(
+                onPressed: _markOnboardingComplete,
+                gradient: LinearGradient(
+                  colors: [AppTheme.neonPurple, AppTheme.neonBlue],
                 ),
-                child: Text(
-                  '开始旅行✈️',
-                  style: TextStyle(
-                    color: AppTheme.backgroundColor,
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 1,
-                  ),
-                ),
+                text: '开始探索',
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          TextButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/login');
-            },
-            child: Text(
-              '已有账号？登录',
-              style: TextStyle(
-                color: AppTheme.primaryTextColor,
-                fontSize: 16.0,
-              ),
-            ),
-          ),
-        ],
+          );
+        },
       );
     } else {
-      return Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.primaryTextColor.withOpacity(0.3),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: ElevatedButton(
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 30.0),
+        child: GradientButton(
           onPressed: () {
-            _pageController.nextPage(
-              duration: const Duration(milliseconds: 500),
+            _pageController.animateToPage(
+              _currentPage + 1,
+              duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
             );
           },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.primaryTextColor,
-            foregroundColor: AppTheme.backgroundColor,
-            shape: const CircleBorder(),
-            padding: const EdgeInsets.all(20),
-            elevation: 0,
+          gradient: LinearGradient(
+            colors: [
+              _pages[_currentPage]['color'],
+              _pages[_currentPage]['color'].withOpacity(0.7),
+            ],
           ),
-          child: Icon(
-            Icons.arrow_forward,
-            color: AppTheme.backgroundColor,
-            size: 30,
-          ),
+          text: '下一步',
         ),
       );
     }

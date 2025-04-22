@@ -5,13 +5,20 @@ import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/auth/forgot_password_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final bool hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
+
+  runApp(MyApp(hasSeenOnboarding: hasSeenOnboarding));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool hasSeenOnboarding;
+
+  const MyApp({super.key, this.hasSeenOnboarding = false});
 
   // This widget is the root of your application.
   @override
@@ -19,14 +26,56 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Travel Joy',
       theme: AppTheme.getTheme(),
-      home: const OnboardingScreen(),
+      home: hasSeenOnboarding ? const HomeScreen() : const OnboardingScreen(),
       routes: {
         '/home': (context) => const HomeScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
         '/forgot_password': (context) => const ForgotPasswordScreen(),
       },
+      onGenerateRoute: (settings) {
+        final Widget page =
+            settings.name == '/'
+                ? hasSeenOnboarding
+                    ? const HomeScreen()
+                    : const OnboardingScreen()
+                : _buildPageFromRoute(settings.name);
+
+        return PageRouteBuilder(
+          settings: settings,
+          pageBuilder: (context, animation, secondaryAnimation) => page,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOutCubic;
+
+            var tween = Tween(
+              begin: begin,
+              end: end,
+            ).chain(CurveTween(curve: curve));
+            var offsetAnimation = animation.drive(tween);
+
+            return SlideTransition(position: offsetAnimation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 300),
+        );
+      },
     );
+  }
+
+  Widget _buildPageFromRoute(String? name) {
+    switch (name) {
+      case '/home':
+        return const HomeScreen();
+      case '/login':
+        return const LoginScreen();
+      case '/register':
+        return const RegisterScreen();
+      case '/forgot_password':
+        return const ForgotPasswordScreen();
+      default:
+        return const HomeScreen();
+    }
   }
 }
 
