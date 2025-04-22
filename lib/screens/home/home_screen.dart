@@ -10,68 +10,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   int _currentIndex = 0;
-  late AnimationController _cardAnimationController;
-  late AnimationController _communityAnimationController;
-  late AnimationController _buttonAnimationController;
-  late AnimationController _hoverAnimationController;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // 初始化卡片动画控制器
-    _cardAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    )..forward();
-
-    // 初始化社区内容动画控制器
-    _communityAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-
-    // 初始化按钮动画控制器
-    _buttonAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-
-    // 初始化悬浮动画控制器
-    _hoverAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-
-    // 设置悬浮动画循环播放
-    _hoverAnimationController.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        _hoverAnimationController.reverse();
-      } else if (status == AnimationStatus.dismissed) {
-        _hoverAnimationController.forward();
-      }
-    });
-    _hoverAnimationController.forward();
-
-    // 延迟200毫秒启动社区内容动画
-    Future.delayed(const Duration(milliseconds: 200), () {
-      if (mounted) {
-        _communityAnimationController.forward();
-      }
-    });
-
-    // 启动按钮动画
-    _buttonAnimationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _cardAnimationController.dispose();
-    _communityAnimationController.dispose();
-    _buttonAnimationController.dispose();
-    _hoverAnimationController.dispose();
-    super.dispose();
-  }
 
   final List<Widget> _screens = [
     const _HomeTab(),
@@ -135,6 +73,13 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
   late AnimationController _communityAnimationController;
   late AnimationController _buttonAnimationController;
   late AnimationController _hoverAnimationController;
+
+  // Unsplash图片URL列表
+  final List<String> _unsplashImages = [
+    'https://images.unsplash.com/photo-1516815231560-8f41ec531527?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', // 巴厘岛
+    'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', // 日本京都
+    'https://images.unsplash.com/photo-1491555103944-7c647fd857e6?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80', // 瑞士阿尔卑斯山
+  ];
 
   @override
   void initState() {
@@ -310,6 +255,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                                   '这是我在${['巴厘岛', '日本京都', '瑞士阿尔卑斯山'][index]}的难忘旅行，非常推荐大家前往...',
                               likes: (120 - index * 30).toString(),
                               comments: (50 - index * 15).toString(),
+                              imageUrl: _unsplashImages[index],
                             ),
                           );
                         },
@@ -427,6 +373,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
     required String content,
     required String likes,
     required String comments,
+    required String imageUrl,
   }) {
     return Material(
       color: Colors.transparent,
@@ -456,20 +403,44 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 图片（占位图）
+                // 图片（Unsplash图片）
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8.0),
                   child: AspectRatio(
                     aspectRatio: 16 / 9,
-                    child: Container(
-                      color: AppTheme.accentColor.withOpacity(0.2),
-                      child: Center(
-                        child: Icon(
-                          Icons.image,
-                          color: AppTheme.iconColor.withOpacity(0.5),
-                          size: 40,
-                        ),
-                      ),
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      // 加载错误时显示占位图
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: AppTheme.accentColor.withOpacity(0.2),
+                          child: Center(
+                            child: Icon(
+                              Icons.image,
+                              color: AppTheme.iconColor.withOpacity(0.5),
+                              size: 40,
+                            ),
+                          ),
+                        );
+                      },
+                      // 加载中显示进度指示器
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          color: AppTheme.cardColor,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: AppTheme.accentColor,
+                              value:
+                                  loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                      : null,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
