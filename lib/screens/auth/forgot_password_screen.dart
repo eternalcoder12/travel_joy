@@ -20,6 +20,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
   bool _linkSent = false;
   late AnimationController _animationController;
   late Animation<Offset> _slideAnimation;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -146,6 +147,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     _showSuccessSnackBar();
 
     print('发送重置链接到: ${_emailController.text}');
+  }
+
+  void _resetPassword() {
+    if (_formKey.currentState?.validate() == true) {
+      _sendResetLink();
+    }
   }
 
   @override
@@ -355,9 +362,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                               ? _buildLinkSentConfirmation()
                               : MicroInteractionButton(
                                 text: '发送重置链接',
-                                icon: Icons.send,
-                                backgroundColor: AppTheme.buttonColor,
-                                onPressed: _sendResetLink,
+                                onPressed: () {
+                                  if (_formKey.currentState?.validate() ==
+                                      true) {
+                                    _resetPassword();
+                                  }
+                                },
                               ),
                     ),
 

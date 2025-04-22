@@ -288,51 +288,42 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
 
                     const SizedBox(height: 12),
-                    SlideTransition(
-                      position: _slideAnimation,
-                      child: Text(
-                        '登录您的账户以继续您的旅行探索',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontSize: 16,
-                          color: AppTheme.secondaryTextColor,
-                        ),
+                    Text(
+                      '登录您的账户以继续您的旅行探索',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontSize: 16,
+                        color: AppTheme.secondaryTextColor,
                       ),
                     ),
 
                     SizedBox(height: size.height * 0.05),
 
                     // 表单区域 - 使用毛玻璃效果
-                    SlideTransition(
-                      position: _slideAnimation,
-                      child: GlassCard(
-                        borderRadius: 24,
-                        blur: 10,
-                        opacity: 0.1,
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: _buildFormArea(),
-                        ),
+                    GlassCard(
+                      borderRadius: 24,
+                      blur: 10,
+                      opacity: 0.1,
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: _buildFormArea(),
                       ),
                     ),
 
                     const SizedBox(height: 20),
 
                     // 忘记密码链接
-                    SlideTransition(
-                      position: _slideAnimation,
-                      child: Center(
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/forgot_password');
-                          },
-                          child: Text(
-                            '忘记密码?',
-                            style: TextStyle(
-                              color: AppTheme.neonBlue,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                            ),
+                    Center(
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/forgot_password');
+                        },
+                        child: Text(
+                          '忘记密码?',
+                          style: TextStyle(
+                            color: AppTheme.neonBlue,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
                           ),
                         ),
                       ),
@@ -341,46 +332,43 @@ class _LoginScreenState extends State<LoginScreen>
                     const SizedBox(height: 30),
 
                     // 登录按钮
-                    SlideTransition(
-                      position: _slideAnimation,
-                      child: MicroInteractionButton(
-                        text: '登录',
-                        icon: Icons.login,
-                        backgroundColor: AppTheme.buttonColor,
-                        onPressed: _login,
-                      ),
+                    MicroInteractionButton(
+                      text: '登录',
+                      onPressed: () {
+                        // 验证表单
+                        if (_validateInputs()) {
+                          _login();
+                        }
+                      },
                     ),
 
                     const SizedBox(height: 30),
 
                     // 注册新账号链接
-                    SlideTransition(
-                      position: _slideAnimation,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '还没有账号? ',
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '还没有账号? ',
+                          style: TextStyle(
+                            color: AppTheme.secondaryTextColor,
+                            fontSize: 16,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/register');
+                          },
+                          child: Text(
+                            '立即注册',
                             style: TextStyle(
-                              color: AppTheme.secondaryTextColor,
+                              color: AppTheme.neonPurple,
+                              fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
                           ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/register');
-                            },
-                            child: Text(
-                              '立即注册',
-                              style: TextStyle(
-                                color: AppTheme.neonPurple,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
