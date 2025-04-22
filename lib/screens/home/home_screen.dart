@@ -92,6 +92,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
   final List<Map<String, dynamic>> _featureCards = [
     {
       'title': '热门景点',
+      'subtitle': '探索当地隐秘景点',
       'icon': Icons.location_on,
       'tag': '热门',
       'tagColor': Colors.orange,
@@ -102,6 +103,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
     },
     {
       'title': '行程规划',
+      'subtitle': '定制个性化旅行计划',
       'icon': Icons.calendar_today,
       'tag': '推荐',
       'tagColor': Colors.green,
@@ -112,6 +114,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
     },
     {
       'title': '美食推荐',
+      'subtitle': '品尝地道美食佳肴',
       'icon': Icons.restaurant,
       'tag': '美食',
       'tagColor': Colors.red,
@@ -122,6 +125,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
     },
     {
       'title': '旅行笔记',
+      'subtitle': '记录精彩旅途点滴',
       'icon': Icons.book,
       'tag': '记录',
       'tagColor': Colors.blue,
@@ -132,6 +136,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
     },
     {
       'title': '导航助手',
+      'subtitle': '便捷路线规划工具',
       'icon': Icons.map,
       'tag': '实用',
       'tagColor': Colors.purple,
@@ -142,6 +147,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
     },
     {
       'title': '行李清单',
+      'subtitle': '旅行装备智能提醒',
       'icon': Icons.checklist,
       'tag': '工具',
       'tagColor': Colors.teal,
@@ -229,9 +235,9 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: 24.0,
+              horizontal: 20.0,
               vertical: 28.0,
-            ), // 增加边距，更加大气
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -244,6 +250,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                         _todayInfo,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontSize: 16.0, // 增大字体
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -289,17 +296,11 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                   ),
                 ),
 
-                const SizedBox(height: 40.0), // 副标题与卡片间距增加
-                // 功能卡片网格（2x3）- 每行改为2个，让卡片更大
-                GridView.builder(
+                const SizedBox(height: 36.0), // 副标题与卡片间距增加
+                // 功能卡片网格（2x3）- 改为垂直列表样式，每个卡片更丰富
+                ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, // 改为2列
-                    crossAxisSpacing: 20.0, // 增加水平间距
-                    mainAxisSpacing: 20.0, // 增加垂直间距
-                    childAspectRatio: 1.0, // 正方形卡片，更大气
-                  ),
                   itemCount: _featureCards.length,
                   itemBuilder: (context, index) {
                     // 提取卡片数据，确保渐变颜色非空
@@ -308,14 +309,18 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                         (cardData['gradientColors'] as List<Color>?) ??
                         _defaultGradient;
 
-                    return _buildFeatureCard(
-                      context: context,
-                      title: cardData['title'] as String,
-                      icon: cardData['icon'] as IconData,
-                      tag: cardData['tag'] as String,
-                      tagColor: cardData['tagColor'] as Color,
-                      gradientColors: gradientColors,
-                      animation: _slideAnimations?[index],
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: _buildFeatureCard(
+                        context: context,
+                        title: cardData['title'] as String,
+                        subtitle: cardData['subtitle'] as String,
+                        icon: cardData['icon'] as IconData,
+                        tag: cardData['tag'] as String,
+                        tagColor: cardData['tagColor'] as Color,
+                        gradientColors: gradientColors,
+                        animation: _slideAnimations?[index],
+                      ),
                     );
                   },
                 ),
@@ -327,10 +332,11 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
     );
   }
 
-  // 方形功能卡片 - 重新设计，更加现代美观
+  // 横向布局功能卡片 - 更平衡的设计
   Widget _buildFeatureCard({
     required BuildContext context,
     required String title,
+    required String subtitle,
     required IconData icon,
     required String tag,
     required Color tagColor,
@@ -347,7 +353,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
         scale: _hoverScale,
         child: Material(
           color: Colors.transparent,
-          borderRadius: BorderRadius.circular(24.0),
+          borderRadius: BorderRadius.circular(16.0),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: () {
@@ -363,34 +369,35 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
             splashColor: Colors.white.withOpacity(0.1),
             highlightColor: Colors.white.withOpacity(0.05),
             child: Container(
+              height: 100, // 固定高度
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
                   colors: colors,
                 ),
-                borderRadius: BorderRadius.circular(24.0),
+                borderRadius: BorderRadius.circular(16.0),
                 boxShadow: [
                   BoxShadow(
                     color: colors.first.withOpacity(0.3),
-                    blurRadius: 10.0,
-                    offset: const Offset(0, 4),
+                    blurRadius: 8.0,
+                    offset: const Offset(0, 3),
                   ),
                 ],
               ),
               child: Stack(
                 children: [
-                  // 标签 - 更加精致的胶囊形状
+                  // 标签
                   Positioned(
-                    top: 12,
-                    left: 12,
+                    top: 10,
+                    right: 10,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12.0,
-                        vertical: 4.0,
+                        horizontal: 10.0,
+                        vertical: 3.0,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.25),
+                        color: Colors.black.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(20.0),
                       ),
                       child: Text(
@@ -398,41 +405,67 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 12.0,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
                   ),
 
-                  // 主要内容区域 - 居中布局
+                  // 主要内容 - 水平布局
                   Padding(
-                    padding: const EdgeInsets.all(18.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    padding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+                    child: Row(
                       children: [
-                        const SizedBox(height: 24.0), // 为标签留出空间
-                        // 图标 - 居中圆形容器
+                        // 图标容器 - 圆形背景
                         Container(
-                          width: 64.0,
-                          height: 64.0,
+                          width: 56.0,
+                          height: 56.0,
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.2),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(icon, color: Colors.white, size: 32.0),
+                          child: Icon(icon, color: Colors.white, size: 28.0),
                         ),
 
-                        const SizedBox(height: 16.0),
+                        const SizedBox(width: 16.0),
 
-                        // 标题 - 居中加粗
-                        Text(
-                          title,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18.0,
-                            fontWeight: FontWeight.bold,
+                        // 文字内容 - 左对齐
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // 标题
+                              Text(
+                                title,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+
+                              const SizedBox(height: 4.0),
+
+                              // 副标题
+                              Text(
+                                subtitle,
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.75),
+                                  fontSize: 14.0,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
+                        ),
+
+                        // 箭头图标
+                        const Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.white,
+                          size: 16.0,
                         ),
                       ],
                     ),
