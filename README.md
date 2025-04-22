@@ -1,16 +1,112 @@
-# travel_joy
+# Travel Joy
 
-A new Flutter project.
+一个现代化的旅行应用，提供景点探索、旅行成就系统、社交分享等功能。
 
-## Getting Started
+## 项目特点
 
-This project is a starting point for a Flutter application.
+- 精美的 UI 设计，支持多种现代 UI 设计风格
+- 完整的用户认证系统（登录、注册、忘记密码）
+- 旅行探索和社交分享功能
+- 旅行成就和积分系统
 
-A few resources to get you started if this is your first Flutter project:
+## 设计风格与 UI 趋势
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+本项目实现了多种现代 UI 设计趋势：
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### 1. 毛玻璃效果 (Glassmorphism)
+
+- 半透明背景配合模糊效果
+- 轻微的边框增强立体感
+- 用于卡片、按钮和表单区域
+
+### 2. 新拟态设计 (Neumorphism)
+
+- 精细的阴影创造凸起和凹陷效果
+- 柔和的色彩过渡
+- 应用于按钮和容器
+
+### 3. 渐变色彩 (Gradients)
+
+- 丰富的线性和径向渐变
+- 霓虹色调增强视觉冲击力
+- 用于背景、按钮和装饰元素
+
+### 4. 微动效 (Micro Interactions)
+
+- 细腻的动画反馈
+- 视觉和触觉响应
+- 提升用户交互体验
+
+### 5. 3D 元素
+
+- 层次感的设计元素
+- 阴影和高光创造深度
+- 增强界面的空间感
+
+## 配色方案
+
+项目使用了一套霓虹主题配色：
+
+```
+主要颜色:
+- 背景色: #12131E
+- 卡片色: #1E2030
+- 文本主色: #FFFFFF
+- 文本次色: #8A8A8A
+- 提示文本色: #505050
+
+霓虹色系:
+- 霓虹蓝: #00BFFF
+- 霓虹紫: #BA55D3
+- 霓虹粉: #FF69B4
+- 霓虹青: #00CED1
+- 霓虹橙: #FF7F50
+
+功能色:
+- 按钮颜色: #7B68EE
+- 成功色: #00C853
+- 错误色: #FF5252
+- 警告色: #FFD740
+```
+
+## 开始使用
+
+### 前置要求
+
+- Flutter 3.0.0 或更高版本
+- Dart 2.17.0 或更高版本
+
+### 安装
+
+1. 克隆仓库:
+
+```bash
+git clone https://github.com/yourusername/travel_joy.git
+```
+
+2. 安装依赖:
+
+```bash
+cd travel_joy
+flutter pub get
+```
+
+3. 运行应用:
+
+```bash
+flutter run
+```
+
+## 项目结构
+
+```
+lib/
+├── main.dart           # 应用入口
+├── app_theme.dart      # 主题和样式定义
+├── screens/            # 所有页面
+│   ├── auth/           # 认证相关页面
+│   ├── home/           # 主页和核心功能
+│   └── onboarding/     # 引导页面
+├── widgets/            # 可复用组件
+└── models/             # 数据模型
+```
