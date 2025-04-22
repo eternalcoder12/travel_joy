@@ -8,7 +8,7 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
@@ -72,7 +72,6 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
   late AnimationController _cardAnimationController;
   late AnimationController _communityAnimationController;
   late AnimationController _buttonAnimationController;
-  late AnimationController _hoverAnimationController;
 
   // Unsplash图片URL列表
   final List<String> _unsplashImages = [
@@ -104,23 +103,6 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
       value: 0.8,
     );
 
-    // 初始化悬浮动画控制器
-    _hoverAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-      value: 0.95,
-    );
-
-    // 设置悬浮动画循环播放
-    _hoverAnimationController.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        _hoverAnimationController.reverse();
-      } else if (status == AnimationStatus.dismissed) {
-        _hoverAnimationController.forward();
-      }
-    });
-    _hoverAnimationController.forward();
-
     // 延迟200毫秒启动社区内容动画
     Future.delayed(const Duration(milliseconds: 200), () {
       if (mounted) {
@@ -137,7 +119,6 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
     _cardAnimationController.dispose();
     _communityAnimationController.dispose();
     _buttonAnimationController.dispose();
-    _hoverAnimationController.dispose();
     super.dispose();
   }
 
@@ -294,72 +275,62 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
     );
   }
 
-  // 圆形功能卡片
+  // 圆形功能卡片 - 移除悬浮动画
   Widget _buildFeatureCard({
     required BuildContext context,
     required IconData icon,
     required String title,
   }) {
-    // 添加缩放动画
-    return AnimatedBuilder(
-      animation: _hoverAnimationController,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _hoverAnimationController.value,
-          child: child,
-        );
-      },
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            // 功能卡片点击处理
-            print('点击了: $title');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('您点击了: $title'),
-                behavior: SnackBarBehavior.floating,
-                duration: const Duration(seconds: 1),
-              ),
-            );
-          },
-          customBorder: const CircleBorder(),
-          splashColor: AppTheme.accentColor.withOpacity(0.3),
-          highlightColor: AppTheme.accentColor.withOpacity(0.1),
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppTheme.cardColor,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  spreadRadius: 1,
-                  blurRadius: 6,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-              // 渐变边框
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withOpacity(0.5),
-                  Colors.white.withOpacity(0.1),
-                ],
-              ),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-                width: 1.5,
-              ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          // 功能卡片点击处理
+          print('点击了: $title');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('您点击了: $title'),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 1),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, color: AppTheme.iconColor, size: 32.0),
-                const SizedBox(height: 8),
-                Text(title, style: Theme.of(context).textTheme.labelLarge),
+          );
+        },
+        customBorder: const CircleBorder(),
+        splashColor: AppTheme.accentColor.withOpacity(0.3),
+        highlightColor: AppTheme.accentColor.withOpacity(0.1),
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppTheme.cardColor,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                spreadRadius: 1,
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ],
+            // 渐变边框
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.5),
+                Colors.white.withOpacity(0.1),
               ],
             ),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: AppTheme.iconColor, size: 32.0),
+              const SizedBox(height: 8),
+              Text(title, style: Theme.of(context).textTheme.labelLarge),
+            ],
           ),
         ),
       ),
