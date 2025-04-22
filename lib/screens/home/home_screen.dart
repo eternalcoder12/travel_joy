@@ -95,42 +95,60 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
       'icon': Icons.location_on,
       'tag': '热门',
       'tagColor': Colors.orange,
-      'gradientColors': <Color>[Color(0xFF614385), Color(0xFF516395)],
+      'gradientColors': <Color>[
+        Color(0xFF614385).withOpacity(0.9),
+        Color(0xFF516395).withOpacity(0.9),
+      ],
     },
     {
       'title': '行程规划',
       'icon': Icons.calendar_today,
       'tag': '推荐',
       'tagColor': Colors.green,
-      'gradientColors': <Color>[Color(0xFF02AABB), Color(0xFF00CDAC)],
+      'gradientColors': <Color>[
+        Color(0xFF02AABB).withOpacity(0.9),
+        Color(0xFF00CDAC).withOpacity(0.9),
+      ],
     },
     {
       'title': '美食推荐',
       'icon': Icons.restaurant,
       'tag': '美食',
       'tagColor': Colors.red,
-      'gradientColors': <Color>[Color(0xFFFF5F6D), Color(0xFFFFC371)],
+      'gradientColors': <Color>[
+        Color(0xFFFF5F6D).withOpacity(0.9),
+        Color(0xFFFFC371).withOpacity(0.9),
+      ],
     },
     {
       'title': '旅行笔记',
       'icon': Icons.book,
       'tag': '记录',
       'tagColor': Colors.blue,
-      'gradientColors': <Color>[Color(0xFF396AFC), Color(0xFF2948FF)],
+      'gradientColors': <Color>[
+        Color(0xFF396AFC).withOpacity(0.9),
+        Color(0xFF2948FF).withOpacity(0.9),
+      ],
     },
     {
       'title': '导航助手',
       'icon': Icons.map,
       'tag': '实用',
       'tagColor': Colors.purple,
-      'gradientColors': <Color>[Color(0xFF6A11CB), Color(0xFF2575FC)],
+      'gradientColors': <Color>[
+        Color(0xFF6A11CB).withOpacity(0.9),
+        Color(0xFF2575FC).withOpacity(0.9),
+      ],
     },
     {
       'title': '行李清单',
       'icon': Icons.checklist,
       'tag': '工具',
       'tagColor': Colors.teal,
-      'gradientColors': <Color>[Color(0xFF11998E), Color(0xFF38EF7D)],
+      'gradientColors': <Color>[
+        Color(0xFF11998E).withOpacity(0.9),
+        Color(0xFF38EF7D).withOpacity(0.9),
+      ],
     },
   ];
 
@@ -229,24 +247,21 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                         ),
                       ),
                     ),
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          print('点击了今日信息图标');
-                        },
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(
-                            color: AppTheme.cardColor.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                          child: Icon(
-                            Icons.calendar_today,
-                            color: AppTheme.iconColor,
-                            size: 24.0,
-                          ),
+                    InkWell(
+                      onTap: () {
+                        print('点击了今日信息图标');
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        child: const Icon(
+                          Icons.calendar_today,
+                          color: Colors.white,
+                          size: 24.0,
                         ),
                       ),
                     ),
@@ -260,6 +275,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontSize: 32.0, // 增大标题字体
                     fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
 
@@ -269,6 +285,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                   '发现隐秘美景，享受独特旅途',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontSize: 16.0, // 增大副标题字体
+                    color: Colors.white.withOpacity(0.8),
                   ),
                 ),
 
@@ -328,121 +345,99 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
       position: animation ?? const AlwaysStoppedAnimation<Offset>(Offset.zero),
       child: Transform.scale(
         scale: _hoverScale,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20.0), // 圆角更大
-            boxShadow: [
-              BoxShadow(
-                color: colors.first.withOpacity(0.3),
-                blurRadius: 15.0,
-                spreadRadius: 1.0,
-                offset: const Offset(0, 5),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(24.0),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () {
+              print('点击了: $title');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('您选择了: $title'),
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 1),
+                ),
+              );
+            },
+            splashColor: Colors.white.withOpacity(0.1),
+            highlightColor: Colors.white.withOpacity(0.05),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: colors,
+                ),
+                borderRadius: BorderRadius.circular(24.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: colors.first.withOpacity(0.3),
+                    blurRadius: 10.0,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(20.0),
-            clipBehavior: Clip.antiAlias, // 裁剪溢出内容
-            child: InkWell(
-              onTap: () {
-                print('点击了: $title');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('您选择了: $title'),
-                    behavior: SnackBarBehavior.floating,
-                    duration: const Duration(seconds: 1),
-                  ),
-                );
-              },
-              splashColor: Colors.white.withOpacity(0.2),
-              highlightColor: Colors.white.withOpacity(0.1),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: colors,
-                  ),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
-                    width: 1.0,
-                  ),
-                  borderRadius: BorderRadius.circular(20.0),
-                ),
-                child: Stack(
-                  children: [
-                    // 背景装饰性元素
-                    Positioned(
-                      right: -20,
-                      bottom: -20,
-                      child: Icon(
-                        icon,
-                        size: 100,
-                        color: Colors.white.withOpacity(0.1),
+              child: Stack(
+                children: [
+                  // 标签 - 更加精致的胶囊形状
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0,
+                        vertical: 4.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.25),
+                        borderRadius: BorderRadius.circular(20.0),
+                      ),
+                      child: Text(
+                        tag,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12.0,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
+                  ),
 
-                    // 主要内容
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // 标签
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12.0,
-                              vertical: 4.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(30.0),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.3),
-                                width: 1.0,
-                              ),
-                            ),
-                            child: Text(
-                              tag,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                  // 主要内容区域 - 居中布局
+                  Padding(
+                    padding: const EdgeInsets.all(18.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 24.0), // 为标签留出空间
+                        // 图标 - 居中圆形容器
+                        Container(
+                          width: 64.0,
+                          height: 64.0,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            shape: BoxShape.circle,
                           ),
+                          child: Icon(icon, color: Colors.white, size: 32.0),
+                        ),
 
-                          const Spacer(),
+                        const SizedBox(height: 16.0),
 
-                          // 图标容器 - 半透明圆形背景
-                          Container(
-                            padding: const EdgeInsets.all(12.0),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(icon, color: Colors.white, size: 36.0),
+                        // 标题 - 居中加粗
+                        Text(
+                          title,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.bold,
                           ),
-
-                          const SizedBox(height: 16.0),
-
-                          // 标题
-                          Text(
-                            title,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
