@@ -76,7 +76,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
   List<Animation<Offset>>? _slideAnimations;
 
   // 悬浮效果动画值
-  double _hoverScale = 0.95;
+  double _hoverScale = 0.97;
 
   // 今日信息
   final String _todayInfo = "晴天 25°C，适合户外探索";
@@ -88,31 +88,42 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
       'icon': Icons.location_on,
       'tag': '热门',
       'tagColor': Colors.orange,
+      'gradientColors': [Color(0xFF614385), Color(0xFF516395)],
     },
     {
       'title': '行程规划',
       'icon': Icons.calendar_today,
       'tag': '推荐',
       'tagColor': Colors.green,
+      'gradientColors': [Color(0xFF02AABB), Color(0xFF00CDAC)],
     },
     {
       'title': '美食推荐',
       'icon': Icons.restaurant,
       'tag': '美食',
       'tagColor': Colors.red,
+      'gradientColors': [Color(0xFFFF5F6D), Color(0xFFFFC371)],
     },
-    {'title': '旅行笔记', 'icon': Icons.book, 'tag': '记录', 'tagColor': Colors.blue},
+    {
+      'title': '旅行笔记',
+      'icon': Icons.book,
+      'tag': '记录',
+      'tagColor': Colors.blue,
+      'gradientColors': [Color(0xFF396AFC), Color(0xFF2948FF)],
+    },
     {
       'title': '导航助手',
       'icon': Icons.map,
       'tag': '实用',
       'tagColor': Colors.purple,
+      'gradientColors': [Color(0xFF6A11CB), Color(0xFF2575FC)],
     },
     {
       'title': '行李清单',
       'icon': Icons.checklist,
       'tag': '工具',
       'tagColor': Colors.teal,
+      'gradientColors': [Color(0xFF11998E), Color(0xFF38EF7D)],
     },
   ];
 
@@ -135,7 +146,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
     // 卡片悬浮动画控制器
     _hoverAnimationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 2000),
     );
 
     // 为每张卡片创建滑入动画，按顺序延迟显示
@@ -158,7 +169,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
     _hoverAnimationController!.addListener(() {
       if (mounted) {
         setState(() {
-          _hoverScale = 0.95 + (_hoverAnimationController!.value * 0.05);
+          _hoverScale = 0.97 + (_hoverAnimationController!.value * 0.03);
         });
       }
     });
@@ -218,12 +229,16 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                           print('点击了今日信息图标');
                         },
                         borderRadius: BorderRadius.circular(20),
-                        child: Padding(
+                        child: Container(
                           padding: const EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            color: AppTheme.cardColor.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
                           child: Icon(
                             Icons.calendar_today,
                             color: AppTheme.iconColor,
-                            size: 28.0, // 增大图标
+                            size: 24.0,
                           ),
                         ),
                       ),
@@ -269,6 +284,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                       icon: _featureCards[index]['icon'],
                       tag: _featureCards[index]['tag'],
                       tagColor: _featureCards[index]['tagColor'],
+                      gradientColors: _featureCards[index]['gradientColors'],
                       animation: _slideAnimations?[index],
                     );
                   },
@@ -281,91 +297,136 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
     );
   }
 
-  // 方形功能卡片 - 简化设计，更加大气
+  // 方形功能卡片 - 重新设计，更加现代美观
   Widget _buildFeatureCard({
     required BuildContext context,
     required String title,
     required IconData icon,
     required String tag,
     required Color tagColor,
+    required List<Color> gradientColors,
     required Animation<Offset>? animation,
   }) {
     return SlideTransition(
       position: animation ?? const AlwaysStoppedAnimation<Offset>(Offset.zero),
       child: Transform.scale(
         scale: _hoverScale,
-        child: Card(
-          elevation: 10.0, // 增加阴影
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0), // 增大圆角
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20.0), // 圆角更大
+            boxShadow: [
+              BoxShadow(
+                color: gradientColors[0].withOpacity(0.3),
+                blurRadius: 15.0,
+                spreadRadius: 1.0,
+                offset: const Offset(0, 5),
+              ),
+            ],
           ),
-          color: AppTheme.cardColor,
-          child: InkWell(
-            onTap: () {
-              print('点击了: $title');
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('您选择了: $title'),
-                  behavior: SnackBarBehavior.floating,
-                  duration: const Duration(seconds: 1),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(20.0),
+            clipBehavior: Clip.antiAlias, // 裁剪溢出内容
+            child: InkWell(
+              onTap: () {
+                print('点击了: $title');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('您选择了: $title'),
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 1),
+                  ),
+                );
+              },
+              splashColor: Colors.white.withOpacity(0.2),
+              highlightColor: Colors.white.withOpacity(0.1),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: gradientColors,
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 1.0,
+                  ),
+                  borderRadius: BorderRadius.circular(20.0),
                 ),
-              );
-            },
-            borderRadius: BorderRadius.circular(16.0),
-            splashColor: AppTheme.accentColor.withOpacity(0.3),
-            highlightColor: AppTheme.accentColor.withOpacity(0.1),
-            child: Stack(
-              children: [
-                // 主要内容 - 居中放置图标和文字
-                Padding(
-                  padding: const EdgeInsets.all(20.0), // 增加内边距
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // 图标
-                      Icon(
+                child: Stack(
+                  children: [
+                    // 背景装饰性元素
+                    Positioned(
+                      right: -20,
+                      bottom: -20,
+                      child: Icon(
                         icon,
-                        color: AppTheme.iconColor,
-                        size: 48.0, // 增大图标
+                        size: 100,
+                        color: Colors.white.withOpacity(0.1),
                       ),
+                    ),
 
-                      const SizedBox(height: 16.0), // 图标与文字间距增加
-                      // 标题
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryTextColor,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
+                    // 主要内容
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 标签
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0,
+                              vertical: 4.0,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(30.0),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.3),
+                                width: 1.0,
+                              ),
+                            ),
+                            child: Text(
+                              tag,
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
 
-                // 右上角标签 - 使用圆角而非方形，更轻盈
-                Positioned(
-                  top: 12.0,
-                  right: 12.0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10.0,
-                      vertical: 4.0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: tagColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    child: Text(
-                      tag,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: tagColor,
-                        fontWeight: FontWeight.bold,
+                          const Spacer(),
+
+                          // 图标容器 - 半透明圆形背景
+                          Container(
+                            padding: const EdgeInsets.all(12.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(icon, color: Colors.white, size: 36.0),
+                          ),
+
+                          const SizedBox(height: 16.0),
+
+                          // 标题
+                          Text(
+                            title,
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
