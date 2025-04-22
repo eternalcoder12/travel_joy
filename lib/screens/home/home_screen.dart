@@ -23,30 +23,39 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       body: _screens[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        backgroundColor: AppTheme.cardColor,
-        selectedItemColor: AppTheme.primaryTextColor,
-        unselectedItemColor: AppTheme.secondaryTextColor,
-        type: BottomNavigationBarType.fixed, // 确保4个项目时也显示文字
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        enableFeedback: false, // 禁用触感反馈
-        // 完全禁用所有点击动画效果
-        selectedFontSize: 14.0,
-        unselectedFontSize: 14.0, // 使选中和未选中字体大小相同，防止动画
-        iconSize: 24.0, // 固定图标大小
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
-          BottomNavigationBarItem(icon: Icon(Icons.explore), label: '探索'),
-          BottomNavigationBarItem(icon: Icon(Icons.message), label: '消息'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: '我的'),
-        ],
+      bottomNavigationBar: Material(
+        color: Colors.transparent,
+        child: Theme(
+          data: ThemeData(
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+          ),
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            backgroundColor: AppTheme.cardColor,
+            selectedItemColor: AppTheme.primaryTextColor,
+            unselectedItemColor: AppTheme.secondaryTextColor,
+            type: BottomNavigationBarType.fixed, // 确保4个项目时也显示文字
+            showSelectedLabels: true,
+            showUnselectedLabels: true,
+            enableFeedback: false, // 禁用触感反馈
+            // 完全禁用所有点击动画效果
+            selectedFontSize: 14.0,
+            unselectedFontSize: 14.0, // 使选中和未选中字体大小相同，防止动画
+            iconSize: 24.0, // 固定图标大小
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
+              BottomNavigationBarItem(icon: Icon(Icons.explore), label: '探索'),
+              BottomNavigationBarItem(icon: Icon(Icons.message), label: '消息'),
+              BottomNavigationBarItem(icon: Icon(Icons.person), label: '我的'),
+            ],
+          ),
+        ),
       ),
     );
   }
