@@ -8,8 +8,52 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   int _currentIndex = 0;
+  late AnimationController _cardAnimationController;
+  late AnimationController _communityAnimationController;
+  late AnimationController _buttonAnimationController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 初始化卡片动画控制器
+    _cardAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    )..forward();
+
+    // 初始化社区内容动画控制器
+    _communityAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    // 初始化按钮动画控制器
+    _buttonAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    // 延迟200毫秒启动社区内容动画
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (mounted) {
+        _communityAnimationController.forward();
+      }
+    });
+
+    // 启动按钮动画
+    _buttonAnimationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _cardAnimationController.dispose();
+    _communityAnimationController.dispose();
+    _buttonAnimationController.dispose();
+    super.dispose();
+  }
 
   final List<Widget> _screens = [
     const _HomeTab(),
@@ -61,85 +105,201 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _HomeTab extends StatelessWidget {
+class _HomeTab extends StatefulWidget {
   const _HomeTab({Key? key}) : super(key: key);
+
+  @override
+  _HomeTabState createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
+  late AnimationController _cardAnimationController;
+  late AnimationController _communityAnimationController;
+  late AnimationController _buttonAnimationController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 初始化卡片动画控制器
+    _cardAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    )..forward();
+
+    // 初始化社区内容动画控制器
+    _communityAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    // 初始化按钮动画控制器
+    _buttonAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+      value: 0.8,
+    );
+
+    // 延迟200毫秒启动社区内容动画
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (mounted) {
+        _communityAnimationController.forward();
+      }
+    });
+
+    // 启动按钮动画
+    _buttonAnimationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _cardAnimationController.dispose();
+    _communityAnimationController.dispose();
+    _buttonAnimationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '欢迎来到Travel Joy',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              '探索小众景点，获取独特旅行体验',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 24),
-            // UI设计趋势按钮
-            OutlinedButton.icon(
-              onPressed: () {
-                Navigator.pushNamed(context, '/ui_trends_2024');
-              },
-              icon: Icon(Icons.trending_up, color: AppTheme.neonPurple),
-              label: Text(
-                '查看2024年UI设计趋势',
-                style: TextStyle(color: AppTheme.neonPurple),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 顶部标题
+              Text(
+                '欢迎来到 Travel Joy',
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: AppTheme.neonPurple),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
+              const SizedBox(height: 8.0), // 标题与副标题间距
+              // 副标题
+              Text(
+                '探索小众景点，获取最佳推荐',
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
-            ),
-            const SizedBox(height: 16),
-            // 示例内容
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                children: List.generate(4, (index) {
-                  return _buildFeatureCard(
-                    context: context,
-                    icon:
-                        index == 0
-                            ? Icons.location_on
-                            : index == 1
-                            ? Icons.card_giftcard
-                            : index == 2
-                            ? Icons.emoji_events
-                            : Icons.camera_alt,
-                    title:
-                        index == 0
-                            ? '热门景点'
-                            : index == 1
-                            ? '兑换礼品'
-                            : index == 2
-                            ? '旅行成就'
-                            : '我的相册',
+              const SizedBox(height: 24.0), // 副标题与功能卡片间距
+              // 功能入口卡片（2x2网格）
+              AnimatedBuilder(
+                animation: _cardAnimationController,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: _cardAnimationController.value,
+                    child: child,
                   );
-                }),
+                },
+                child: SizedBox(
+                  height: 220, // 设置固定高度
+                  child: GridView.count(
+                    physics: const NeverScrollableScrollPhysics(), // 禁止滚动
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16.0,
+                    mainAxisSpacing: 16.0,
+                    children: [
+                      _buildFeatureCard(
+                        context: context,
+                        icon: Icons.location_on,
+                        title: '热门景点',
+                      ),
+                      _buildFeatureCard(
+                        context: context,
+                        icon: Icons.hotel,
+                        title: '酒店预订',
+                      ),
+                      _buildFeatureCard(
+                        context: context,
+                        icon: Icons.restaurant,
+                        title: '餐厅推荐',
+                      ),
+                      _buildFeatureCard(
+                        context: context,
+                        icon: Icons.map,
+                        title: '旅行攻略',
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 24.0), // 功能卡片与社区推荐区域间距
+              // 社区推荐区域
+              AnimatedBuilder(
+                animation: _communityAnimationController,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: _communityAnimationController.value,
+                    child: child,
+                  );
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '最新分享',
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
+                        Text(
+                          '快来分享你的旅行故事，赢取积分！',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16.0), // 社区推荐标题与内容列表间距
+                    // 用户分享内容列表
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: 3,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: _buildCommunityItem(
+                            context: context,
+                            username: '旅行者${index + 1}',
+                            content:
+                                '这是我在${['巴厘岛', '日本京都', '瑞士阿尔卑斯山'][index]}的难忘旅行，非常推荐大家前往...',
+                            likes: (120 - index * 30).toString(),
+                          ),
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 16.0), // 列表与"查看更多"按钮间距
+                    // "查看更多"按钮
+                    Center(
+                      child: AnimatedBuilder(
+                        animation: _buttonAnimationController,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale: _buttonAnimationController.value,
+                            child: child,
+                          );
+                        },
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/discover');
+                            print('跳转到发现页面');
+                          },
+                          style: AppTheme.getTheme().elevatedButtonTheme.style,
+                          child: const Text('查看更多'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // 添加水波纹效果的功能卡片
+  // 功能卡片
   Widget _buildFeatureCard({
     required BuildContext context,
     required IconData icon,
@@ -150,6 +310,7 @@ class _HomeTab extends StatelessWidget {
       child: InkWell(
         onTap: () {
           // 功能卡片点击处理
+          print('点击了: $title');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('您点击了: $title'),
@@ -165,14 +326,100 @@ class _HomeTab extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppTheme.cardColor,
             borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: AppTheme.iconColor, size: 40),
+              Icon(icon, color: AppTheme.iconColor, size: 32.0),
               const SizedBox(height: 8),
-              Text(title, style: TextStyle(color: AppTheme.primaryTextColor)),
+              Text(title, style: Theme.of(context).textTheme.labelLarge),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 社区内容项
+  Widget _buildCommunityItem({
+    required BuildContext context,
+    required String username,
+    required String content,
+    required String likes,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          print('查看详情: $username 的分享');
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: AppTheme.cardColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 用户昵称
+                Text(
+                  username,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8.0),
+
+                // 图片（占位图）
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: Container(
+                      color: AppTheme.accentColor.withOpacity(0.2),
+                      child: Center(
+                        child: Icon(
+                          Icons.image,
+                          color: AppTheme.iconColor.withOpacity(0.5),
+                          size: 40,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8.0),
+
+                // 内容摘要
+                Text(
+                  content,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8.0),
+
+                // 点赞数
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Icon(Icons.favorite, color: AppTheme.iconColor, size: 18),
+                    const SizedBox(width: 4.0),
+                    Text(likes, style: Theme.of(context).textTheme.bodyMedium),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
