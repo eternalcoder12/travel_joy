@@ -18,6 +18,10 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   // 页面动画控制器
   late AnimationController _pageAnimController;
 
+  // 抽屉动画控制器
+  late AnimationController _drawerAnimController;
+  late Animation<double> _drawerAnimation;
+
   // 图片列表 - 在实际应用中，这些数据应该从API获取
   late List<String> _imageGallery;
 
@@ -78,6 +82,18 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
       duration: const Duration(milliseconds: 600),
     );
 
+    // 初始化抽屉动画控制器
+    _drawerAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+    );
+
+    _drawerAnimation = CurvedAnimation(
+      parent: _drawerAnimController,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
+
     // 启动页面进入动画
     _pageAnimController.forward();
 
@@ -127,18 +143,19 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   }
 
   void _closeBottomDrawer() {
-    setState(() {
-      _isClosingDrawer = true;
-    });
-
-    // 等待动画完成后再隐藏抽屉
-    Future.delayed(Duration(milliseconds: 300), () {
+    // 启动反向动画
+    _drawerAnimController.reverse().then((_) {
       if (mounted) {
         setState(() {
           _isBottomDrawerVisible = false;
           _isClosingDrawer = false;
+          _dragExtent = 0;
         });
       }
+    });
+
+    setState(() {
+      _isClosingDrawer = true;
     });
   }
 
@@ -149,11 +166,15 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
       _isClosingDrawer = false;
       _isBottomDrawerVisible = true;
     });
+
+    // 启动正向动画
+    _drawerAnimController.forward();
   }
 
   @override
   void dispose() {
     _pageAnimController.dispose();
+    _drawerAnimController.dispose();
     _pageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -565,14 +586,24 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                 children: [
                   // 背景遮罩
                   Positioned.fill(
-                    child: GestureDetector(
-                      onTap: _closeBottomDrawer,
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-                        child: Container(
-                          color: AppTheme.backgroundColor.withOpacity(0.5),
-                        ),
-                      ),
+                    child: AnimatedBuilder(
+                      animation: _drawerAnimController,
+                      builder: (context, _) {
+                        return GestureDetector(
+                          onTap: _closeBottomDrawer,
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(
+                              sigmaX: 5.0 * _drawerAnimation.value,
+                              sigmaY: 5.0 * _drawerAnimation.value,
+                            ),
+                            child: Container(
+                              color: AppTheme.backgroundColor.withOpacity(
+                                0.5 * _drawerAnimation.value,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
 
@@ -961,23 +992,28 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
 
   // 构建底部抽屉
   Widget _buildBottomDrawer() {
-    return AnimatedPositioned(
-      duration: Duration(milliseconds: _isClosingDrawer ? 300 : 400),
-      curve: Curves.easeOutQuart, // 更平滑的动画曲线
-      bottom:
-          _isBottomDrawerVisible
-              ? (0 + _dragExtent) // 添加拖拽距离
-              : -MediaQuery.of(context).size.height * 0.6,
-      left: 0,
-      right: 0,
-      onEnd: () {
-        if (_isClosingDrawer) {
-          setState(() {
-            _isBottomDrawerVisible = false;
-            _isClosingDrawer = false;
-            _dragExtent = 0; // 重置拖拽距离
-          });
-        }
+    final drawerHeight = MediaQuery.of(context).size.height * 0.6;
+
+    return AnimatedBuilder(
+      animation: _drawerAnimController,
+      builder: (context, child) {
+        final slideHeight = (1 - _drawerAnimation.value) * drawerHeight;
+        final scale = 0.9 + (0.1 * _drawerAnimation.value); // 缩放效果
+        final opacity = _drawerAnimation.value; // 透明度效果
+
+        return Positioned(
+          bottom: -slideHeight + _dragExtent,
+          left: 0,
+          right: 0,
+          child: Opacity(
+            opacity: opacity,
+            child: Transform.scale(
+              scale: scale,
+              alignment: Alignment.bottomCenter,
+              child: child!,
+            ),
+          ),
+        );
       },
       child: GestureDetector(
         onVerticalDragUpdate: (details) {
@@ -1004,7 +1040,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
           }
         },
         child: Container(
-          height: MediaQuery.of(context).size.height * 0.6,
+          height: drawerHeight,
           decoration: BoxDecoration(
             color: AppTheme.backgroundColor,
             borderRadius: BorderRadius.only(
