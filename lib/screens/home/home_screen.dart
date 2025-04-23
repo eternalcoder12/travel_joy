@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'dart:math' show pi;
+import 'dart:math' as math;
+import 'dart:ui';
 import '../../app_theme.dart';
+import '../../widgets/animated_item.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -9,97 +11,48 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-  int _previousIndex = 0;
-  AnimationController? _pageAnimationController;
-  Animation<double>? _pageAnimation;
-
-  // 主屏幕列表 - 所有页面都包含入场动画
-  final List<Widget> _screens = [
-    const _HomeTab(),
-    const _ExploreTab(),
-    const _MessageTab(),
-    const _ProfileTab(),
-  ];
 
   @override
   void initState() {
     super.initState();
-
-    // 初始化页面切换动画
-    _pageAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-
-    _pageAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _pageAnimationController!,
-        curve: Curves.easeOutCubic,
-      ),
-    );
   }
 
   @override
   void dispose() {
-    _pageAnimationController?.dispose();
     super.dispose();
   }
 
-  // 切换标签页，播放动画
+  // 简化的_changeTab方法
   void _changeTab(int index) {
     if (index == _currentIndex) return;
 
     setState(() {
-      _previousIndex = _currentIndex;
       _currentIndex = index;
     });
-
-    // 重置并播放页面切换动画
-    _pageAnimationController!.reset();
-    _pageAnimationController!.forward();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      body: AnimatedBuilder(
-        animation: _pageAnimationController!,
-        builder: (context, child) {
-          return Stack(
-            children: [
-              // 前一个页面淡出
-              if (_pageAnimation!.value < 1)
-                Opacity(
-                  opacity: 1 - _pageAnimation!.value,
-                  child: Transform.translate(
-                    offset: Offset(
-                      -MediaQuery.of(context).size.width *
-                          _pageAnimation!.value,
-                      0,
-                    ),
-                    child: _screens[_previousIndex],
-                  ),
-                ),
-
-              // 当前页面淡入
-              Opacity(
-                opacity: _pageAnimation!.value,
-                child: Transform.translate(
-                  offset: Offset(
-                    MediaQuery.of(context).size.width *
-                        (1 - _pageAnimation!.value),
-                    0,
-                  ),
-                  child: _screens[_currentIndex],
-                ),
-              ),
-            ],
+      // 使用AnimatedSwitcher替代IndexedStack，添加页面切换动画
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 500),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          // 页面从右侧滑入动画
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(1.0, 0.0), // 从右侧开始
+              end: Offset.zero, // 滑动到原位
+            ).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+            ),
+            child: FadeTransition(opacity: animation, child: child),
           );
         },
+        child: _buildCurrentTab(_currentIndex),
       ),
       bottomNavigationBar: Theme(
         data: ThemeData(
@@ -141,60 +94,41 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
   }
-}
 
-// 基础页面动画混入
-mixin PageAnimationMixin<T extends StatefulWidget>
-    on State<T>, TickerProviderStateMixin<T> {
-  AnimationController? entryAnimationController;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // 初始化入场动画控制器
-    entryAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-
-    // 启动入场动画
-    entryAnimationController!.forward();
-  }
-
-  @override
-  void dispose() {
-    entryAnimationController?.dispose();
-    super.dispose();
-  }
-
-  // 创建从底部滑入的动画
-  Animation<Offset> createSlideAnimation(int index, int totalItems) {
-    return Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
-      CurvedAnimation(
-        parent: entryAnimationController!,
-        curve: Interval(
-          index * 0.1, // 每个元素延迟0.1的时间
-          0.5 + index * 0.1,
-          curve: Curves.easeOutQuint,
-        ),
-      ),
-    );
+  // 添加_buildCurrentTab方法
+  Widget _buildCurrentTab(int index) {
+    // 为每个Tab添加唯一的key，确保AnimatedSwitcher能识别变化
+    switch (index) {
+      case 0:
+        return _HomeTab(key: const ValueKey<int>(0), isCurrentPage: true);
+      case 1:
+        return _ExploreTab(key: const ValueKey<int>(1), isCurrentPage: true);
+      case 2:
+        return _MessageTab(key: const ValueKey<int>(2), isCurrentPage: true);
+      case 3:
+        return _ProfileTab(key: const ValueKey<int>(3), isCurrentPage: true);
+      default:
+        return _HomeTab(key: const ValueKey<int>(0), isCurrentPage: true);
+    }
   }
 }
 
 // 首页标签
 class _HomeTab extends StatefulWidget {
-  const _HomeTab({Key? key}) : super(key: key);
+  final bool isCurrentPage;
+
+  const _HomeTab({Key? key, this.isCurrentPage = false}) : super(key: key);
 
   @override
   _HomeTabState createState() => _HomeTabState();
 }
 
-class _HomeTabState extends State<_HomeTab>
-    with TickerProviderStateMixin, PageAnimationMixin {
+class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
   // 光波动画控制器
   AnimationController? _shineAnimationController;
+
+  // 飞入动画控制器
+  AnimationController? _flyInController;
 
   // 今日信息
   final String _todayInfo = "晴天 25°C，适合户外探索";
@@ -283,24 +217,42 @@ class _HomeTabState extends State<_HomeTab>
     // 初始化光波动画控制器
     _shineAnimationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 4),
+      duration: const Duration(seconds: 3),
     );
 
-    // 启动并循环播放光波动画
+    // 初始化飞入动画控制器 - 设置为500毫秒
+    _flyInController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    // 启动动画
     _shineAnimationController!.repeat();
+    _flyInController!.forward();
   }
 
   @override
   void dispose() {
     _shineAnimationController?.dispose();
+    _flyInController?.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_HomeTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // 当页面变为当前页面时，重新播放飞入动画
+    if (widget.isCurrentPage && !oldWidget.isCurrentPage) {
+      _flyInController?.reset();
+      _flyInController?.forward();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        // 渐变背景从AppTheme.backgroundColor到深蓝色
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -310,16 +262,22 @@ class _HomeTabState extends State<_HomeTab>
       child: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20.0,
-              vertical: 28.0,
-            ),
+            padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 今日信息提醒 - 滑入动画
-                SlideTransition(
-                  position: createSlideAnimation(0, _featureCards.length + 1),
+                // 区块1: 今日信息提醒 (从左侧飞入)
+                AnimatedBuilder(
+                  animation: _flyInController!,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(-300 * (1 - _flyInController!.value), 0),
+                      child: Opacity(
+                        opacity: _flyInController!.value,
+                        child: child,
+                      ),
+                    );
+                  },
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -329,8 +287,8 @@ class _HomeTabState extends State<_HomeTab>
                           style: Theme.of(
                             context,
                           ).textTheme.bodyMedium?.copyWith(
-                            fontSize: 16.0, // 增大字体
-                            color: Colors.white,
+                            fontSize: 16.0,
+                            color: AppTheme.primaryTextColor,
                           ),
                         ),
                       ),
@@ -342,12 +300,12 @@ class _HomeTabState extends State<_HomeTab>
                         child: Container(
                           padding: const EdgeInsets.all(8.0),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
+                            color: AppTheme.primaryTextColor.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(12.0),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.calendar_today,
-                            color: Colors.white,
+                            color: AppTheme.primaryTextColor,
                             size: 24.0,
                           ),
                         ),
@@ -356,71 +314,87 @@ class _HomeTabState extends State<_HomeTab>
                   ),
                 ),
 
-                const SizedBox(height: 32.0), // 今日信息与标题间距增加
-                // 标题 - 滑入动画
-                SlideTransition(
-                  position: createSlideAnimation(1, _featureCards.length + 1),
-                  child: Text(
-                    '开启小众之旅',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontSize: 32.0, // 增大标题字体
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+                const SizedBox(height: 16.0),
 
-                const SizedBox(height: 12.0), // 标题与副标题间距增加
-                // 副标题 - 滑入动画
-                SlideTransition(
-                  position: createSlideAnimation(2, _featureCards.length + 1),
-                  child: Text(
-                    '发现隐秘美景，享受独特旅途',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontSize: 16.0, // 增大副标题字体
-                      color: Colors.white.withOpacity(0.8),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 36.0), // 副标题与卡片间距增加
-                // 功能卡片 - 依次滑入并从上到下依次显示光波效果
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _featureCards.length,
-                  itemBuilder: (context, index) {
-                    // 提取卡片数据并添加空值检查
-                    final cardData = _featureCards[index];
-                    final String title = cardData['title'] as String? ?? "功能";
-                    final String subtitle =
-                        cardData['subtitle'] as String? ?? "了解更多信息";
-                    final IconData icon =
-                        cardData['icon'] as IconData? ?? Icons.star;
-                    final String tag = cardData['tag'] as String? ?? "";
-                    final Color tagColor =
-                        cardData['tagColor'] as Color? ?? Colors.grey;
-                    final List<Color> gradientColors =
-                        (cardData['gradientColors'] as List<Color>?) ??
-                        _defaultGradient;
-
-                    // 为不同的卡片创建不同时间的光波动画
-                    final shineAnimation = CurvedAnimation(
-                      parent: _shineAnimationController!,
-                      curve: Interval(
-                        index * 0.15, // 每个卡片的光波错开0.15的时间
-                        (index * 0.15) + 0.3, // 每个光波持续0.3的时间
-                        curve: Curves.easeInOut,
+                // 区块2: 标题和副标题 (从右侧飞入)
+                AnimatedBuilder(
+                  animation: _flyInController!,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(300 * (1 - _flyInController!.value), 0),
+                      child: Opacity(
+                        opacity: _flyInController!.value,
+                        child: child,
                       ),
                     );
-
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0),
-                      child: SlideTransition(
-                        position: createSlideAnimation(
-                          index + 3,
-                          _featureCards.length + 3,
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '开启小众之旅',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.headlineMedium?.copyWith(
+                          fontSize: 32.0,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryTextColor,
                         ),
+                      ),
+                      const SizedBox(height: 16.0),
+                      Text(
+                        '发现隐秘美景，享受独特旅途',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontSize: 16.0,
+                          color: AppTheme.secondaryTextColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24.0),
+
+                // 区块3: 功能卡片列表 (从下方飞入)
+                AnimatedBuilder(
+                  animation: _flyInController!,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(0, 200 * (1 - _flyInController!.value)),
+                      child: Opacity(
+                        opacity: _flyInController!.value,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Column(
+                    children: List.generate(_featureCards.length, (index) {
+                      // 提取卡片数据
+                      final cardData = _featureCards[index];
+                      final String title = cardData['title'] as String? ?? "功能";
+                      final String subtitle =
+                          cardData['subtitle'] as String? ?? "了解更多信息";
+                      final IconData icon =
+                          cardData['icon'] as IconData? ?? Icons.star;
+                      final String tag = cardData['tag'] as String? ?? "";
+                      final Color tagColor =
+                          cardData['tagColor'] as Color? ?? Colors.grey;
+                      final List<Color> gradientColors =
+                          (cardData['gradientColors'] as List<Color>?) ??
+                          _defaultGradient;
+
+                      // 为不同的卡片创建不同时间的光波动画
+                      final shineAnimation = CurvedAnimation(
+                        parent: _shineAnimationController!,
+                        curve: Interval(
+                          math.min(0.7, index * 0.15),
+                          math.min(1.0, math.min(0.7, index * 0.15) + 0.3),
+                          curve: Curves.easeInOut,
+                        ),
+                      );
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
                         child: _buildFeatureCard(
                           context: context,
                           title: title,
@@ -431,9 +405,9 @@ class _HomeTabState extends State<_HomeTab>
                           gradientColors: gradientColors,
                           shineAnimation: shineAnimation,
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    }),
+                  ),
                 ),
               ],
             ),
@@ -464,26 +438,49 @@ class _HomeTabState extends State<_HomeTab>
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          // 光波动画效果 - 从左到右移动
+          // 光波动画效果 - 从左到右移动并在开始和结束时淡入淡出
           AnimatedBuilder(
             animation: shineAnimation,
             builder: (context, child) {
+              // 计算淡入淡出效果
+              double opacity = 0.0;
+              final position = shineAnimation.value;
+
+              // 只在中间部分显示，开始和结束时隐藏
+              if (position > 0.1 && position < 0.9) {
+                // 淡入
+                if (position < 0.3) {
+                  opacity = (position - 0.1) * 5; // 0.1-0.3区间内淡入
+                }
+                // 保持稳定
+                else if (position < 0.7) {
+                  opacity = 1.0;
+                }
+                // 淡出
+                else {
+                  opacity = (0.9 - position) * 5; // 0.7-0.9区间内淡出
+                }
+              }
+
               return Positioned(
                 top: -50,
-                left: -50 + (shineAnimation.value * 400), // 动画移动位置
-                child: Container(
-                  width: 100,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.white.withOpacity(0.05),
-                        blurRadius: 15,
-                        spreadRadius: 10,
-                      ),
-                    ],
+                left: -100 + (position * 500), // 动画移动位置
+                child: Opacity(
+                  opacity: opacity,
+                  child: Container(
+                    width: 100,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryTextColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primaryTextColor.withOpacity(0.05),
+                          blurRadius: 15,
+                          spreadRadius: 10,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -499,11 +496,12 @@ class _HomeTabState extends State<_HomeTab>
                 colors: colors,
               ),
               borderRadius: BorderRadius.circular(16.0),
+              // 减少阴影复杂度，提高性能
               boxShadow: [
                 BoxShadow(
-                  color: colors.first.withOpacity(0.3),
-                  blurRadius: this.mounted ? 8.0 : 0.0,
-                  offset: const Offset(0, 3),
+                  color: colors.first.withOpacity(0.2),
+                  blurRadius: 4.0, // 减小阴影模糊半径
+                  offset: const Offset(0, 2), // 减小阴影偏移
                 ),
               ],
             ),
@@ -518,10 +516,19 @@ class _HomeTabState extends State<_HomeTab>
                   ),
                 );
               },
+              onHover: (isHovered) {
+                if (_shineAnimationController != null) {
+                  if (isHovered) {
+                    _shineAnimationController!.forward();
+                  } else {
+                    _shineAnimationController!.reverse();
+                  }
+                }
+              },
               splashFactory: InkRipple.splashFactory,
-              splashColor: Colors.white.withOpacity(0.2),
-              highlightColor: Colors.white.withOpacity(0.1),
-              child: Container(
+              splashColor: AppTheme.primaryTextColor.withOpacity(0.2),
+              highlightColor: AppTheme.primaryTextColor.withOpacity(0.1),
+              child: SizedBox(
                 height: 100, // 固定高度
                 child: Stack(
                   children: [
@@ -535,13 +542,13 @@ class _HomeTabState extends State<_HomeTab>
                           vertical: 3.0,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.2),
+                          color: AppTheme.cardColor.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(20.0),
                         ),
                         child: Text(
                           tag,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: AppTheme.primaryTextColor,
                             fontSize: 12.0,
                             fontWeight: FontWeight.w500,
                           ),
@@ -564,10 +571,14 @@ class _HomeTabState extends State<_HomeTab>
                             width: 56.0,
                             height: 56.0,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: AppTheme.primaryTextColor.withOpacity(0.2),
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(icon, color: Colors.white, size: 28.0),
+                            child: Icon(
+                              icon,
+                              color: AppTheme.primaryTextColor,
+                              size: 28.0,
+                            ),
                           ),
 
                           const SizedBox(width: 16.0),
@@ -581,8 +592,8 @@ class _HomeTabState extends State<_HomeTab>
                                 // 标题
                                 Text(
                                   title,
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: AppTheme.primaryTextColor,
                                     fontSize: 18.0,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -594,7 +605,7 @@ class _HomeTabState extends State<_HomeTab>
                                 Text(
                                   subtitle,
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.75),
+                                    color: AppTheme.secondaryTextColor,
                                     fontSize: 14.0,
                                   ),
                                   maxLines: 1,
@@ -605,9 +616,9 @@ class _HomeTabState extends State<_HomeTab>
                           ),
 
                           // 箭头图标
-                          const Icon(
+                          Icon(
                             Icons.arrow_forward_ios,
-                            color: Colors.white,
+                            color: AppTheme.primaryTextColor,
                             size: 16.0,
                           ),
                         ],
@@ -626,14 +637,50 @@ class _HomeTabState extends State<_HomeTab>
 
 // 探索页面 - 带入场动画
 class _ExploreTab extends StatefulWidget {
-  const _ExploreTab({Key? key}) : super(key: key);
+  final bool isCurrentPage;
+
+  const _ExploreTab({Key? key, this.isCurrentPage = false}) : super(key: key);
 
   @override
   _ExploreTabState createState() => _ExploreTabState();
 }
 
 class _ExploreTabState extends State<_ExploreTab>
-    with TickerProviderStateMixin, PageAnimationMixin {
+    with TickerProviderStateMixin {
+  // 飞入动画控制器
+  AnimationController? _flyInController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 初始化飞入动画控制器 - 设置为500毫秒
+    _flyInController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    // 启动动画
+    _flyInController!.forward();
+  }
+
+  @override
+  void dispose() {
+    _flyInController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_ExploreTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // 当页面变为当前页面时，重新播放飞入动画
+    if (widget.isCurrentPage && !oldWidget.isCurrentPage) {
+      _flyInController?.reset();
+      _flyInController?.forward();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -645,16 +692,66 @@ class _ExploreTabState extends State<_ExploreTab>
         ),
       ),
       child: SafeArea(
-        child: Center(
-          child: SlideTransition(
-            position: createSlideAnimation(0, 1),
-            child: const Text(
-              '探索',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 32.0,
-                fontWeight: FontWeight.bold,
-              ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 区块1: 标题 (从左侧飞入)
+                AnimatedBuilder(
+                  animation: _flyInController!,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(-300 * (1 - _flyInController!.value), 0),
+                      child: Opacity(
+                        opacity: _flyInController!.value,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Text(
+                    '探索',
+                    style: TextStyle(
+                      color: AppTheme.primaryTextColor,
+                      fontSize: 32.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16.0),
+
+                // 区块2: 发现内容区域 (从右侧飞入)
+                AnimatedBuilder(
+                  animation: _flyInController!,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(300 * (1 - _flyInController!.value), 0),
+                      child: Opacity(
+                        opacity: _flyInController!.value,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: AppTheme.cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '发现更多景点',
+                        style: TextStyle(
+                          color: AppTheme.primaryTextColor,
+                          fontSize: 18.0,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -665,14 +762,50 @@ class _ExploreTabState extends State<_ExploreTab>
 
 // 消息页面 - 带入场动画
 class _MessageTab extends StatefulWidget {
-  const _MessageTab({Key? key}) : super(key: key);
+  final bool isCurrentPage;
+
+  const _MessageTab({Key? key, this.isCurrentPage = false}) : super(key: key);
 
   @override
   _MessageTabState createState() => _MessageTabState();
 }
 
 class _MessageTabState extends State<_MessageTab>
-    with TickerProviderStateMixin, PageAnimationMixin {
+    with TickerProviderStateMixin {
+  // 飞入动画控制器
+  AnimationController? _flyInController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 初始化飞入动画控制器 - 设置为500毫秒
+    _flyInController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    // 启动动画
+    _flyInController!.forward();
+  }
+
+  @override
+  void dispose() {
+    _flyInController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_MessageTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // 当页面变为当前页面时，重新播放飞入动画
+    if (widget.isCurrentPage && !oldWidget.isCurrentPage) {
+      _flyInController?.reset();
+      _flyInController?.forward();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -684,16 +817,66 @@ class _MessageTabState extends State<_MessageTab>
         ),
       ),
       child: SafeArea(
-        child: Center(
-          child: SlideTransition(
-            position: createSlideAnimation(0, 1),
-            child: const Text(
-              '消息',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 32.0,
-                fontWeight: FontWeight.bold,
-              ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 区块1: 标题 (从右侧飞入)
+                AnimatedBuilder(
+                  animation: _flyInController!,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(300 * (1 - _flyInController!.value), 0),
+                      child: Opacity(
+                        opacity: _flyInController!.value,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Text(
+                    '消息',
+                    style: TextStyle(
+                      color: AppTheme.primaryTextColor,
+                      fontSize: 32.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16.0),
+
+                // 区块2: 消息内容区域 (从左侧飞入)
+                AnimatedBuilder(
+                  animation: _flyInController!,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(-300 * (1 - _flyInController!.value), 0),
+                      child: Opacity(
+                        opacity: _flyInController!.value,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: AppTheme.cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '暂无新消息',
+                        style: TextStyle(
+                          color: AppTheme.primaryTextColor,
+                          fontSize: 18.0,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -704,14 +887,50 @@ class _MessageTabState extends State<_MessageTab>
 
 // 个人页面 - 带入场动画
 class _ProfileTab extends StatefulWidget {
-  const _ProfileTab({Key? key}) : super(key: key);
+  final bool isCurrentPage;
+
+  const _ProfileTab({Key? key, this.isCurrentPage = false}) : super(key: key);
 
   @override
   _ProfileTabState createState() => _ProfileTabState();
 }
 
 class _ProfileTabState extends State<_ProfileTab>
-    with TickerProviderStateMixin, PageAnimationMixin {
+    with TickerProviderStateMixin {
+  // 飞入动画控制器
+  AnimationController? _flyInController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 初始化飞入动画控制器 - 设置为500毫秒
+    _flyInController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    // 启动动画
+    _flyInController!.forward();
+  }
+
+  @override
+  void dispose() {
+    _flyInController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(_ProfileTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // 当页面变为当前页面时，重新播放飞入动画
+    if (widget.isCurrentPage && !oldWidget.isCurrentPage) {
+      _flyInController?.reset();
+      _flyInController?.forward();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -723,16 +942,69 @@ class _ProfileTabState extends State<_ProfileTab>
         ),
       ),
       child: SafeArea(
-        child: Center(
-          child: SlideTransition(
-            position: createSlideAnimation(0, 1),
-            child: const Text(
-              '我的',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 32.0,
-                fontWeight: FontWeight.bold,
-              ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 区块1: 标题 (从顶部飞入)
+                AnimatedBuilder(
+                  animation: _flyInController!,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(0, -100 * (1 - _flyInController!.value)),
+                      child: Opacity(
+                        opacity: _flyInController!.value,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Text(
+                    '我的',
+                    style: TextStyle(
+                      color: AppTheme.primaryTextColor,
+                      fontSize: 32.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16.0),
+
+                // 区块2: 个人信息区域 (从右下方飞入)
+                AnimatedBuilder(
+                  animation: _flyInController!,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(
+                        200 * (1 - _flyInController!.value),
+                        100 * (1 - _flyInController!.value),
+                      ),
+                      child: Opacity(
+                        opacity: _flyInController!.value,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: AppTheme.cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '个人信息',
+                        style: TextStyle(
+                          color: AppTheme.primaryTextColor,
+                          fontSize: 18.0,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

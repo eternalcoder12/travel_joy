@@ -62,7 +62,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       duration: const Duration(milliseconds: 300),
     );
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
   }
 
@@ -168,6 +168,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               top: 60,
               right: 20,
               child: GlassCard(
+                key: ValueKey('skip_button'),
                 borderRadius: 25,
                 blur: 10,
                 opacity: 0.1,
@@ -193,6 +194,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 const SizedBox(height: 50), // 顶部增加间距
                 Expanded(
                   child: PageView.builder(
+                    key: const ValueKey('onboarding_page_view'),
                     controller: _pageController,
                     itemCount: _pages.length,
                     onPageChanged: (int page) {
@@ -209,6 +211,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                         description: _pages[index]['description'],
                         color: _pages[index]['color'],
                         index: index,
+                        key: ValueKey('page_$index'),
                       );
                     },
                   ),
@@ -232,9 +235,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     required String description,
     required Color color,
     required int index,
+    required Key key,
   }) {
     // 使用TweenAnimationBuilder实现淡入效果
     return TweenAnimationBuilder<double>(
+      key: key, // 使用传入的key
       tween: Tween<double>(begin: 0.0, end: 1.0),
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeInOut,
@@ -264,19 +269,19 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   colors: [color.withOpacity(0.7), color.withOpacity(0.3)],
                 ),
                 boxShadow: [
-                  // 外阴影
+                  // 简化外阴影
                   BoxShadow(
-                    color: color.withOpacity(0.5),
-                    blurRadius: 25,
-                    spreadRadius: 1,
-                    offset: const Offset(0, 10),
+                    color: color.withOpacity(0.4),
+                    blurRadius: 15, // 从25减少到15
+                    spreadRadius: 0, // 从1减少到0
+                    offset: const Offset(0, 5), // 从10减少到5
                   ),
-                  // 内亮光
+                  // 简化内亮光
                   BoxShadow(
-                    color: Colors.white.withOpacity(0.15),
-                    blurRadius: 10,
+                    color: Colors.white.withOpacity(0.1),
+                    blurRadius: 5, // 从10减少到5
                     spreadRadius: -1,
-                    offset: const Offset(-5, -5),
+                    offset: const Offset(-3, -3), // 从-5减少到-3
                   ),
                 ],
               ),
@@ -284,13 +289,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 icon,
                 size: 70.0,
                 color: AppTheme.primaryTextColor,
-                shadows: [
-                  Shadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 5,
-                    offset: const Offset(2, 2),
-                  ),
-                ],
+                // 移除阴影提高性能
               ),
             ),
             const SizedBox(height: 60),
@@ -302,13 +301,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 letterSpacing: 0.5,
                 fontWeight: FontWeight.w700,
                 color: AppTheme.primaryTextColor,
-                shadows: [
-                  Shadow(
-                    color: color.withOpacity(0.5),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                // 移除文字阴影提高性能
               ),
               textAlign: TextAlign.center,
             ),
@@ -352,9 +345,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   _currentPage == index
                       ? [
                         BoxShadow(
-                          color: _pages[index]['color'].withOpacity(0.5),
-                          blurRadius: 8,
-                          spreadRadius: 1,
+                          color: _pages[index]['color'].withOpacity(
+                            0.3,
+                          ), // 降低透明度
+                          blurRadius: 4, // 从8减少到4
+                          spreadRadius: 0, // 从1减少到0
                         ),
                       ]
                       : null,
@@ -375,12 +370,23 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             scale: _scaleAnimation.value,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30.0),
-              child: GradientButton(
-                onPressed: _markOnboardingComplete,
-                gradient: LinearGradient(
-                  colors: [AppTheme.neonPurple, AppTheme.neonBlue],
+              child: GlassCard(
+                key: ValueKey('start_button'),
+                borderRadius: 25,
+                blur: 5,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
                 ),
-                text: '开始探索',
+                onTap: _markOnboardingComplete,
+                child: Text(
+                  '开始探索',
+                  style: TextStyle(
+                    color: AppTheme.primaryTextColor,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ),
           );
@@ -389,21 +395,26 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     } else {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 30.0),
-        child: GradientButton(
-          onPressed: () {
+        child: GlassCard(
+          key: ValueKey('next_button'),
+          borderRadius: 25,
+          blur: 5,
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          onTap: () {
             _pageController.animateToPage(
               _currentPage + 1,
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
             );
           },
-          gradient: LinearGradient(
-            colors: [
-              _pages[_currentPage]['color'],
-              _pages[_currentPage]['color'].withOpacity(0.7),
-            ],
+          child: Text(
+            '下一步',
+            style: TextStyle(
+              color: AppTheme.primaryTextColor,
+              fontSize: 16.0,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-          text: '下一步',
         ),
       );
     }

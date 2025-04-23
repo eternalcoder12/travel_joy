@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../app_theme.dart';
+import 'dart:math' as math;
 
 /// 玻璃态卡片组件 - 2023年流行UI趋势
 class GlassCard extends StatelessWidget {
@@ -15,7 +16,7 @@ class GlassCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const GlassCard({
-    Key? key,
+    super.key,
     required this.child,
     this.borderRadius = 24.0,
     this.blur = 10.0,
@@ -25,7 +26,7 @@ class GlassCard extends StatelessWidget {
     this.borderColor,
     this.elevation = 0,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +50,10 @@ class GlassCard extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+            filter: ImageFilter.blur(
+              sigmaX: math.min(blur, 5.0),
+              sigmaY: math.min(blur, 5.0),
+            ),
             child: Container(
               padding: padding,
               decoration: BoxDecoration(
