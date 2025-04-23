@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'dart:ui';
 import '../../app_theme.dart';
 import '../../widgets/animated_item.dart';
+import '../explore/spot_detail_screen.dart';
+import '../explore/map_view_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -662,40 +664,59 @@ class _ExploreTabState extends State<_ExploreTab>
   // 推荐景点数据
   final List<Map<String, dynamic>> _recommendedSpots = [
     {
-      'name': '神秘峡谷',
-      'location': '云南省丽江市',
+      'name': '西湖风景区',
+      'location': '杭州, 浙江',
+      'image':
+          'https://images.unsplash.com/photo-1598887142487-d835e88c5e77?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
       'rating': 4.8,
-      'image':
-          'https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-      'description': '被誉为"东方科罗拉多大峡谷"，拥有壮观的地貌和绝美的自然风景。',
-      'tags': ['自然风光', '徒步', '摄影'],
+      'tags': ['风景', '湖泊', '历史'],
+      'description':
+          '西湖是中国大陆首批国家重点风景名胜区和中国十大风景名胜之一，三面环山，面积约6.39平方千米。湖中被孤山、白堤、苏堤、杨公堤分隔，形成了外西湖、西里湖、北里湖、小南湖及岳湖等五片水面。"西湖十景"是西湖景致的代表。',
+      'price': '85',
     },
     {
-      'name': '古镇小巷',
-      'location': '浙江省杭州市',
-      'rating': 4.6,
+      'name': '故宫博物院',
+      'location': '北京',
       'image':
-          'https://images.unsplash.com/photo-1518005020951-eccb494ad742?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-      'description': '千年古镇，石板小路，流水人家，体验江南水乡的宁静与韵味。',
-      'tags': ['历史遗迹', '文化体验', '美食'],
-    },
-    {
-      'name': '梦幻海滩',
-      'location': '海南省三亚市',
+          'https://images.unsplash.com/photo-1584283626530-7c19deb65766?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
       'rating': 4.9,
-      'image':
-          'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-      'description': '被誉为中国最美的海滩之一，水清沙白，椰林环绕，是度假的理想之地。',
-      'tags': ['海滩', '度假', '自然风光'],
+      'tags': ['历史', '文化', '建筑'],
+      'description':
+          '北京故宫是中国明清两代的皇家宫殿，旧称为紫禁城，是中国古代宫廷建筑之精华。北京故宫以三大殿为中心，占地面积72万平方米，建筑面积约15万平方米，有大小宫殿七十多座，房屋九千余间。是世界上现存规模最大、保存最为完整的木质结构古建筑之一。',
+      'price': '120',
     },
     {
-      'name': '山顶观景台',
-      'location': '四川省成都市',
-      'rating': 4.7,
+      'name': '黄山风景区',
+      'location': '黄山, 安徽',
       'image':
-          'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-      'description': '登高望远，俯瞰城市美景，夜晚可见星空和城市灯火。',
-      'tags': ['观景', '摄影', '自然风光'],
+          'https://images.unsplash.com/photo-1583065435836-f6490d265eb5?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+      'rating': 4.7,
+      'tags': ['山水', '风景', '徒步'],
+      'description':
+          '黄山位于安徽省南部，是中国十大名山之一，以奇松、怪石、云海、温泉、冬雪"五绝"著称于世。黄山的自然景观丰富多彩，山上常年云雾缭绕，气象万千，被誉为"人间仙境"，是摄影爱好者的天堂。',
+      'price': '190',
+    },
+    {
+      'name': '张家界国家森林公园',
+      'location': '张家界, 湖南',
+      'image':
+          'https://images.unsplash.com/photo-1593709942239-e423f46750c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+      'rating': 4.6,
+      'tags': ['自然', '峰林', '冒险'],
+      'description':
+          '张家界国家森林公园以其数千座陡峭的石英砂岩峰林而闻名，这些峰林高耸入云，气势磅礴。电影《阿凡达》中的"哈利路亚山"灵感便来源于此。公园内还有众多奇特的岩石和洞穴，是探险和摄影的绝佳去处。',
+      'price': '160',
+    },
+    {
+      'name': '丽江古城',
+      'location': '丽江, 云南',
+      'image':
+          'https://images.unsplash.com/photo-1602920344572-87add3d82be7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+      'rating': 4.5,
+      'tags': ['古城', '文化', '民俗'],
+      'description':
+          '丽江古城始建于宋末元初，是中国为数不多的保存完好的少数民族古城，也是世界文化遗产。古城内的四方街是丽江古城的中心广场，由花石铺就而成。小巷纵横交错，清澈的溪流穿城而过，体现了纳西族独特的文化传统和建筑风格。',
+      'price': '80',
     },
   ];
 
@@ -749,7 +770,7 @@ class _ExploreTabState extends State<_ExploreTab>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 区块1: 标题和搜索栏 (从左侧飞入)
+                  // 区块1: 标题 (从左侧飞入)
                   AnimatedBuilder(
                     animation: _flyInController!,
                     builder: (context, child) {
@@ -773,40 +794,92 @@ class _ExploreTabState extends State<_ExploreTab>
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                      ],
+                    ),
+                  ),
 
-                        const SizedBox(height: 16.0),
+                  const SizedBox(height: 20.0),
 
-                        // 搜索栏
-                        Container(
-                          decoration: BoxDecoration(
-                            color: AppTheme.cardColor.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
-                          ),
-                          child: TextField(
-                            controller: _searchController,
-                            style: TextStyle(color: AppTheme.primaryTextColor),
-                            decoration: InputDecoration(
-                              hintText: '搜索景点、城市、体验...',
-                              hintStyle: TextStyle(
-                                color: AppTheme.secondaryTextColor,
-                              ),
-                              prefixIcon: Icon(
-                                Icons.search,
+                  // 区块2: 搜索栏和地图按钮 (从右侧飞入)
+                  AnimatedBuilder(
+                    animation: _flyInController!,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(300 * (1 - _flyInController!.value), 0),
+                        child: Opacity(
+                          opacity: _flyInController!.value,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppTheme.cardColor.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: TextField(
+                              controller: _searchController,
+                              style: TextStyle(
                                 color: AppTheme.primaryTextColor,
                               ),
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 14,
+                              decoration: InputDecoration(
+                                hintText: '搜索景点、城市、体验...',
+                                hintStyle: TextStyle(
+                                  color: AppTheme.secondaryTextColor,
+                                ),
+                                prefixIcon: Icon(
+                                  Icons.search,
+                                  color: AppTheme.primaryTextColor,
+                                ),
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
                               ),
                             ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => MapViewScreen(
+                                      spots: _recommendedSpots,
+                                      initialSpotIndex: 0,
+                                    ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            height: 50,
+                            width: 50,
+                            decoration: BoxDecoration(
+                              color: AppTheme.buttonColor.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.buttonColor.withOpacity(0.3),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(Icons.map, color: Colors.white),
                           ),
                         ),
                       ],
@@ -815,7 +888,7 @@ class _ExploreTabState extends State<_ExploreTab>
 
                   const SizedBox(height: 20.0),
 
-                  // 区块2: 分类选项卡 (从右侧飞入)
+                  // 区块3: 分类选项卡 (从右侧飞入)
                   AnimatedBuilder(
                     animation: _flyInController!,
                     builder: (context, child) {
@@ -920,12 +993,11 @@ class _ExploreTabState extends State<_ExploreTab>
   Widget _buildSpotCard(Map<String, dynamic> spot) {
     return GestureDetector(
       onTap: () {
-        // TODO: 导航到景点详情页
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('查看 ${spot['name']} 详情'),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 1),
+        // 导航到景点详情页
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SpotDetailScreen(spotData: spot),
           ),
         );
       },
