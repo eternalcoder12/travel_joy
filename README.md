@@ -1,112 +1,178 @@
-# Travel Joy
+# Travel Joy 旅行应用
 
-一个现代化的旅行应用，提供景点探索、旅行成就系统、社交分享等功能。
+![Travel Joy](https://img.shields.io/badge/Travel%20Joy-1.0.1-blue)
+![Flutter](https://img.shields.io/badge/Flutter-2.0+-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-## 项目特点
+一款为旅行爱好者提供景点发现、地图导航和预订服务的 Flutter 应用。
 
-- 精美的 UI 设计，支持多种现代 UI 设计风格
-- 完整的用户认证系统（登录、注册、忘记密码）
-- 旅行探索和社交分享功能
-- 旅行成就和积分系统
+<p align="center">
+  <img src="https://github.com/eternalcoder12/travel_joy/raw/main/screenshots/home.png" width="200" alt="首页预览"/>
+  <img src="https://github.com/eternalcoder12/travel_joy/raw/main/screenshots/explore.png" width="200" alt="探索页预览"/>
+  <img src="https://github.com/eternalcoder12/travel_joy/raw/main/screenshots/detail.png" width="200" alt="详情页预览"/>
+</p>
 
-## 设计风格与 UI 趋势
+## 📱 应用特性
 
-本项目实现了多种现代 UI 设计趋势：
+Travel Joy 具有以下特性:
 
-### 1. 毛玻璃效果 (Glassmorphism)
+- 🏠 **首页**: 展示热门景点和各种功能入口，动画效果流畅
+- 🔍 **探索页**: 固定顶部搜索区域，可滚动景点列表，一键切换地图视图
+- 🏞️ **景点详情**: 高质量图片画廊、详细景点信息、设施服务和用户评论
+- 🗺️ **地图功能**: 查看景点位置，支持地图/列表视图切换
+- 📱 **预订功能**: 多种预订方式，包括地图导航、浏览器查询、微信小程序和第三方旅行应用
+- ❤️ **收藏功能**: 一键收藏您喜欢的景点
+- 🌙 **精美 UI**: 深色主题设计，流畅的动画效果，精心设计的细节
 
-- 半透明背景配合模糊效果
-- 轻微的边框增强立体感
-- 用于卡片、按钮和表单区域
+## 📲 安装指南
 
-### 2. 新拟态设计 (Neumorphism)
+### Android 安装
 
-- 精细的阴影创造凸起和凹陷效果
-- 柔和的色彩过渡
-- 应用于按钮和容器
+1. 从 [Releases 页面](https://github.com/eternalcoder12/travel_joy/releases) 下载最新的 APK 文件
+2. 在 Android 设备上打开 APK 文件进行安装
+3. 如提示"未知来源"，请在设置中允许安装
 
-### 3. 渐变色彩 (Gradients)
+### iOS 安装
 
-- 丰富的线性和径向渐变
-- 霓虹色调增强视觉冲击力
-- 用于背景、按钮和装饰元素
+1. 从 [Releases 页面](https://github.com/eternalcoder12/travel_joy/releases) 下载最新的 IPA 文件
+2. 使用 Xcode 或其他工具安装到 iOS 设备
+3. 或使用 TestFlight 安装测试版本
 
-### 4. 微动效 (Micro Interactions)
-
-- 细腻的动画反馈
-- 视觉和触觉响应
-- 提升用户交互体验
-
-### 5. 3D 元素
-
-- 层次感的设计元素
-- 阴影和高光创造深度
-- 增强界面的空间感
-
-## 配色方案
-
-项目使用了一套霓虹主题配色：
-
-```
-主要颜色:
-- 背景色: #12131E
-- 卡片色: #1E2030
-- 文本主色: #FFFFFF
-- 文本次色: #8A8A8A
-- 提示文本色: #505050
-
-霓虹色系:
-- 霓虹蓝: #00BFFF
-- 霓虹紫: #BA55D3
-- 霓虹粉: #FF69B4
-- 霓虹青: #00CED1
-- 霓虹橙: #FF7F50
-
-功能色:
-- 按钮颜色: #7B68EE
-- 成功色: #00C853
-- 错误色: #FF5252
-- 警告色: #FFD740
-```
-
-## 开始使用
-
-### 前置要求
-
-- Flutter 3.0.0 或更高版本
-- Dart 2.17.0 或更高版本
-
-### 安装
-
-1. 克隆仓库:
+### 从源码构建
 
 ```bash
-git clone https://github.com/yourusername/travel_joy.git
-```
+# 克隆项目
+git clone https://github.com/eternalcoder12/travel_joy.git
 
-2. 安装依赖:
-
-```bash
+# 进入项目目录
 cd travel_joy
+
+# 获取依赖
 flutter pub get
-```
 
-3. 运行应用:
-
-```bash
+# 运行应用
 flutter run
 ```
 
-## 项目结构
+## ⚠️ 安装常见问题
 
-```
-lib/
-├── main.dart           # 应用入口
-├── app_theme.dart      # 主题和样式定义
-├── screens/            # 所有页面
-│   ├── auth/           # 认证相关页面
-│   ├── home/           # 主页和核心功能
-│   └── onboarding/     # 引导页面
-├── widgets/            # 可复用组件
-└── models/             # 数据模型
-```
+### Android 安装问题
+
+1. **"未知来源"安装限制**
+
+   - **问题**: 安装时提示"未知来源应用"无法安装
+   - **解决方案**: 进入 设置 > 安全 > 未知来源应用，开启允许安装
+
+2. **应用崩溃或白屏**
+
+   - **问题**: 首次启动应用后立即崩溃或显示白屏
+   - **解决方案**: 确保您的 Android 系统版本不低于 6.0 (API 23)，并检查是否已授予应用必要权限
+
+3. **网络功能无法使用**
+   - **问题**: 应用内网络相关功能无法正常使用
+   - **解决方案**: 确保您已授予应用网络权限，并检查网络连接是否正常
+
+### iOS 安装问题
+
+1. **无法验证应用**
+
+   - **问题**: 显示"无法验证应用"或"未受信任的企业级开发者"
+   - **解决方案**: 进入 设置 > 通用 > 描述文件与设备管理，找到相应的描述文件并信任
+
+2. **CocoaPods 相关错误**
+
+   - **问题**: 构建时出现 CocoaPods 相关错误
+   - **解决方案**:
+     ```bash
+     cd ios
+     pod repo update
+     pod install --repo-update
+     ```
+
+3. **URL 跳转功能异常**
+   - **问题**: 无法正常打开外部应用(微信、地图等)
+   - **解决方案**: 确保在 Info.plist 中已配置 LSApplicationQueriesSchemes 以及对应的 URL Schemes
+
+### 通用问题
+
+1. **依赖包冲突**
+
+   - **问题**: 构建时出现依赖包冲突
+   - **解决方案**:
+     ```bash
+     flutter clean
+     flutter pub get
+     ```
+
+2. **应用卡顿或动画不流畅**
+
+   - **问题**: 应用运行缓慢或动画效果不流畅
+   - **解决方案**: 检查设备性能，可以在应用设置中尝试关闭部分动画效果
+
+3. **图片加载失败**
+   - **问题**: 应用内图片无法正常加载
+   - **解决方案**: 检查网络连接状况，若是在中国大陆使用，部分图片服务器可能需要代理访问
+
+## 🛠️ 技术栈
+
+- **Flutter**: UI 框架
+- **Dart**: 编程语言
+- **Material Design**: UI 设计风格
+- **Animation**: 流畅的动画效果
+
+## 🔄 已实现功能
+
+- [x] 首页布局和动画效果
+- [x] 探索页面的景点列表
+- [x] 景点详情页面
+- [x] 图片画廊
+- [x] 收藏功能
+- [x] 用户评论展示
+- [x] 地图页面和景点标记
+- [x] 预订方式抽屉
+- [x] URL 跳转功能（地图、浏览器等）
+
+## 📝 待实现功能
+
+- [ ] 用户登录和注册功能
+- [ ] 评论发布功能
+- [ ] 收藏列表持久化存储
+- [ ] 景点搜索功能
+- [ ] 个人中心完善
+- [ ] 实际集成地图 API
+- [ ] 实际预订功能实现
+- [ ] 多语言支持
+- [ ] 主题切换功能
+
+## 🔄 版本更新
+
+### V1.0.1 (2024-09-19)
+
+- 优化底部抽屉动画效果，更加流畅自然
+- 修复主题配色问题，移除硬编码颜色
+- 优化用户操作手势响应
+- 修复已知 bug
+
+### V1.0.0 (2024-09-01)
+
+- 首次发布
+- 实现景点详情页面和地图功能
+- 添加基础预订功能
+
+## 👨‍💻 贡献指南
+
+欢迎贡献代码或提出建议！请按以下步骤操作：
+
+1. Fork 项目
+2. 创建您的特性分支 (`git checkout -b feature/amazing-feature`)
+3. 提交您的修改 (`git commit -m 'Add some amazing feature'`)
+4. 推送到分支 (`git push origin feature/amazing-feature`)
+5. 创建 Pull Request
+
+## 📄 许可证
+
+该项目使用 MIT 许可证 - 详情请见 [LICENSE](LICENSE) 文件
+
+## 📱 联系方式
+
+如有任何问题或建议，请通过 GitHub Issues 联系我们。
