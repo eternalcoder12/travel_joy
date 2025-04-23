@@ -31,7 +31,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   bool _isFavorite = false;
 
   // 是否显示底部抽屉
-  bool _showBottomDrawer = false;
+  bool _isBottomDrawerVisible = false;
 
   // 顶部滚动位置监听
   final ScrollController _scrollController = ScrollController();
@@ -64,6 +64,9 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
 
   // 在类顶部添加这个变量
   bool _isClosingDrawer = false;
+
+  // 新增拖拽距离变量
+  double _dragExtent = 0.0;
 
   @override
   void initState() {
@@ -101,57 +104,51 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   }
 
   // 尝试打开外部应用进行预订
-  Future<void> _launchExternalApp() async {
-    // 显示底部抽屉并添加动画效果
-    setState(() {
-      _showBottomDrawer = true;
-    });
+  Future<void> _launchExternalApp(
+    String url, {
+    LaunchMode mode = LaunchMode.platformDefault,
+  }) async {
+    if (_isClosingDrawer) return; // 如果正在关闭抽屉，不再触发新的打开操作
+
+    try {
+      if (await canLaunchUrl(Uri.parse(url))) {
+        await launchUrl(Uri.parse(url), mode: mode);
+        _closeBottomDrawer();
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('无法打开 $url')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('发生错误: $e')));
+    }
   }
 
-  // 关闭底部抽屉
   void _closeBottomDrawer() {
-    // 先设置关闭动画标记，而不是立即关闭
     setState(() {
       _isClosingDrawer = true;
     });
 
-    // 延迟300毫秒后真正关闭抽屉
-    Future.delayed(const Duration(milliseconds: 300), () {
+    // 等待动画完成后再隐藏抽屉
+    Future.delayed(Duration(milliseconds: 300), () {
       if (mounted) {
         setState(() {
-          _showBottomDrawer = false;
+          _isBottomDrawerVisible = false;
           _isClosingDrawer = false;
         });
       }
     });
   }
 
-  // 实际打开URL的方法
-  Future<void> _openUrl(String url) async {
-    try {
-      final uri = Uri.parse(url);
-      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('无法打开: $url'),
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('发生错误: $e'),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-    }
+  // 打开底部抽屉
+  void _showBottomDrawer() {
+    setState(() {
+      _dragExtent = 0; // 重置拖拽距离
+      _isClosingDrawer = false;
+      _isBottomDrawerVisible = true;
+    });
   }
 
   @override
@@ -562,7 +559,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
           ),
 
           // 底部抽屉 - 使用ModalBarrier模式
-          if (_showBottomDrawer)
+          if (_isBottomDrawerVisible)
             Positioned.fill(
               child: Stack(
                 children: [
@@ -572,197 +569,15 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                       onTap: _closeBottomDrawer,
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-                        child: Container(color: Colors.black.withOpacity(0.5)),
+                        child: Container(
+                          color: AppTheme.backgroundColor.withOpacity(0.5),
+                        ),
                       ),
                     ),
                   ),
 
                   // 抽屉内容
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: TweenAnimationBuilder<double>(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOutQuart,
-                      tween: Tween<double>(
-                        begin: _isClosingDrawer ? 0.0 : 1.0,
-                        end: _isClosingDrawer ? 1.0 : 0.0,
-                      ),
-                      builder: (context, value, child) {
-                        return Transform.translate(
-                          offset: Offset(0, value * 500),
-                          child: child,
-                        );
-                      },
-                      child: GestureDetector(
-                        // 防止点击抽屉自身时关闭抽屉
-                        onTap: () {},
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                          decoration: BoxDecoration(
-                            color: AppTheme.backgroundColor,
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(30),
-                              topRight: Radius.circular(30),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 10,
-                                offset: const Offset(0, -5),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // 标题和把手
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20.0,
-                                ),
-                                child: Column(
-                                  children: [
-                                    // 抽屉顶部把手
-                                    Container(
-                                      width: 40,
-                                      height: 5,
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.withOpacity(0.3),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    // 预订标题
-                                    Text(
-                                      "选择预订方式",
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppTheme.primaryTextColor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              const SizedBox(height: 20),
-
-                              // 预订选项列表
-                              _buildDrawerOption(
-                                Icons.map,
-                                "地图导航",
-                                "使用地图应用导航到该景点",
-                                () {
-                                  final spotName = Uri.encodeComponent(
-                                    widget.spotData['name'],
-                                  );
-                                  // 改为使用固定的经纬度坐标，因为location字段只是一个地址描述字符串
-                                  // 这里根据景点名称使用模拟的经纬度数据
-                                  String lat, lng;
-                                  if (widget.spotData['name'] == '西湖风景区') {
-                                    lat = '30.2590';
-                                    lng = '120.1388';
-                                  } else if (widget.spotData['name'] ==
-                                      '故宫博物院') {
-                                    lat = '39.9163';
-                                    lng = '116.3972';
-                                  } else if (widget.spotData['name'] ==
-                                      '黄山风景区') {
-                                    lat = '30.1319';
-                                    lng = '118.1647';
-                                  } else if (widget.spotData['name'] ==
-                                      '张家界国家森林公园') {
-                                    lat = '29.1347';
-                                    lng = '110.4795';
-                                  } else if (widget.spotData['name'] ==
-                                      '丽江古城') {
-                                    lat = '26.8719';
-                                    lng = '100.2282';
-                                  } else {
-                                    // 默认经纬度，如果没有找到匹配
-                                    lat = '39.9042';
-                                    lng = '116.4074'; // 北京默认位置
-                                  }
-
-                                  _openUrl(
-                                    'https://maps.apple.com/?q=$spotName&ll=$lat,$lng&z=15',
-                                  );
-                                  _closeBottomDrawer();
-                                },
-                              ),
-
-                              _buildDrawerOption(
-                                Icons.public,
-                                "浏览器查询",
-                                "使用浏览器搜索相关门票信息",
-                                () {
-                                  final spotName = Uri.encodeComponent(
-                                    widget.spotData['name'],
-                                  );
-                                  final location = Uri.encodeComponent(
-                                    widget.spotData['location'],
-                                  );
-                                  _openUrl(
-                                    'https://www.google.com/search?q=$spotName+$location+门票预订',
-                                  );
-                                  _closeBottomDrawer();
-                                },
-                              ),
-
-                              _buildDrawerOption(
-                                Icons.message,
-                                "微信小程序",
-                                "通过微信小程序预订",
-                                () {
-                                  _openUrl('weixin://');
-                                  _closeBottomDrawer();
-                                },
-                              ),
-
-                              _buildDrawerOption(
-                                Icons.phone_android,
-                                "第三方旅行应用",
-                                "使用专业旅行应用进行预订",
-                                () {
-                                  // 尝试打开携程，如不成功则打开其网页
-                                  _openUrl('ctrip://');
-                                  _closeBottomDrawer();
-                                },
-                              ),
-
-                              // 关闭按钮
-                              Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: ElevatedButton(
-                                  onPressed: _closeBottomDrawer,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.grey.withOpacity(
-                                      0.2,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                    minimumSize: Size(double.infinity, 50),
-                                  ),
-                                  child: Text(
-                                    "取消",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: AppTheme.primaryTextColor,
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              SizedBox(height: bottomPadding),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                  _buildBottomDrawer(),
                 ],
               ),
             ),
@@ -771,7 +586,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
 
       // 底部操作栏
       bottomNavigationBar:
-          _showBottomDrawer
+          _isBottomDrawerVisible
               ? null
               : AnimatedBuilder(
                 animation: _pageAnimController,
@@ -838,8 +653,8 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
 
                         // 外部应用预订按钮
                         ElevatedButton.icon(
-                          onPressed: _launchExternalApp,
-                          icon: const Icon(Icons.open_in_new, size: 16),
+                          onPressed: _showBottomDrawer,
+                          icon: const Icon(Icons.shopping_cart, size: 16),
                           label: const Text('前往预订'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.buttonColor,
@@ -862,74 +677,72 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   }
 
   // 构建抽屉选项
-  Widget _buildDrawerOption(
-    IconData icon,
-    String title,
-    String subtitle,
-    VoidCallback onTap,
-  ) {
+  Widget _buildDrawerOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool showDivider = true,
+  }) {
     return Column(
       children: [
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20.0,
-                vertical: 16.0,
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.cardColor.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(icon, color: AppTheme.buttonColor),
+        InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 16.0,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppTheme.buttonColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryTextColor,
-                          ),
+                  child: Icon(icon, color: AppTheme.buttonColor, size: 24),
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryTextColor,
                         ),
-                        Text(
-                          subtitle,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppTheme.secondaryTextColor,
-                          ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppTheme.secondaryTextColor,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: 16,
-                    color: AppTheme.secondaryTextColor,
-                  ),
-                ],
-              ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: AppTheme.secondaryTextColor,
+                  size: 16,
+                ),
+              ],
             ),
           ),
         ),
-        // 分隔线，除了最后一个选项外都添加
-        if (title != "第三方旅行应用")
+        if (showDivider)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            padding: const EdgeInsets.only(left: 88.0),
             child: Divider(
-              color: AppTheme.cardColor.withOpacity(0.3),
               height: 1,
+              color: AppTheme.cardColor.withOpacity(0.2),
             ),
           ),
       ],
@@ -1144,5 +957,209 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
         ],
       ),
     );
+  }
+
+  // 构建底部抽屉
+  Widget _buildBottomDrawer() {
+    return AnimatedPositioned(
+      duration: Duration(milliseconds: _isClosingDrawer ? 300 : 400),
+      curve: Curves.easeOutQuart, // 更平滑的动画曲线
+      bottom:
+          _isBottomDrawerVisible
+              ? (0 + _dragExtent) // 添加拖拽距离
+              : -MediaQuery.of(context).size.height * 0.6,
+      left: 0,
+      right: 0,
+      onEnd: () {
+        if (_isClosingDrawer) {
+          setState(() {
+            _isBottomDrawerVisible = false;
+            _isClosingDrawer = false;
+            _dragExtent = 0; // 重置拖拽距离
+          });
+        }
+      },
+      child: GestureDetector(
+        onVerticalDragUpdate: (details) {
+          // 跟踪拖拽的位置变化
+          if (details.delta.dy > 0) {
+            // 向下拖动时，根据拖动距离调整抽屉位置
+            setState(() {
+              _dragExtent += details.delta.dy; // 累加拖拽距离
+            });
+          }
+        },
+        onVerticalDragEnd: (details) {
+          // 根据拖拽速度决定是否关闭抽屉
+          if (details.primaryVelocity! > 300) {
+            _closeBottomDrawer();
+          } else if (_dragExtent > MediaQuery.of(context).size.height * 0.2) {
+            // 拖拽超过屏幕高度的20%也关闭抽屉
+            _closeBottomDrawer();
+          } else {
+            // 重置拖拽距离，抽屉回弹到原位
+            setState(() {
+              _dragExtent = 0;
+            });
+          }
+        },
+        child: Container(
+          height: MediaQuery.of(context).size.height * 0.6,
+          decoration: BoxDecoration(
+            color: AppTheme.backgroundColor,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(30),
+              topRight: Radius.circular(30),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 16),
+              // 抽屉顶部把手
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppTheme.secondaryTextColor.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              // 抽屉标题
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Text(
+                  "选择购票方式",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryTextColor,
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+              // 抽屉选项列表
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: BouncingScrollPhysics(),
+                  child: Column(
+                    children: [
+                      // 地图导航选项
+                      _buildDrawerOption(
+                        icon: Icons.map_outlined,
+                        title: "地图导航",
+                        subtitle: "打开地图应用进行导航",
+                        onTap: () {
+                          _launchMaps();
+                        },
+                      ),
+                      // 浏览器搜索选项
+                      _buildDrawerOption(
+                        icon: Icons.search_outlined,
+                        title: "浏览器搜索",
+                        subtitle: "打开浏览器搜索购票信息",
+                        onTap: () {
+                          _launchBrowser();
+                        },
+                      ),
+                      // 微信小程序选项
+                      _buildDrawerOption(
+                        icon: Icons.wechat_outlined,
+                        title: "微信小程序",
+                        subtitle: "打开微信应用",
+                        onTap: () {
+                          _launchWeChat();
+                        },
+                      ),
+                      // 第三方旅行应用选项
+                      _buildDrawerOption(
+                        icon: Icons.travel_explore,
+                        title: "第三方旅行应用",
+                        subtitle: "尝试打开携程等应用",
+                        onTap: () {
+                          _launchTravelApp();
+                        },
+                        showDivider: false,
+                      ),
+                      SizedBox(height: 20),
+                      // 取消按钮
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                        child: ElevatedButton(
+                          onPressed: () => _closeBottomDrawer(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.cardColor,
+                            foregroundColor: AppTheme.buttonColor,
+                            minimumSize: Size(double.infinity, 56),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              side: BorderSide(
+                                color: AppTheme.secondaryTextColor.withOpacity(
+                                  0.3,
+                                ),
+                              ),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            "取消",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 打开地图应用
+  void _launchMaps() {
+    _closeBottomDrawer();
+    // 尝试打开Apple地图
+    String spotName = widget.spotData['name'] ?? '景点';
+    String location = widget.spotData['location'] ?? '地址未知';
+    launchUrl(Uri.parse('maps://?q=$spotName&address=$location'));
+  }
+
+  // 打开浏览器搜索
+  void _launchBrowser() {
+    _closeBottomDrawer();
+    // 打开Google搜索
+    String spotName = widget.spotData['name'] ?? '景点';
+    launchUrl(Uri.parse('https://www.google.com/search?q=$spotName+门票+预订'));
+  }
+
+  // 打开微信应用
+  void _launchWeChat() {
+    _closeBottomDrawer();
+    // 尝试打开微信
+    launchUrl(Uri.parse('weixin://'));
+  }
+
+  // 打开第三方旅行应用
+  void _launchTravelApp() {
+    _closeBottomDrawer();
+    // 尝试打开携程APP
+    launchUrl(Uri.parse('ctrip://'));
   }
 }
