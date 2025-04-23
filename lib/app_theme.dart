@@ -20,6 +20,15 @@ class AppTheme {
   static const Color neonTeal = Color(0xFF2EC4B6); // 霓虹青色
   static const Color neonOrange = Color(0xFFFF9E00); // 霓虹橙色
 
+  // 设施与服务类型颜色
+  static const Color facilityCommunication = Color(0xFF4D79FF); // 通信设施 - 蓝色
+  static const Color facilityDining = Color(0xFFFF9E00); // 餐饮设施 - 橙色
+  static const Color facilityTransport = Color(0xFF2EC4B6); // 交通设施 - 青色
+  static const Color facilityAccessibility = Color(0xFF9D4EDD); // 无障碍设施 - 紫色
+  static const Color facilitySightseeing = Color(0xFFFF48C4); // 观光设施 - 粉色
+  static const Color facilityShopping = Color(0xFF4CAF50); // 购物设施 - 绿色
+  static const Color facilityDefault = Color(0xFFB8B8D0); // 默认设施颜色
+
   // 2023流行趋势: 暗色主题渐变
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,

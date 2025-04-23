@@ -446,17 +446,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                                 physics: NeverScrollableScrollPhysics(),
                                 padding: EdgeInsets.zero,
                                 mainAxisSpacing: 16,
-                                children: [
-                                  _buildFacilityItem(Icons.wifi, '免费WiFi'),
-                                  _buildFacilityItem(Icons.restaurant, '餐厅'),
-                                  _buildFacilityItem(
-                                    Icons.directions_car,
-                                    '停车场',
-                                  ),
-                                  _buildFacilityItem(Icons.accessible, '无障碍通道'),
-                                  _buildFacilityItem(Icons.photo_camera, '观景台'),
-                                  _buildFacilityItem(Icons.shopping_bag, '礼品店'),
-                                ],
+                                children: _getFacilityItems(),
                               ),
                             ],
                           ),
@@ -893,23 +883,80 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   }
 
   // 构建设施项
-  Widget _buildFacilityItem(IconData icon, String title) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppTheme.cardColor.withOpacity(0.1),
-            shape: BoxShape.circle,
+  Widget _buildFacilityItem(
+    IconData icon,
+    String title, {
+    String facilityType = 'default',
+  }) {
+    // 根据设施类型确定颜色
+    Color facilityColor;
+
+    switch (facilityType) {
+      case 'communication':
+        facilityColor = AppTheme.facilityCommunication;
+        break;
+      case 'dining':
+        facilityColor = AppTheme.facilityDining;
+        break;
+      case 'transport':
+        facilityColor = AppTheme.facilityTransport;
+        break;
+      case 'accessibility':
+        facilityColor = AppTheme.facilityAccessibility;
+        break;
+      case 'sightseeing':
+        facilityColor = AppTheme.facilitySightseeing;
+        break;
+      case 'shopping':
+        facilityColor = AppTheme.facilityShopping;
+        break;
+      default:
+        facilityColor = AppTheme.facilityDefault;
+    }
+
+    return GestureDetector(
+      onTap: () {
+        // 可以添加点击效果，比如展示设施详情
+        // 这里简单地显示一个SnackBar
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$title 可用'),
+            duration: const Duration(seconds: 1),
+            backgroundColor: facilityColor.withOpacity(0.8),
           ),
-          child: Icon(icon, color: AppTheme.buttonColor, size: 24),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          title,
-          style: TextStyle(color: AppTheme.secondaryTextColor, fontSize: 14),
-        ),
-      ],
+        );
+      },
+      child: Column(
+        children: [
+          // 使用AnimatedContainer添加轻微的动画效果
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: facilityColor.withOpacity(0.15),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: facilityColor.withOpacity(0.1),
+                  blurRadius: 8,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: Icon(icon, color: facilityColor, size: 24),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: TextStyle(
+              color: AppTheme.secondaryTextColor,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 
@@ -1197,5 +1244,34 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     _closeBottomDrawer();
     // 尝试打开携程APP
     launchUrl(Uri.parse('ctrip://'));
+  }
+
+  List<Widget> _getFacilityItems() {
+    // 定义设施数据 - 在实际应用中，这些数据应该从API或spotData中获取
+    final List<Map<String, dynamic>> facilities = [
+      {'icon': Icons.wifi, 'title': '免费WiFi', 'type': 'communication'},
+      {'icon': Icons.restaurant, 'title': '餐厅', 'type': 'dining'},
+      {'icon': Icons.directions_car, 'title': '停车场', 'type': 'transport'},
+      {'icon': Icons.accessible, 'title': '无障碍通道', 'type': 'accessibility'},
+      {'icon': Icons.photo_camera, 'title': '观景台', 'type': 'sightseeing'},
+      {'icon': Icons.shopping_bag, 'title': '礼品店', 'type': 'shopping'},
+    ];
+
+    // 如果spotData中包含设施数据，可以解析并添加到facilities列表中
+    if (widget.spotData.containsKey('facilities') &&
+        widget.spotData['facilities'] is List) {
+      // 解析spotData中的设施数据 - 这里省略具体实现
+    }
+
+    // 返回设施项列表
+    return facilities
+        .map(
+          (facility) => _buildFacilityItem(
+            facility['icon'],
+            facility['title'],
+            facilityType: facility['type'],
+          ),
+        )
+        .toList();
   }
 }
