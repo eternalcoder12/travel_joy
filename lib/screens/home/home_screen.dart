@@ -650,6 +650,55 @@ class _ExploreTabState extends State<_ExploreTab>
   // 飞入动画控制器
   AnimationController? _flyInController;
 
+  // 搜索文本控制器
+  final TextEditingController _searchController = TextEditingController();
+
+  // 当前选中的分类索引
+  int _selectedCategoryIndex = 0;
+
+  // 分类列表
+  final List<String> _categories = ['全部', '自然风光', '历史遗迹', '文化体验', '美食', '住宿'];
+
+  // 推荐景点数据
+  final List<Map<String, dynamic>> _recommendedSpots = [
+    {
+      'name': '神秘峡谷',
+      'location': '云南省丽江市',
+      'rating': 4.8,
+      'image':
+          'https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+      'description': '被誉为"东方科罗拉多大峡谷"，拥有壮观的地貌和绝美的自然风景。',
+      'tags': ['自然风光', '徒步', '摄影'],
+    },
+    {
+      'name': '古镇小巷',
+      'location': '浙江省杭州市',
+      'rating': 4.6,
+      'image':
+          'https://images.unsplash.com/photo-1518005020951-eccb494ad742?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+      'description': '千年古镇，石板小路，流水人家，体验江南水乡的宁静与韵味。',
+      'tags': ['历史遗迹', '文化体验', '美食'],
+    },
+    {
+      'name': '梦幻海滩',
+      'location': '海南省三亚市',
+      'rating': 4.9,
+      'image':
+          'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+      'description': '被誉为中国最美的海滩之一，水清沙白，椰林环绕，是度假的理想之地。',
+      'tags': ['海滩', '度假', '自然风光'],
+    },
+    {
+      'name': '山顶观景台',
+      'location': '四川省成都市',
+      'rating': 4.7,
+      'image':
+          'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+      'description': '登高望远，俯瞰城市美景，夜晚可见星空和城市灯火。',
+      'tags': ['观景', '摄影', '自然风光'],
+    },
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -667,6 +716,7 @@ class _ExploreTabState extends State<_ExploreTab>
   @override
   void dispose() {
     _flyInController?.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -692,68 +742,367 @@ class _ExploreTabState extends State<_ExploreTab>
         ),
       ),
       child: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 区块1: 标题 (从左侧飞入)
-                AnimatedBuilder(
-                  animation: _flyInController!,
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset: Offset(-300 * (1 - _flyInController!.value), 0),
-                      child: Opacity(
-                        opacity: _flyInController!.value,
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: Text(
-                    '探索',
-                    style: TextStyle(
-                      color: AppTheme.primaryTextColor,
-                      fontSize: 32.0,
-                      fontWeight: FontWeight.bold,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 区块1: 标题和搜索栏 (从左侧飞入)
+                  AnimatedBuilder(
+                    animation: _flyInController!,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(-300 * (1 - _flyInController!.value), 0),
+                        child: Opacity(
+                          opacity: _flyInController!.value,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 标题
+                        Text(
+                          '探索',
+                          style: TextStyle(
+                            color: AppTheme.primaryTextColor,
+                            fontSize: 32.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+                        const SizedBox(height: 16.0),
+
+                        // 搜索栏
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppTheme.cardColor.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: TextField(
+                            controller: _searchController,
+                            style: TextStyle(color: AppTheme.primaryTextColor),
+                            decoration: InputDecoration(
+                              hintText: '搜索景点、城市、体验...',
+                              hintStyle: TextStyle(
+                                color: AppTheme.secondaryTextColor,
+                              ),
+                              prefixIcon: Icon(
+                                Icons.search,
+                                color: AppTheme.primaryTextColor,
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
 
-                const SizedBox(height: 16.0),
+                  const SizedBox(height: 20.0),
 
-                // 区块2: 发现内容区域 (从右侧飞入)
-                AnimatedBuilder(
-                  animation: _flyInController!,
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset: Offset(300 * (1 - _flyInController!.value), 0),
-                      child: Opacity(
-                        opacity: _flyInController!.value,
-                        child: child,
+                  // 区块2: 分类选项卡 (从右侧飞入)
+                  AnimatedBuilder(
+                    animation: _flyInController!,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(300 * (1 - _flyInController!.value), 0),
+                        child: Opacity(
+                          opacity: _flyInController!.value,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: SizedBox(
+                      height: 40,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _categories.length,
+                        itemBuilder: (context, index) {
+                          final bool isSelected =
+                              _selectedCategoryIndex == index;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 12.0),
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedCategoryIndex = index;
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      isSelected
+                                          ? AppTheme.buttonColor.withOpacity(
+                                            0.8,
+                                          )
+                                          : AppTheme.cardColor.withOpacity(0.3),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  _categories[index],
+                                  style: TextStyle(
+                                    color:
+                                        isSelected
+                                            ? Colors.white
+                                            : AppTheme.secondaryTextColor,
+                                    fontWeight:
+                                        isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // 区块3: 推荐景点列表 (从下方飞入)
+            Expanded(
+              child: AnimatedBuilder(
+                animation: _flyInController!,
+                builder: (context, child) {
+                  return Transform.translate(
+                    offset: Offset(0, 200 * (1 - _flyInController!.value)),
+                    child: Opacity(
+                      opacity: _flyInController!.value,
+                      child: child,
+                    ),
+                  );
+                },
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
+                  itemCount: _recommendedSpots.length,
+                  itemBuilder: (context, index) {
+                    final spot = _recommendedSpots[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: _buildSpotCard(spot),
                     );
                   },
-                  child: Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: AppTheme.cardColor,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '发现更多景点',
-                        style: TextStyle(
-                          color: AppTheme.primaryTextColor,
-                          fontSize: 18.0,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 景点卡片构建方法
+  Widget _buildSpotCard(Map<String, dynamic> spot) {
+    return GestureDetector(
+      onTap: () {
+        // TODO: 导航到景点详情页
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('查看 ${spot['name']} 详情'),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      },
+      child: Container(
+        height: 220,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            // 背景图片和渐变
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Stack(
+                children: [
+                  // 图片
+                  Image.network(
+                    spot['image'],
+                    height: 220,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        height: 220,
+                        color: AppTheme.cardColor,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: AppTheme.buttonColor,
+                            value:
+                                loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                          ),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 220,
+                        color: AppTheme.cardColor,
+                        child: Center(
+                          child: Icon(
+                            Icons.error,
+                            color: AppTheme.primaryTextColor,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                  // 渐变遮罩
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withOpacity(0.7),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+
+            // 景点信息
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  // 景点名称
+                  Text(
+                    spot['name'],
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  // 位置和评分
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        color: Colors.white.withOpacity(0.8),
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        spot['location'],
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.8),
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Icon(Icons.star, color: Colors.amber, size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        spot['rating'].toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // 标签
+                  Wrap(
+                    spacing: 8,
+                    children:
+                        (spot['tags'] as List<String>).map((tag) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              tag,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                  ),
+                ],
+              ),
+            ),
+
+            // 收藏按钮
+            Positioned(
+              top: 12,
+              right: 12,
+              child: Container(
+                height: 36,
+                width: 36,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.3),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.favorite_border,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
