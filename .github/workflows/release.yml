@@ -1,0 +1,85 @@
+name: 发布应用
+
+on:
+  push:
+    tags:
+      - "v*" # 当推送带有v前缀的标签时触发，例如 v1.0.0
+
+jobs:
+  build-and-release:
+    runs-on: macos-latest # 使用macOS运行器以支持iOS构建
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # 获取所有历史记录，包括标签
+
+      - name: 设置Java环境
+        uses: actions/setup-java@v3
+        with:
+          distribution: "zulu"
+          java-version: "11"
+
+      - name: 设置Flutter环境
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.19.0" # 替换为您使用的Flutter版本
+          channel: "stable"
+
+      - name: 获取Flutter依赖
+        run: flutter pub get
+
+      - name: 构建Android APK
+        run: flutter build apk --release
+
+      - name: 构建iOS应用
+        run: |
+          flutter build ios --release --no-codesign
+          cd build/ios/Release-iphoneos/
+          mkdir Payload
+          cp -r Runner.app Payload/
+          zip -r "../../TravelJoy-iOS.zip" Payload
+
+      - name: 读取发布说明
+        id: release_notes
+        run: |
+          if [ -f release_notes.md ]; then
+            RELEASE_NOTES=$(cat release_notes.md)
+            echo "content<<EOF" >> $GITHUB_OUTPUT
+            echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "content=Travel Joy 新版本发布" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 重命名APK文件
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          mv build/app/outputs/apk/release/app-release.apk build/app/outputs/apk/release/TravelJoy-$VERSION.apk
+
+      - name: 创建GitHub发布
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: Travel Joy ${{ github.ref_name }}
+          body: ${{ steps.release_notes.outputs.content }}
+          draft: false
+          prerelease: false
+          files: |
+            build/app/outputs/apk/release/TravelJoy-${{ github.ref_name }}.apk
+            build/TravelJoy-iOS.zip
+
+      - name: 上传APK到Actions工件
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release
+          path: build/app/outputs/apk/release/TravelJoy-${{ github.ref_name }}.apk
+
+      - name: 上传iOS应用到Actions工件
+        uses: actions/upload-artifact@v3
+        with:
+          name: ios-app
+          path: build/TravelJoy-iOS.zip
