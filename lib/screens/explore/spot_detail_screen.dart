@@ -790,14 +790,14 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: AppTheme.backgroundColor,
+                    color: const Color(0xFF2A2B3D), // 使用更深的背景色以增加对比度
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(20),
                       topRight: Radius.circular(20),
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withOpacity(0.1),
                         blurRadius: 10,
                         offset: const Offset(0, -5),
                       ),
@@ -806,12 +806,15 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                   child: SafeArea(
                     top: false,
                     child: Row(
+                      // 确保垂直居中
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         // 价格信息
                         Expanded(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center, // 垂直居中
                             children: [
                               Text(
                                 '价格',
@@ -823,8 +826,8 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                               const SizedBox(height: 4),
                               Text(
                                 '¥${widget.spotData['price'] ?? '88'}/人',
-                                style: TextStyle(
-                                  color: AppTheme.primaryTextColor,
+                                style: const TextStyle(
+                                  color: Colors.white, // 更鲜明的颜色对比
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
                                 ),
