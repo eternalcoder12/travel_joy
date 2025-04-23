@@ -97,6 +97,29 @@ flutter run
      - 确保设备已连接到稳定的网络
      - 尝试重启设备后再次安装
 
+### 构建问题
+
+1. **Android NDK 版本问题**
+
+   - 问题：构建 Android APK 时提示 NDK 版本不兼容
+   - 解决方案：
+     - 在 `android/app/build.gradle.kts` 文件中的 `android` 部分添加 `ndkVersion = "27.0.12077973"`
+     - 或者在 Android Studio 中安装 27.0.12077973 版本的 NDK
+
+2. **iOS 签名问题**
+
+   - 问题：构建 iOS 版本时出现签名错误
+   - 解决方案：
+     - 使用 `--no-codesign` 参数进行构建：`flutter build ios --release --no-codesign`
+     - 或者在 Xcode 中配置正确的签名信息后构建
+
+3. **依赖项冲突**
+   - 问题：构建时提示依赖冲突
+   - 解决方案：
+     - 运行 `flutter clean` 后重新 `flutter pub get`
+     - 检查 `pubspec.yaml` 中的依赖版本是否兼容
+     - 如有必要，更新或降级冲突的依赖项
+
 ### 通用问题
 
 1. **应用闪退或卡顿**
