@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
+import 'package:url_launcher/url_launcher.dart';
 import '../../app_theme.dart';
 import 'map_view_screen.dart';
 
@@ -27,6 +29,10 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
 
   // 是否已收藏
   bool _isFavorite = false;
+
+  // 顶部滚动位置监听
+  final ScrollController _scrollController = ScrollController();
+  double _scrollOffset = 0.0;
 
   // 模拟评论数据
   final List<Map<String, dynamic>> _reviews = [
@@ -66,29 +72,94 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     // 启动页面进入动画
     _pageAnimController.forward();
 
-    // 初始化图片画廊 - 在实际应用中应从API获取
+    // 初始化图片画廊 - 使用Unsplash高质量图片
+    final spotName =
+        widget.spotData['name'].toString().replaceAll(' ', '-').toLowerCase();
     _imageGallery = [
+      // 使用景点原始图片作为第一张
       widget.spotData['image'],
-      'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-      'https://images.unsplash.com/photo-1503220317375-aaad61436b1b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-      'https://images.unsplash.com/photo-1498550744921-75f79806b8a7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+      // 使用Unsplash图片 - 根据景点名称搜索相关图片
+      'https://source.unsplash.com/1600x900/?${spotName},scenery',
+      'https://source.unsplash.com/1600x900/?${spotName},view',
+      'https://source.unsplash.com/1600x900/?${spotName},landscape',
     ];
+
+    // 监听滚动事件
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    setState(() {
+      _scrollOffset = _scrollController.offset;
+    });
+  }
+
+  // 尝试打开外部应用进行预订
+  Future<void> _launchExternalApp() async {
+    final spotName = Uri.encodeComponent(widget.spotData['name']);
+    final location = Uri.encodeComponent(widget.spotData['location']);
+
+    // 尝试打开地图应用
+    final mapsUrl = 'https://maps.apple.com/?q=$spotName&ll=$location';
+    final mapsUri = Uri.parse(mapsUrl);
+
+    try {
+      // 尝试打开地图应用
+      if (await canLaunchUrl(mapsUri)) {
+        await launchUrl(mapsUri);
+      } else {
+        // 尝试打开网页浏览器
+        final webUrl =
+            'https://www.google.com/search?q=${spotName}+${location}+门票预订';
+        final webUri = Uri.parse(webUrl);
+
+        if (await canLaunchUrl(webUri)) {
+          await launchUrl(webUri);
+        } else {
+          // 显示提示
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('无法找到合适的应用进行预订'),
+                behavior: SnackBarBehavior.floating,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('启动外部应用失败: $e'),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 
   @override
   void dispose() {
     _pageAnimController.dispose();
     _pageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+
     return Scaffold(
+      extendBodyBehindAppBar: true,
       body: Stack(
         children: [
           // 主内容
           CustomScrollView(
+            controller: _scrollController,
             slivers: [
               // 图片画廊和顶部应用栏
               _buildImageGallerySliverAppBar(),
@@ -389,17 +460,62 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
             ],
           ),
 
-          // 返回按钮
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: CircleAvatar(
-                backgroundColor: Colors.black.withOpacity(0.3),
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
+          // 半透明玻璃效果顶部导航栏
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: statusBarHeight + 56,
+              child: ClipRRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                  child: Container(
+                    padding: EdgeInsets.only(top: statusBarHeight),
+                    color: Colors.black.withOpacity(
+                      _scrollOffset > 140 ? 0.6 : 0.2,
+                    ),
+                    child: Row(
+                      children: [
+                        // 返回按钮 - 优化样式
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Material(
+                            color: Colors.black.withOpacity(0.4),
+                            borderRadius: BorderRadius.circular(30),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(30),
+                              onTap: () {
+                                Navigator.pop(context);
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(8.0),
+                                child: const Icon(
+                                  Icons.arrow_back,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // 标题（当滚动到一定位置时显示）
+                        if (_scrollOffset > 140)
+                          Expanded(
+                            child: Text(
+                              widget.spotData['name'],
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -458,31 +574,20 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                   ),
                 ),
 
-                // 预订按钮
-                ElevatedButton(
-                  onPressed: () {
-                    // TODO: 跳转到预订页面
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('预订功能即将上线'),
-                        behavior: SnackBarBehavior.floating,
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
-                  },
+                // 外部应用预订按钮
+                ElevatedButton.icon(
+                  onPressed: _launchExternalApp,
+                  icon: const Icon(Icons.open_in_new, size: 16),
+                  label: const Text('前往预订'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.buttonColor,
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 30,
-                      vertical: 14,
+                      horizontal: 24,
+                      vertical: 12,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
-                  ),
-                  child: const Text(
-                    '立即预订',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -497,7 +602,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   Widget _buildImageGallerySliverAppBar() {
     return SliverAppBar(
       expandedHeight: 300,
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: Colors.transparent,
       automaticallyImplyLeading: false,
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
@@ -512,37 +617,65 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                 });
               },
               itemBuilder: (context, index) {
-                return Image.network(
-                  _imageGallery[index],
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      color: AppTheme.cardColor,
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: AppTheme.buttonColor,
-                          value:
-                              loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
+                return Stack(
+                  children: [
+                    // 图片
+                    Positioned.fill(
+                      child: Image.network(
+                        _imageGallery[index],
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            color: AppTheme.cardColor,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: AppTheme.buttonColor,
+                                value:
+                                    loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress
+                                                .cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                              ),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: AppTheme.cardColor,
+                            child: Center(
+                              child: Icon(
+                                Icons.error,
+                                color: AppTheme.primaryTextColor,
+                                size: 40,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    // 图片底部渐变阴影
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      height: 100,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [
+                              Colors.black.withOpacity(0.6),
+                              Colors.transparent,
+                            ],
+                          ),
                         ),
                       ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: AppTheme.cardColor,
-                      child: Center(
-                        child: Icon(
-                          Icons.error,
-                          color: AppTheme.primaryTextColor,
-                          size: 40,
-                        ),
-                      ),
-                    );
-                  },
+                    ),
+                  ],
                 );
               },
             ),
