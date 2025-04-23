@@ -204,11 +204,13 @@ class _MessageScreenState extends State<MessageScreen>
             end: Alignment.bottomCenter,
             colors: [AppTheme.backgroundColor, Color(0xFF2E2E4A)],
           ),
+          // 确保没有额外的边框
+          border: null,
         ),
         child: SafeArea(
           child: Column(
             children: [
-              // 顶部标题和搜索区域
+              // 顶部标题
               _buildHeader(context),
 
               // 标签栏
@@ -238,6 +240,8 @@ class _MessageScreenState extends State<MessageScreen>
           ),
         ),
       ),
+      // 移除所有可能的底部装饰
+      bottomNavigationBar: null,
     );
   }
 
@@ -251,119 +255,22 @@ class _MessageScreenState extends State<MessageScreen>
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20.0, 16.0, 20.0, 0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // 标题行
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                if (widget.onBackPressed != null)
-                  IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back,
-                      color: AppTheme.primaryTextColor,
-                    ),
-                    onPressed: () => widget.onBackPressed!(),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                Expanded(
-                  child: Text(
-                    '消息',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: AppTheme.primaryTextColor,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    textAlign:
-                        widget.onBackPressed == null
-                            ? TextAlign.left
-                            : TextAlign.center,
-                  ),
-                ),
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppTheme.cardColor.withOpacity(0.4),
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.settings_outlined,
-                      size: 20,
-                      color: AppTheme.primaryTextColor,
-                    ),
-                    onPressed: () {
-                      // 打开消息设置
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('消息设置功能即将推出'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
-                    padding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // 搜索框
-            Container(
-              height: 44,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppTheme.cardColor.withOpacity(0.4),
-                    AppTheme.cardColor.withOpacity(0.3),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: TextField(
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            // 标题行 - 居中显示，删除设置图标，调整文字大小
+            Center(
+              child: Text(
+                '消息',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: AppTheme.primaryTextColor,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 28, // 调整文字大小
                 ),
-                decoration: InputDecoration(
-                  hintText: '搜索消息',
-                  hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.hintTextColor,
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
-                  ),
-                  prefixIcon: Icon(
-                    Icons.search,
-                    color: AppTheme.secondaryTextColor,
-                    size: 20,
-                  ),
-                ),
-                onSubmitted: (value) {
-                  // 搜索消息
-                  if (value.isNotEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('搜索: $value'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  }
-                },
               ),
             ),
+
+            // 删除搜索框，添加一个间隔
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -424,7 +331,11 @@ class _MessageScreenState extends State<MessageScreen>
               ),
             ],
           ),
+          // 移除底部线条
           indicatorPadding: const EdgeInsets.all(4),
+          indicatorSize: TabBarIndicatorSize.tab,
+          indicatorWeight: 0, // 设置为0移除底部线条
+          dividerColor: Colors.transparent, // 设置分隔线为透明
           labelColor: Colors.white,
           unselectedLabelColor: AppTheme.secondaryTextColor,
           labelStyle: Theme.of(
@@ -509,6 +420,8 @@ class _MessageScreenState extends State<MessageScreen>
           decoration: BoxDecoration(
             color: AppTheme.cardColor.withOpacity(0.5),
             borderRadius: BorderRadius.circular(20),
+            // 移除所有边框
+            border: null,
           ),
           child: Text(
             text,
