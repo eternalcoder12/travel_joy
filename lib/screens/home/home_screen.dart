@@ -6,6 +6,7 @@ import '../../widgets/animated_item.dart';
 import '../explore/spot_detail_screen.dart';
 import '../explore/map_view_screen.dart';
 import '../message/message_screen.dart';
+import '../../utils/navigation_utils.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -956,12 +957,10 @@ class _ExploreTabState extends State<_ExploreTab>
   Widget _buildSpotCard(Map<String, dynamic> spot) {
     return GestureDetector(
       onTap: () {
-        // 导航到景点详情页
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SpotDetailScreen(spotData: spot),
-          ),
+        // 导航到景点详情页，使用发光效果动画
+        NavigationUtils.glowingNavigateTo(
+          context: context,
+          page: SpotDetailScreen(spotData: spot),
         );
       },
       child: Container(

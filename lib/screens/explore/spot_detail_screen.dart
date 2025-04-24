@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:url_launcher/url_launcher.dart';
 import '../../app_theme.dart';
 import 'map_view_screen.dart';
+import '../../utils/navigation_utils.dart';
 
 class SpotDetailScreen extends StatefulWidget {
   final Map<String, dynamic> spotData;
@@ -363,14 +364,11 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                             // 查看地图按钮
                             GestureDetector(
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (context) => MapViewScreen(
-                                          spots: [widget.spotData],
-                                          initialSpotIndex: 0,
-                                        ),
+                                NavigationUtils.scaleNavigateTo(
+                                  context: context,
+                                  page: MapViewScreen(
+                                    spots: [widget.spotData],
+                                    initialSpotIndex: 0,
                                   ),
                                 );
                               },
@@ -526,6 +524,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                             child: InkWell(
                               borderRadius: BorderRadius.circular(30),
                               onTap: () {
+                                // 使用普通的pop，因为这是返回操作
                                 Navigator.pop(context);
                               },
                               child: Container(

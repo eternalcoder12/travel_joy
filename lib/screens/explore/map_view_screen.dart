@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
 import 'dart:math' as math;
+import '../../utils/navigation_utils.dart';
 
 class MapViewScreen extends StatefulWidget {
   final List<Map<String, dynamic>> spots;
