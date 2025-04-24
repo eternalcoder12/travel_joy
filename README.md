@@ -57,10 +57,13 @@ lib/
 ├── screens/               # 屏幕/页面
 │   ├── home/              # 首页相关
 │   ├── message/           # 消息页面
+│   ├── chat/              # 聊天页面
 │   ├── explore/           # 探索页面
 │   └── profile/           # 个人资料页面
 ├── widgets/               # 可复用组件
-└── services/              # 服务和API交互
+├── services/              # 服务和API交互
+└── utils/                 # 工具类
+    └── navigation_utils.dart  # 页面导航动画工具
 ```
 
 ### 编码规范
@@ -70,6 +73,43 @@ lib/
 - 类名使用大写字母开头的驼峰命名法 (PascalCase)
 - 使用 `_` 前缀表示私有成员
 - 保持代码整洁，添加必要的注释
+
+### 特色工具
+
+#### 导航动画工具 (NavigationUtils)
+
+提供多种精美的页面切换动画效果，包括：
+
+- 淡入淡出 (Fade)
+- 滑动 (Slide)
+- 缩放 (Scale)
+- 旋转 (Rotation)
+- 组合效果 (滑动+淡入淡出)
+- 发光效果 (Glowing)
+- 翻转效果 (水平/垂直)
+- 模糊过渡 (Blur)
+
+使用示例：
+
+```dart
+// 基本使用
+NavigationUtils.navigateTo(
+  context: context,
+  page: DetailPage(),
+  animationType: NavigationAnimationType.fade,
+);
+
+// 使用特定效果
+NavigationUtils.fadeNavigateTo(
+  context: context,
+  page: DetailPage(),
+);
+
+NavigationUtils.glowingNavigateTo(
+  context: context,
+  page: DetailPage(),
+);
+```
 
 ## 发布指南
 

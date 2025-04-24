@@ -5,6 +5,7 @@ import '../../app_theme.dart';
 import '../../widgets/animated_item.dart';
 import '../explore/spot_detail_screen.dart';
 import '../explore/map_view_screen.dart';
+import '../message/message_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -106,7 +107,8 @@ class _HomeScreenState extends State<HomeScreen> {
       case 1:
         return _ExploreTab(key: const ValueKey<int>(1), isCurrentPage: true);
       case 2:
-        return _MessageTab(key: const ValueKey<int>(2), isCurrentPage: true);
+        // 使用优化后的MessageScreen
+        return MessageScreen(key: const ValueKey<int>(2));
       case 3:
         return _ProfileTab(key: const ValueKey<int>(3), isCurrentPage: true);
       default:
@@ -1123,131 +1125,6 @@ class _ExploreTabState extends State<_ExploreTab>
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// 消息页面 - 带入场动画
-class _MessageTab extends StatefulWidget {
-  final bool isCurrentPage;
-
-  const _MessageTab({Key? key, this.isCurrentPage = false}) : super(key: key);
-
-  @override
-  _MessageTabState createState() => _MessageTabState();
-}
-
-class _MessageTabState extends State<_MessageTab>
-    with TickerProviderStateMixin {
-  // 飞入动画控制器
-  AnimationController? _flyInController;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // 初始化飞入动画控制器 - 设置为500毫秒
-    _flyInController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-
-    // 启动动画
-    _flyInController!.forward();
-  }
-
-  @override
-  void dispose() {
-    _flyInController?.dispose();
-    super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(_MessageTab oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    // 当页面变为当前页面时，重新播放飞入动画
-    if (widget.isCurrentPage && !oldWidget.isCurrentPage) {
-      _flyInController?.reset();
-      _flyInController?.forward();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [AppTheme.backgroundColor, const Color(0xFF2E2E4A)],
-        ),
-      ),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 区块1: 标题 (从右侧飞入)
-                AnimatedBuilder(
-                  animation: _flyInController!,
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset: Offset(300 * (1 - _flyInController!.value), 0),
-                      child: Opacity(
-                        opacity: _flyInController!.value,
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: Text(
-                    '消息',
-                    style: TextStyle(
-                      color: AppTheme.primaryTextColor,
-                      fontSize: 32.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16.0),
-
-                // 区块2: 消息内容区域 (从左侧飞入)
-                AnimatedBuilder(
-                  animation: _flyInController!,
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset: Offset(-300 * (1 - _flyInController!.value), 0),
-                      child: Opacity(
-                        opacity: _flyInController!.value,
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: AppTheme.cardColor,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '暂无新消息',
-                        style: TextStyle(
-                          color: AppTheme.primaryTextColor,
-                          fontSize: 18.0,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );
