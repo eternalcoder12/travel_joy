@@ -130,10 +130,18 @@ class _HomeTab extends StatefulWidget {
 
 class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
   // 光波动画控制器
-  AnimationController? _shineAnimationController;
+  late AnimationController _shineAnimationController;
 
   // 飞入动画控制器
-  AnimationController? _flyInController;
+  late AnimationController _flyInController;
+
+  // 背景动画控制器 - 从消息页面添加
+  late AnimationController _backgroundAnimController;
+  late Animation<double> _backgroundAnimation;
+
+  // 内容动画控制器 - 从消息页面添加
+  late AnimationController _contentAnimController;
+  late Animation<double> _contentAnimation;
 
   // 今日信息
   final String _todayInfo = "晴天 25°C，适合户外探索";
@@ -231,15 +239,40 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 500),
     );
 
+    // 初始化背景动画控制器 - 从消息页面添加
+    _backgroundAnimController = AnimationController(
+      duration: const Duration(seconds: 5),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _backgroundAnimation = CurvedAnimation(
+      parent: _backgroundAnimController,
+      curve: Curves.easeInOut,
+    );
+
+    // 初始化内容动画控制器 - 从消息页面添加
+    _contentAnimController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _contentAnimation = CurvedAnimation(
+      parent: _contentAnimController,
+      curve: Curves.easeOutCubic,
+    );
+
     // 启动动画
-    _shineAnimationController!.repeat();
-    _flyInController!.forward();
+    _shineAnimationController.repeat();
+    _flyInController.forward();
+    _contentAnimController.forward();
   }
 
   @override
   void dispose() {
-    _shineAnimationController?.dispose();
-    _flyInController?.dispose();
+    _shineAnimationController.dispose();
+    _flyInController.dispose();
+    _backgroundAnimController.dispose();
+    _contentAnimController.dispose();
     super.dispose();
   }
 
@@ -249,8 +282,10 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
 
     // 当页面变为当前页面时，重新播放飞入动画
     if (widget.isCurrentPage && !oldWidget.isCurrentPage) {
-      _flyInController?.reset();
-      _flyInController?.forward();
+      _flyInController.reset();
+      _flyInController.forward();
+      _contentAnimController.reset();
+      _contentAnimController.forward();
     }
   }
 
@@ -258,10 +293,24 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
+        // 添加动态渐变背景，实现背景微动效果
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [AppTheme.backgroundColor, const Color(0xFF2E2E4A)],
+          colors: [
+            Color.lerp(
+                  AppTheme.backgroundColor,
+                  const Color(0xFF3342A7),
+                  _backgroundAnimation.value * 0.2,
+                ) ??
+                AppTheme.backgroundColor,
+            Color.lerp(
+                  const Color(0xFF2E2E4A),
+                  const Color(0xFF2A2B3D),
+                  _backgroundAnimation.value * 0.1,
+                ) ??
+                const Color(0xFF2E2E4A),
+          ],
         ),
       ),
       child: SafeArea(
@@ -273,12 +322,12 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
               children: [
                 // 区块1: 今日信息提醒 (从左侧飞入)
                 AnimatedBuilder(
-                  animation: _flyInController!,
+                  animation: _flyInController,
                   builder: (context, child) {
                     return Transform.translate(
-                      offset: Offset(-300 * (1 - _flyInController!.value), 0),
+                      offset: Offset(-300 * (1 - _flyInController.value), 0),
                       child: Opacity(
-                        opacity: _flyInController!.value,
+                        opacity: _flyInController.value,
                         child: child,
                       ),
                     );
@@ -323,12 +372,12 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
 
                 // 区块2: 标题和副标题 (从右侧飞入)
                 AnimatedBuilder(
-                  animation: _flyInController!,
+                  animation: _flyInController,
                   builder: (context, child) {
                     return Transform.translate(
-                      offset: Offset(300 * (1 - _flyInController!.value), 0),
+                      offset: Offset(300 * (1 - _flyInController.value), 0),
                       child: Opacity(
-                        opacity: _flyInController!.value,
+                        opacity: _flyInController.value,
                         child: child,
                       ),
                     );
@@ -362,12 +411,12 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
 
                 // 区块3: 功能卡片列表 (从下方飞入)
                 AnimatedBuilder(
-                  animation: _flyInController!,
+                  animation: _flyInController,
                   builder: (context, child) {
                     return Transform.translate(
-                      offset: Offset(0, 200 * (1 - _flyInController!.value)),
+                      offset: Offset(0, 200 * (1 - _flyInController.value)),
                       child: Opacity(
-                        opacity: _flyInController!.value,
+                        opacity: _flyInController.value,
                         child: child,
                       ),
                     );
@@ -390,7 +439,7 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
 
                       // 为不同的卡片创建不同时间的光波动画
                       final shineAnimation = CurvedAnimation(
-                        parent: _shineAnimationController!,
+                        parent: _shineAnimationController,
                         curve: Interval(
                           math.min(0.7, index * 0.15),
                           math.min(1.0, math.min(0.7, index * 0.15) + 0.3),
@@ -524,9 +573,9 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
               onHover: (isHovered) {
                 if (_shineAnimationController != null) {
                   if (isHovered) {
-                    _shineAnimationController!.forward();
+                    _shineAnimationController.forward();
                   } else {
-                    _shineAnimationController!.reverse();
+                    _shineAnimationController.reverse();
                   }
                 }
               },
@@ -653,7 +702,15 @@ class _ExploreTab extends StatefulWidget {
 class _ExploreTabState extends State<_ExploreTab>
     with TickerProviderStateMixin {
   // 飞入动画控制器
-  AnimationController? _flyInController;
+  late AnimationController _flyInController;
+
+  // 背景动画控制器 - 从消息页面添加
+  late AnimationController _backgroundAnimController;
+  late Animation<double> _backgroundAnimation;
+
+  // 内容动画控制器 - 从消息页面添加
+  late AnimationController _contentAnimController;
+  late Animation<double> _contentAnimation;
 
   // 搜索文本控制器
   final TextEditingController _searchController = TextEditingController();
@@ -733,8 +790,31 @@ class _ExploreTabState extends State<_ExploreTab>
       duration: const Duration(milliseconds: 500),
     );
 
+    // 初始化背景动画控制器 - 从消息页面添加
+    _backgroundAnimController = AnimationController(
+      duration: const Duration(seconds: 5),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _backgroundAnimation = CurvedAnimation(
+      parent: _backgroundAnimController,
+      curve: Curves.easeInOut,
+    );
+
+    // 初始化内容动画控制器 - 从消息页面添加
+    _contentAnimController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _contentAnimation = CurvedAnimation(
+      parent: _contentAnimController,
+      curve: Curves.easeOutCubic,
+    );
+
     // 启动动画
-    _flyInController!.forward();
+    _flyInController.forward();
+    _contentAnimController.forward();
 
     // 监听滚动事件
     _scrollController.addListener(_onScroll);
@@ -764,7 +844,9 @@ class _ExploreTabState extends State<_ExploreTab>
 
   @override
   void dispose() {
-    _flyInController?.dispose();
+    _flyInController.dispose();
+    _backgroundAnimController.dispose();
+    _contentAnimController.dispose();
     _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -776,8 +858,10 @@ class _ExploreTabState extends State<_ExploreTab>
 
     // 当页面变为当前页面时，重新播放飞入动画
     if (widget.isCurrentPage && !oldWidget.isCurrentPage) {
-      _flyInController?.reset();
-      _flyInController?.forward();
+      _flyInController.reset();
+      _flyInController.forward();
+      _contentAnimController.reset();
+      _contentAnimController.forward();
     }
   }
 
@@ -785,10 +869,24 @@ class _ExploreTabState extends State<_ExploreTab>
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
+        // 添加动态渐变背景，实现背景微动效果
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [AppTheme.backgroundColor, const Color(0xFF2E2E4A)],
+          colors: [
+            Color.lerp(
+                  AppTheme.backgroundColor,
+                  const Color(0xFF3342A7),
+                  _backgroundAnimation.value * 0.2,
+                ) ??
+                AppTheme.backgroundColor,
+            Color.lerp(
+                  const Color(0xFF2E2E4A),
+                  const Color(0xFF2A2B3D),
+                  _backgroundAnimation.value * 0.1,
+                ) ??
+                const Color(0xFF2E2E4A),
+          ],
         ),
       ),
       child: SafeArea(
@@ -801,12 +899,12 @@ class _ExploreTabState extends State<_ExploreTab>
                 Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: AnimatedBuilder(
-                    animation: _flyInController!,
+                    animation: _flyInController,
                     builder: (context, child) {
                       return Transform.translate(
-                        offset: Offset(-300 * (1 - _flyInController!.value), 0),
+                        offset: Offset(-300 * (1 - _flyInController.value), 0),
                         child: Opacity(
-                          opacity: _flyInController!.value,
+                          opacity: _flyInController.value,
                           child: child,
                         ),
                       );
@@ -891,12 +989,12 @@ class _ExploreTabState extends State<_ExploreTab>
                 // 可滚动部分：景点列表
                 Expanded(
                   child: AnimatedBuilder(
-                    animation: _flyInController!,
+                    animation: _flyInController,
                     builder: (context, child) {
                       return Transform.translate(
-                        offset: Offset(0, 200 * (1 - _flyInController!.value)),
+                        offset: Offset(0, 200 * (1 - _flyInController.value)),
                         child: Opacity(
-                          opacity: _flyInController!.value,
+                          opacity: _flyInController.value,
                           child: child,
                         ),
                       );
@@ -955,175 +1053,185 @@ class _ExploreTabState extends State<_ExploreTab>
 
   // 景点卡片构建方法 - 使用与首页相似的设计风格
   Widget _buildSpotCard(Map<String, dynamic> spot) {
-    return GestureDetector(
-      onTap: () {
-        // 导航到景点详情页，使用发光效果动画
-        NavigationUtils.glowingNavigateTo(
-          context: context,
-          page: SpotDetailScreen(spotData: spot),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: AppTheme.cardColor.withOpacity(0.4),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
+    return FadeTransition(
+      opacity: _contentAnimation,
+      child: ScaleTransition(
+        scale: Tween<double>(begin: 0.95, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeOutCubic))
+            .animate(_contentAnimController),
+        child: GestureDetector(
+          onTap: () {
+            // 导航到景点详情页，使用发光效果动画
+            NavigationUtils.glowingNavigateTo(
+              context: context,
+              page: SpotDetailScreen(spotData: spot),
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: AppTheme.cardColor.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // 景点图片
-            ClipRRect(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(16),
-                bottomLeft: Radius.circular(16),
-              ),
-              child: Image.network(
-                spot['image'],
-                width: 100,
-                height: 100,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  // 图片加载失败时显示占位符
-                  return Container(
+            child: Row(
+              children: [
+                // 景点图片
+                ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
+                  ),
+                  child: Image.network(
+                    spot['image'],
                     width: 100,
                     height: 100,
-                    color: Colors.grey[300],
-                    child: Icon(
-                      Icons.image_not_supported,
-                      color: Colors.grey[600],
-                    ),
-                  );
-                },
-              ),
-            ),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      // 图片加载失败时显示占位符
+                      return Container(
+                        width: 100,
+                        height: 100,
+                        color: Colors.grey[300],
+                        child: Icon(
+                          Icons.image_not_supported,
+                          color: Colors.grey[600],
+                        ),
+                      );
+                    },
+                  ),
+                ),
 
-            // 景点信息
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // 景点信息
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 景点名称
-                        Expanded(
-                          child: Text(
-                            spot['name'],
-                            style: TextStyle(
-                              color: AppTheme.primaryTextColor,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // 景点名称
+                            Expanded(
+                              child: Text(
+                                spot['name'],
+                                style: TextStyle(
+                                  color: AppTheme.primaryTextColor,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+
+                            // 评分
+                            Row(
+                              children: [
+                                Icon(Icons.star, color: Colors.amber, size: 16),
+                                SizedBox(width: 4),
+                                Text(
+                                  '${spot['rating']}',
+                                  style: TextStyle(
+                                    color: AppTheme.primaryTextColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
 
-                        // 评分
+                        SizedBox(height: 4),
+
+                        // 位置
                         Row(
                           children: [
-                            Icon(Icons.star, color: Colors.amber, size: 16),
+                            Icon(
+                              Icons.location_on,
+                              color: AppTheme.secondaryTextColor,
+                              size: 14,
+                            ),
                             SizedBox(width: 4),
-                            Text(
-                              '${spot['rating']}',
-                              style: TextStyle(
-                                color: AppTheme.primaryTextColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
+                            Expanded(
+                              child: Text(
+                                spot['location'],
+                                style: TextStyle(
+                                  color: AppTheme.secondaryTextColor,
+                                  fontSize: 12,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        SizedBox(height: 8),
+
+                        // 标签
+                        Row(
+                          children: [
+                            ...(spot['tags'] as List<String>).take(2).map((
+                              tag,
+                            ) {
+                              return Container(
+                                margin: EdgeInsets.only(right: 6),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.cardColor.withOpacity(0.5),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  tag,
+                                  style: TextStyle(
+                                    color: AppTheme.secondaryTextColor,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+
+                            // 价格标签
+                            Spacer(),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.buttonColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '¥${spot['price']}',
+                                style: TextStyle(
+                                  color: AppTheme.buttonColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ],
                     ),
-
-                    SizedBox(height: 4),
-
-                    // 位置
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.location_on,
-                          color: AppTheme.secondaryTextColor,
-                          size: 14,
-                        ),
-                        SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            spot['location'],
-                            style: TextStyle(
-                              color: AppTheme.secondaryTextColor,
-                              fontSize: 12,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(height: 8),
-
-                    // 标签
-                    Row(
-                      children: [
-                        ...(spot['tags'] as List<String>).take(2).map((tag) {
-                          return Container(
-                            margin: EdgeInsets.only(right: 6),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.cardColor.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              tag,
-                              style: TextStyle(
-                                color: AppTheme.secondaryTextColor,
-                                fontSize: 10,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-
-                        // 价格标签
-                        Spacer(),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppTheme.buttonColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '¥${spot['price']}',
-                            style: TextStyle(
-                              color: AppTheme.buttonColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -1143,7 +1251,15 @@ class _ProfileTab extends StatefulWidget {
 class _ProfileTabState extends State<_ProfileTab>
     with TickerProviderStateMixin {
   // 飞入动画控制器
-  AnimationController? _flyInController;
+  late AnimationController _flyInController;
+
+  // 背景动画控制器 - 从消息页面添加
+  late AnimationController _backgroundAnimController;
+  late Animation<double> _backgroundAnimation;
+
+  // 内容动画控制器 - 从消息页面添加
+  late AnimationController _contentAnimController;
+  late Animation<double> _contentAnimation;
 
   @override
   void initState() {
@@ -1155,13 +1271,38 @@ class _ProfileTabState extends State<_ProfileTab>
       duration: const Duration(milliseconds: 500),
     );
 
+    // 初始化背景动画控制器 - 从消息页面添加
+    _backgroundAnimController = AnimationController(
+      duration: const Duration(seconds: 5),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _backgroundAnimation = CurvedAnimation(
+      parent: _backgroundAnimController,
+      curve: Curves.easeInOut,
+    );
+
+    // 初始化内容动画控制器 - 从消息页面添加
+    _contentAnimController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _contentAnimation = CurvedAnimation(
+      parent: _contentAnimController,
+      curve: Curves.easeOutCubic,
+    );
+
     // 启动动画
-    _flyInController!.forward();
+    _flyInController.forward();
+    _contentAnimController.forward();
   }
 
   @override
   void dispose() {
-    _flyInController?.dispose();
+    _flyInController.dispose();
+    _backgroundAnimController.dispose();
+    _contentAnimController.dispose();
     super.dispose();
   }
 
@@ -1171,8 +1312,10 @@ class _ProfileTabState extends State<_ProfileTab>
 
     // 当页面变为当前页面时，重新播放飞入动画
     if (widget.isCurrentPage && !oldWidget.isCurrentPage) {
-      _flyInController?.reset();
-      _flyInController?.forward();
+      _flyInController.reset();
+      _flyInController.forward();
+      _contentAnimController.reset();
+      _contentAnimController.forward();
     }
   }
 
@@ -1180,10 +1323,24 @@ class _ProfileTabState extends State<_ProfileTab>
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
+        // 添加动态渐变背景，实现背景微动效果
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [AppTheme.backgroundColor, const Color(0xFF2E2E4A)],
+          colors: [
+            Color.lerp(
+                  AppTheme.backgroundColor,
+                  const Color(0xFF3342A7),
+                  _backgroundAnimation.value * 0.2,
+                ) ??
+                AppTheme.backgroundColor,
+            Color.lerp(
+                  const Color(0xFF2E2E4A),
+                  const Color(0xFF2A2B3D),
+                  _backgroundAnimation.value * 0.1,
+                ) ??
+                const Color(0xFF2E2E4A),
+          ],
         ),
       ),
       child: SafeArea(
@@ -1195,12 +1352,12 @@ class _ProfileTabState extends State<_ProfileTab>
               children: [
                 // 区块1: 标题 (从顶部飞入)
                 AnimatedBuilder(
-                  animation: _flyInController!,
+                  animation: _flyInController,
                   builder: (context, child) {
                     return Transform.translate(
-                      offset: Offset(0, -100 * (1 - _flyInController!.value)),
+                      offset: Offset(0, -100 * (1 - _flyInController.value)),
                       child: Opacity(
-                        opacity: _flyInController!.value,
+                        opacity: _flyInController.value,
                         child: child,
                       ),
                     );
@@ -1219,16 +1376,24 @@ class _ProfileTabState extends State<_ProfileTab>
 
                 // 区块2: 个人信息区域 (从右下方飞入)
                 AnimatedBuilder(
-                  animation: _flyInController!,
+                  animation: _flyInController,
                   builder: (context, child) {
                     return Transform.translate(
                       offset: Offset(
-                        200 * (1 - _flyInController!.value),
-                        100 * (1 - _flyInController!.value),
+                        200 * (1 - _flyInController.value),
+                        100 * (1 - _flyInController.value),
                       ),
                       child: Opacity(
-                        opacity: _flyInController!.value,
-                        child: child,
+                        opacity: _flyInController.value,
+                        child: FadeTransition(
+                          opacity: _contentAnimation,
+                          child: ScaleTransition(
+                            scale: Tween<double>(begin: 0.95, end: 1.0)
+                                .chain(CurveTween(curve: Curves.easeOutCubic))
+                                .animate(_contentAnimController),
+                            child: child,
+                          ),
+                        ),
                       ),
                     );
                   },

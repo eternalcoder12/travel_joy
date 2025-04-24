@@ -22,6 +22,14 @@ class _MapViewScreenState extends State<MapViewScreen>
   // 页面动画控制器
   late AnimationController _pageAnimController;
 
+  // 背景动画控制器 - 从消息页面添加
+  late AnimationController _backgroundAnimController;
+  late Animation<double> _backgroundAnimation;
+
+  // 内容动画控制器 - 从消息页面添加
+  late AnimationController _contentAnimController;
+  late Animation<double> _contentAnimation;
+
   // 当前选中的景点索引
   late int _selectedSpotIndex;
 
@@ -49,6 +57,28 @@ class _MapViewScreenState extends State<MapViewScreen>
       duration: const Duration(milliseconds: 600),
     );
 
+    // 初始化背景动画控制器 - 从消息页面添加
+    _backgroundAnimController = AnimationController(
+      duration: const Duration(seconds: 5),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _backgroundAnimation = CurvedAnimation(
+      parent: _backgroundAnimController,
+      curve: Curves.easeInOut,
+    );
+
+    // 初始化内容动画控制器 - 从消息页面添加
+    _contentAnimController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _contentAnimation = CurvedAnimation(
+      parent: _contentAnimController,
+      curve: Curves.easeOutCubic,
+    );
+
     // 初始化页面控制器
     _pageController = PageController(
       initialPage: _selectedSpotIndex,
@@ -60,6 +90,7 @@ class _MapViewScreenState extends State<MapViewScreen>
 
     // 启动页面进入动画
     _pageAnimController.forward();
+    _contentAnimController.forward();
   }
 
   // 生成随机位置数据，模拟景点在地图上的分布
@@ -85,6 +116,8 @@ class _MapViewScreenState extends State<MapViewScreen>
   @override
   void dispose() {
     _pageAnimController.dispose();
+    _backgroundAnimController.dispose();
+    _contentAnimController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -99,41 +132,44 @@ class _MapViewScreenState extends State<MapViewScreen>
 
           // 顶部应用栏
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // 返回按钮
-                  CircleAvatar(
-                    backgroundColor: Colors.white,
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.arrow_back,
-                        color: AppTheme.primaryTextColor,
+            child: FadeTransition(
+              opacity: _contentAnimation,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // 返回按钮
+                    CircleAvatar(
+                      backgroundColor: Colors.white,
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.arrow_back,
+                          color: AppTheme.primaryTextColor,
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
                       ),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
                     ),
-                  ),
 
-                  // 切换列表/地图视图按钮
-                  CircleAvatar(
-                    backgroundColor: Colors.white,
-                    child: IconButton(
-                      icon: Icon(
-                        _showListView ? Icons.map : Icons.list,
-                        color: AppTheme.primaryTextColor,
+                    // 切换列表/地图视图按钮
+                    CircleAvatar(
+                      backgroundColor: Colors.white,
+                      child: IconButton(
+                        icon: Icon(
+                          _showListView ? Icons.map : Icons.list,
+                          color: AppTheme.primaryTextColor,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _showListView = !_showListView;
+                          });
+                        },
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _showListView = !_showListView;
-                        });
-                      },
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -143,33 +179,41 @@ class _MapViewScreenState extends State<MapViewScreen>
             bottom: 20,
             left: 0,
             right: 0,
-            child: Column(
-              children: [
-                // 根据视图模式显示不同内容
-                _showListView ? _buildSpotListView() : _buildSpotCarousel(),
+            child: FadeTransition(
+              opacity: _contentAnimation,
+              child: ScaleTransition(
+                scale: Tween<double>(begin: 0.9, end: 1.0)
+                    .chain(CurveTween(curve: Curves.easeOutCubic))
+                    .animate(_contentAnimController),
+                child: Column(
+                  children: [
+                    // 根据视图模式显示不同内容
+                    _showListView ? _buildSpotListView() : _buildSpotCarousel(),
 
-                // 缩放控制按钮
-                if (!_showListView)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildZoomButton(Icons.remove, () {
-                          setState(() {
-                            _zoomLevel = math.max(10.0, _zoomLevel - 1.0);
-                          });
-                        }),
-                        const SizedBox(width: 16),
-                        _buildZoomButton(Icons.add, () {
-                          setState(() {
-                            _zoomLevel = math.min(18.0, _zoomLevel + 1.0);
-                          });
-                        }),
-                      ],
-                    ),
-                  ),
-              ],
+                    // 缩放控制按钮
+                    if (!_showListView)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildZoomButton(Icons.remove, () {
+                              setState(() {
+                                _zoomLevel = math.max(10.0, _zoomLevel - 1.0);
+                              });
+                            }),
+                            const SizedBox(width: 16),
+                            _buildZoomButton(Icons.add, () {
+                              setState(() {
+                                _zoomLevel = math.min(18.0, _zoomLevel + 1.0);
+                              });
+                            }),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
