@@ -1407,12 +1407,9 @@ class _ProfileTabState extends State<_ProfileTab>
   late AnimationController _contentAnimController;
   late Animation<double> _contentAnimation;
 
-  // 移除悬浮效果动画控制器，确保与消息页面一致
-  // late AnimationController _hoverAnimController;
-  // late Animation<double> _hoverAnimation;
-
-  // 移除不必要的状态变量
-  // bool _isHovering = false;
+  // 添加甜甜圈图表动画控制器
+  late AnimationController _donutChartAnimController;
+  late Animation<double> _donutChartAnimation;
 
   @override
   void initState() {
@@ -1440,21 +1437,16 @@ class _ProfileTabState extends State<_ProfileTab>
       curve: Curves.easeOutCubic,
     );
 
-    // 移除悬浮效果动画控制器的初始化
-    // _hoverAnimController = AnimationController(
-    //   duration: const Duration(milliseconds: 200),
-    //   vsync: this,
-    // );
-    //
-    // _hoverAnimation = Tween<double>(
-    //   begin: 1.0,
-    //   end: 1.05,
-    // ).animate(
-    //   CurvedAnimation(
-    //     parent: _hoverAnimController,
-    //     curve: Curves.easeInOut,
-    //   ),
-    // );
+    // 初始化甜甜圈图表动画控制器
+    _donutChartAnimController = AnimationController(
+      duration: const Duration(seconds: 20), // 较慢的旋转
+      vsync: this,
+    )..repeat(); // 持续旋转
+
+    _donutChartAnimation = Tween<double>(
+      begin: 0,
+      end: 2 * math.pi, // 完整的一圈
+    ).animate(_donutChartAnimController);
 
     // 启动动画
     _contentAnimController.forward();
@@ -1464,8 +1456,7 @@ class _ProfileTabState extends State<_ProfileTab>
   void dispose() {
     _backgroundAnimController.dispose();
     _contentAnimController.dispose();
-    // 移除悬浮效果动画控制器的销毁
-    // _hoverAnimController.dispose();
+    _donutChartAnimController.dispose(); // 释放图表动画控制器资源
     super.dispose();
   }
 
@@ -1481,79 +1472,395 @@ class _ProfileTabState extends State<_ProfileTab>
       if (!_backgroundAnimController.isAnimating) {
         _backgroundAnimController.repeat(reverse: true);
       }
+      // 确保图表动画在页面可见时运行
+      if (!_donutChartAnimController.isAnimating) {
+        _donutChartAnimController.repeat();
+      }
     } else if (!widget.isCurrentPage && oldWidget.isCurrentPage) {
-      // 当页面不再是当前页面时，暂停耗费资源的背景动画
+      // 当页面不再是当前页面时，暂停耗费资源的动画
       _backgroundAnimController.stop();
+      _donutChartAnimController.stop();
     }
   }
 
-  // 构建地图标记点
-  Widget _buildMapMarker(Color color) {
-    return Container(
-      width: 24,
-      height: 24,
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.7),
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 8,
-            spreadRadius: 2,
+  // 创建一个卡片动画组件，包含交错动画效果
+  Widget _buildAnimatedCard(Widget child, int index) {
+    // 计算交错动画的延迟
+    final delay = 0.2 + (index * 0.1);
+    final endDelay = math.min(1.0, delay + 0.4);
+
+    return AnimatedBuilder(
+      animation: _contentAnimController,
+      builder: (context, child) {
+        // 只有当动画控制器值大于延迟时才开始该卡片的动画
+        final animValue = math.max(
+          0.0,
+          math.min(
+            1.0,
+            (_contentAnimController.value - delay) / (endDelay - delay),
           ),
-        ],
-      ),
-      child: Center(
-        child: Container(
-          width: 10,
-          height: 10,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
+        );
+
+        return Opacity(
+          opacity: animValue,
+          child: Transform.translate(
+            offset: Offset(30 * (1 - animValue), 0),
+            child: child,
           ),
-        ),
-      ),
+        );
+      },
+      child: child,
     );
   }
 
-  // 构建旅行类型项
-  Widget _buildTypeItem(String label, String percentage, Color color) {
-    return Row(
-      children: [
-        Container(
-          width: 14,
-          height: 14,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: color.withOpacity(0.4),
-                blurRadius: 4,
-                spreadRadius: 1,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: AppTheme.secondaryTextColor,
-              fontSize: 12.0,
+  // 显示帮助与反馈弹窗
+  void _showHelpAndFeedbackDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true, // 点击空白处关闭
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.85,
+            padding: const EdgeInsets.all(24.0),
+            decoration: BoxDecoration(
+              color: AppTheme.cardColor.withOpacity(0.95),
+              borderRadius: BorderRadius.circular(20.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 15,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.support_agent,
+                  color: AppTheme.accentColor,
+                  size: 48.0,
+                ),
+                const SizedBox(height: 16.0),
+                Text(
+                  "帮助与反馈",
+                  style: TextStyle(
+                    color: AppTheme.primaryTextColor,
+                    fontSize: 24.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                Text(
+                  "如果您在使用过程中遇到任何问题，或者有任何建议，欢迎随时与我们联系。",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: AppTheme.secondaryTextColor,
+                    fontSize: 16.0,
+                  ),
+                ),
+                const SizedBox(height: 24.0),
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: AppTheme.backgroundColor.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.email_outlined,
+                            color: AppTheme.accentColor,
+                            size: 20.0,
+                          ),
+                          const SizedBox(width: 8.0),
+                          Text(
+                            "联系邮箱",
+                            style: TextStyle(
+                              color: AppTheme.primaryTextColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8.0),
+                      Text(
+                        "support@traveljoy.com",
+                        style: TextStyle(color: AppTheme.secondaryTextColor),
+                      ),
+                      const SizedBox(height: 16.0),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.phone_outlined,
+                            color: AppTheme.accentColor,
+                            size: 20.0,
+                          ),
+                          const SizedBox(width: 8.0),
+                          Text(
+                            "客服热线",
+                            style: TextStyle(
+                              color: AppTheme.primaryTextColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8.0),
+                      Text(
+                        "400-888-8888",
+                        style: TextStyle(color: AppTheme.secondaryTextColor),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24.0),
+                Text(
+                  "点击任意位置关闭",
+                  style: TextStyle(
+                    color: AppTheme.secondaryTextColor.withOpacity(0.7),
+                    fontSize: 14.0,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        Text(
-          percentage,
-          style: TextStyle(
-            color: AppTheme.primaryTextColor,
-            fontSize: 13.0,
-            fontWeight: FontWeight.bold,
+        );
+      },
+    );
+  }
+
+  // 显示关于我们弹窗
+  void _showAboutUsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true, // 点击空白处关闭
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.85,
+            padding: const EdgeInsets.all(24.0),
+            decoration: BoxDecoration(
+              color: AppTheme.cardColor.withOpacity(0.95),
+              borderRadius: BorderRadius.circular(20.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 15,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 64.0,
+                  height: 64.0,
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentColor.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.travel_explore,
+                    color: AppTheme.accentColor,
+                    size: 32.0,
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                Text(
+                  "关于我们",
+                  style: TextStyle(
+                    color: AppTheme.primaryTextColor,
+                    fontSize: 24.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8.0),
+                Text(
+                  "Travel Joy v1.0.0",
+                  style: TextStyle(
+                    color: AppTheme.secondaryTextColor,
+                    fontSize: 16.0,
+                  ),
+                ),
+                const SizedBox(height: 24.0),
+                Text(
+                  "Travel Joy 是一款专为旅行爱好者设计的社交应用，致力于帮助用户发现精彩目的地、分享旅行体验、结识志同道合的朋友。",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: AppTheme.secondaryTextColor,
+                    fontSize: 16.0,
+                  ),
+                ),
+                const SizedBox(height: 24.0),
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: AppTheme.backgroundColor.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.public,
+                            color: AppTheme.accentColor,
+                            size: 20.0,
+                          ),
+                          const SizedBox(width: 8.0),
+                          Text(
+                            "官方网站",
+                            style: TextStyle(
+                              color: AppTheme.primaryTextColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8.0),
+                      Text(
+                        "www.traveljoy.com",
+                        style: TextStyle(color: AppTheme.accentColor),
+                      ),
+                      const SizedBox(height: 16.0),
+                      Text(
+                        "© 2023 Travel Joy Team. All rights reserved.",
+                        style: TextStyle(
+                          color: AppTheme.secondaryTextColor.withOpacity(0.7),
+                          fontSize: 12.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24.0),
+                Text(
+                  "点击任意位置关闭",
+                  style: TextStyle(
+                    color: AppTheme.secondaryTextColor.withOpacity(0.7),
+                    fontSize: 14.0,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
           ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        // 添加动态渐变背景，实现背景微动效果 - 参考消息页面
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppTheme.backgroundColor, const Color(0xFF2E2E4A)],
         ),
-      ],
+      ),
+      child: Stack(
+        children: [
+          // 动态光晕效果 - 完全匹配消息页面
+          AnimatedBuilder(
+            animation: _backgroundAnimation,
+            builder: (context, child) {
+              return Stack(
+                children: [
+                  // 动态光晕效果1
+                  Positioned(
+                    left:
+                        MediaQuery.of(context).size.width *
+                        (0.3 +
+                            0.3 *
+                                math.sin(_backgroundAnimation.value * math.pi)),
+                    top:
+                        MediaQuery.of(context).size.height *
+                        (0.3 +
+                            0.2 *
+                                math.cos(_backgroundAnimation.value * math.pi)),
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      height: MediaQuery.of(context).size.width * 0.8,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            AppTheme.neonBlue.withOpacity(0.4),
+                            AppTheme.neonBlue.withOpacity(0.1),
+                            Colors.transparent,
+                          ],
+                          stops: const [0.0, 0.4, 1.0],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // 动态光晕效果2
+                  Positioned(
+                    right:
+                        MediaQuery.of(context).size.width *
+                        (0.2 +
+                            0.2 *
+                                math.cos(
+                                  _backgroundAnimation.value * math.pi + 1,
+                                )),
+                    bottom:
+                        MediaQuery.of(context).size.height *
+                        (0.2 +
+                            0.2 *
+                                math.sin(
+                                  _backgroundAnimation.value * math.pi + 1,
+                                )),
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.7,
+                      height: MediaQuery.of(context).size.width * 0.7,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            AppTheme.neonPurple.withOpacity(0.3),
+                            AppTheme.neonPurple.withOpacity(0.1),
+                            Colors.transparent,
+                          ],
+                          stops: const [0.0, 0.4, 1.0],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+
+          // 主内容 - 动画与消息页面保持完全一致
+          SafeArea(
+            child: FadeTransition(
+              opacity: _contentAnimation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0.3, 0),
+                  end: Offset.zero,
+                ).animate(_contentAnimation),
+                child: _buildProfileContent(),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1603,13 +1910,13 @@ class _ProfileTabState extends State<_ProfileTab>
         'icon': Icons.help_outline_rounded,
         'title': '帮助与反馈',
         'color': AppTheme.secondaryTextColor,
-        'action': () => print('跳转到帮助与反馈页面'),
+        'action': () => _showHelpAndFeedbackDialog(context), // 修改为显示帮助与反馈弹窗
       },
       {
         'icon': Icons.info_outline_rounded,
         'title': '关于我们',
         'color': AppTheme.secondaryTextColor,
-        'action': () => print('跳转到关于我们页面'),
+        'action': () => _showAboutUsDialog(context), // 修改为显示关于我们弹窗
       },
       {
         'icon': Icons.logout_rounded,
@@ -1618,36 +1925,6 @@ class _ProfileTabState extends State<_ProfileTab>
         'action': () => print('退出登录操作'),
       },
     ];
-
-    // 创建一个卡片动画组件，包含交错动画效果
-    Widget _buildAnimatedCard(Widget child, int index) {
-      // 计算交错动画的延迟
-      final delay = 0.2 + (index * 0.1);
-      final endDelay = math.min(1.0, delay + 0.4);
-
-      return AnimatedBuilder(
-        animation: _contentAnimController,
-        builder: (context, child) {
-          // 只有当动画控制器值大于延迟时才开始该卡片的动画
-          final animValue = math.max(
-            0.0,
-            math.min(
-              1.0,
-              (_contentAnimController.value - delay) / (endDelay - delay),
-            ),
-          );
-
-          return Opacity(
-            opacity: animValue,
-            child: Transform.translate(
-              offset: Offset(30 * (1 - animValue), 0),
-              child: child,
-            ),
-          );
-        },
-        child: child,
-      );
-    }
 
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
@@ -1921,43 +2198,50 @@ class _ProfileTabState extends State<_ProfileTab>
                   ],
                 ),
                 const SizedBox(height: 16.0),
-                // 图表
+                // 图表 - 添加动画效果
                 Row(
                   children: [
-                    // 甜甜圈图表
+                    // 甜甜圈图表 - 使用AnimatedBuilder添加旋转动画
                     Expanded(
                       flex: 5,
                       child: SizedBox(
                         height: 150.0,
-                        child: CustomPaint(
-                          painter: DonutChartPainter(
-                            segments: travelTypes,
-                            width: 24.0,
-                          ),
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  travelTypes.first.label,
-                                  style: TextStyle(
-                                    color: AppTheme.primaryTextColor,
-                                    fontSize: 14.0,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                        child: AnimatedBuilder(
+                          animation: _donutChartAnimation,
+                          builder: (context, _) {
+                            return CustomPaint(
+                              painter: DonutChartPainter(
+                                segments: travelTypes,
+                                width: 24.0,
+                                rotationAngle:
+                                    _donutChartAnimation.value, // 传入动画值作为旋转角度
+                              ),
+                              child: Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      travelTypes.first.label,
+                                      style: TextStyle(
+                                        color: AppTheme.primaryTextColor,
+                                        fontSize: 14.0,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4.0),
+                                    Text(
+                                      "${travelTypes.first.value.toInt()}%",
+                                      style: TextStyle(
+                                        color: travelTypes.first.color,
+                                        fontSize: 18.0,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 4.0),
-                                Text(
-                                  "${travelTypes.first.value.toInt()}%",
-                                  style: TextStyle(
-                                    color: travelTypes.first.color,
-                                    fontSize: 18.0,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -2139,106 +2423,73 @@ class _ProfileTabState extends State<_ProfileTab>
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  // 构建地图标记点
+  Widget _buildMapMarker(Color color) {
     return Container(
+      width: 24,
+      height: 24,
       decoration: BoxDecoration(
-        // 添加动态渐变背景，实现背景微动效果 - 参考消息页面
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppTheme.backgroundColor, const Color(0xFF2E2E4A)],
-        ),
-      ),
-      child: Stack(
-        children: [
-          // 动态光晕效果 - 完全匹配消息页面
-          AnimatedBuilder(
-            animation: _backgroundAnimation,
-            builder: (context, child) {
-              return Stack(
-                children: [
-                  // 动态光晕效果1
-                  Positioned(
-                    left:
-                        MediaQuery.of(context).size.width *
-                        (0.3 +
-                            0.3 *
-                                math.sin(_backgroundAnimation.value * math.pi)),
-                    top:
-                        MediaQuery.of(context).size.height *
-                        (0.3 +
-                            0.2 *
-                                math.cos(_backgroundAnimation.value * math.pi)),
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.8,
-                      height: MediaQuery.of(context).size.width * 0.8,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: [
-                            AppTheme.neonBlue.withOpacity(0.4),
-                            AppTheme.neonBlue.withOpacity(0.1),
-                            Colors.transparent,
-                          ],
-                          stops: const [0.0, 0.4, 1.0],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // 动态光晕效果2
-                  Positioned(
-                    right:
-                        MediaQuery.of(context).size.width *
-                        (0.2 +
-                            0.2 *
-                                math.cos(
-                                  _backgroundAnimation.value * math.pi + 1,
-                                )),
-                    bottom:
-                        MediaQuery.of(context).size.height *
-                        (0.2 +
-                            0.2 *
-                                math.sin(
-                                  _backgroundAnimation.value * math.pi + 1,
-                                )),
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.7,
-                      height: MediaQuery.of(context).size.width * 0.7,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: [
-                            AppTheme.neonPurple.withOpacity(0.3),
-                            AppTheme.neonPurple.withOpacity(0.1),
-                            Colors.transparent,
-                          ],
-                          stops: const [0.0, 0.4, 1.0],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-
-          // 主内容 - 动画与消息页面保持完全一致
-          SafeArea(
-            child: FadeTransition(
-              opacity: _contentAnimation,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0.3, 0),
-                  end: Offset.zero,
-                ).animate(_contentAnimation),
-                child: _buildProfileContent(),
-              ),
-            ),
+        color: color.withOpacity(0.7),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.3),
+            blurRadius: 8,
+            spreadRadius: 2,
           ),
         ],
       ),
+      child: Center(
+        child: Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 构建旅行类型项
+  Widget _buildTypeItem(String label, String percentage, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 14,
+          height: 14,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.4),
+                blurRadius: 4,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: AppTheme.secondaryTextColor,
+              fontSize: 12.0,
+            ),
+          ),
+        ),
+        Text(
+          percentage,
+          style: TextStyle(
+            color: AppTheme.primaryTextColor,
+            fontSize: 13.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -2261,12 +2512,17 @@ class BarChartData {
   BarChartData({required this.label, required this.value, required this.color});
 }
 
-// 甜甜圈图表绘制器
+// 甜甜圈图表绘制器 - 添加动画支持
 class DonutChartPainter extends CustomPainter {
   final List<DonutSegment> segments;
   final double width;
+  final double rotationAngle; // 添加旋转角度参数
 
-  DonutChartPainter({required this.segments, this.width = 25.0});
+  DonutChartPainter({
+    required this.segments,
+    this.width = 25.0,
+    this.rotationAngle = 0.0, // 默认不旋转
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -2278,7 +2534,9 @@ class DonutChartPainter extends CustomPainter {
       (sum, segment) => sum + segment.value,
     );
 
-    double startAngle = -math.pi / 2; // 从顶部开始
+    // 从顶部开始，添加旋转角度
+    double startAngle = -math.pi / 2 + rotationAngle;
+
     for (var segment in segments) {
       final sweepAngle = 2 * math.pi * (segment.value / total);
 
@@ -2303,7 +2561,9 @@ class DonutChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(DonutChartPainter oldDelegate) {
-    return oldDelegate.segments != segments || oldDelegate.width != width;
+    return oldDelegate.segments != segments ||
+        oldDelegate.width != width ||
+        oldDelegate.rotationAngle != rotationAngle; // 检查旋转角度是否变化
   }
 }
 
