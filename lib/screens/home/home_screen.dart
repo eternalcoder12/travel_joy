@@ -7,6 +7,8 @@ import '../explore/spot_detail_screen.dart';
 import '../explore/map_view_screen.dart';
 import '../message/message_screen.dart';
 import '../../utils/navigation_utils.dart';
+import 'package:travel_joy/widgets/travel_timeline.dart';
+import 'package:travel_joy/screens/travel/travel_timeline_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -1411,6 +1413,38 @@ class _ProfileTabState extends State<_ProfileTab>
   late AnimationController _donutChartAnimController;
   late Animation<double> _donutChartAnimation;
 
+  // 在_ProfileTabState中添加旅行事件数据
+  final List<TravelEvent> _travelEvents = [
+    TravelEvent(
+      location: '东京',
+      date: '2023年10月15日',
+      description: '参观了浅草寺和东京塔，体验了当地美食。',
+      imageUrl: 'assets/images/tokyo.jpg',
+      dotColor: Colors.blue,
+    ),
+    TravelEvent(
+      location: '巴黎',
+      date: '2023年7月22日',
+      description: '游览了埃菲尔铁塔和卢浮宫，品尝了正宗的法式甜点。',
+      imageUrl: 'assets/images/paris.jpg',
+      dotColor: Colors.purple,
+    ),
+    TravelEvent(
+      location: '曼谷',
+      date: '2023年4月5日',
+      description: '参观了大皇宫和卧佛寺，享受了泰式按摩。',
+      imageUrl: 'assets/images/bangkok.jpg',
+      dotColor: Colors.orange,
+    ),
+    TravelEvent(
+      location: '纽约',
+      date: '2022年12月18日',
+      description: '参观了自由女神像和时代广场，体验了百老汇演出。',
+      imageUrl: 'assets/images/newyork.jpg',
+      dotColor: Colors.green,
+    ),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -2025,135 +2059,18 @@ class _ProfileTabState extends State<_ProfileTab>
                 ),
               ],
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 标题栏
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.travel_explore,
-                          color: AppTheme.accentColor,
-                          size: 20.0,
-                        ),
-                        const SizedBox(width: 8.0),
-                        Text(
-                          "旅行足迹",
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleMedium?.copyWith(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.primaryTextColor,
-                          ),
-                        ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10.0,
-                            vertical: 4.0,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppTheme.cardColor.withOpacity(0.8),
-                            borderRadius: BorderRadius.circular(12.0),
-                            border: Border.all(
-                              color: AppTheme.accentColor.withOpacity(0.3),
-                              width: 1.0,
-                            ),
-                          ),
-                          child: Text(
-                            "已去过 6 个国家 / 12 个城市",
-                            style: TextStyle(
-                              color: AppTheme.primaryTextColor,
-                              fontSize: 12.0,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+            child: TravelTimelinePreview(
+              events: _travelEvents,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) =>
+                            TravelTimelineScreen(events: _travelEvents),
                   ),
-                  // 地图
-                  SizedBox(
-                    height: 180.0,
-                    width: double.infinity,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        // 地图图片
-                        Image.asset('assets/images/map.jpg', fit: BoxFit.cover),
-                        // 地图遮罩
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                AppTheme.cardColor.withOpacity(0.3),
-                              ],
-                            ),
-                          ),
-                        ),
-                        // 标记点
-                        Positioned(
-                          left: 60,
-                          top: 70,
-                          child: _buildMapMarker(AppTheme.neonBlue),
-                        ),
-                        Positioned(
-                          left: 120,
-                          top: 50,
-                          child: _buildMapMarker(AppTheme.neonPurple),
-                        ),
-                        Positioned(
-                          right: 80,
-                          bottom: 60,
-                          child: _buildMapMarker(AppTheme.neonYellow),
-                        ),
-                        Positioned(
-                          right: 40,
-                          top: 80,
-                          child: _buildMapMarker(AppTheme.neonPink),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // 查看更多按钮
-                  InkWell(
-                    onTap: () {
-                      print('查看全部旅行足迹');
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 12.0),
-                      decoration: BoxDecoration(
-                        color: AppTheme.cardColor.withOpacity(0.8),
-                        border: Border(
-                          top: BorderSide(
-                            color: AppTheme.accentColor.withOpacity(0.1),
-                            width: 1.0,
-                          ),
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          "查看全部足迹",
-                          style: TextStyle(
-                            color: AppTheme.accentColor,
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
           ),
           1,
