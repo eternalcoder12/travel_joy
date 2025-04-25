@@ -337,7 +337,7 @@ class _AchievementScreenState extends State<AchievementScreen>
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 vertical: 12,
-                                horizontal: 16,
+                                horizontal: 8,
                               ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFF242539),
@@ -358,7 +358,11 @@ class _AchievementScreenState extends State<AchievementScreen>
                                             decoration: BoxDecoration(
                                               color: const Color(
                                                 0xFF3A86FF,
-                                              ).withOpacity(0.2),
+                                              ).withOpacity(
+                                                _currentFilter == "全部成就"
+                                                    ? 0.3
+                                                    : 0.15,
+                                              ),
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                             ),
@@ -409,7 +413,11 @@ class _AchievementScreenState extends State<AchievementScreen>
                                             decoration: BoxDecoration(
                                               color: const Color(
                                                 0xFF0396BA,
-                                              ).withOpacity(0.2),
+                                              ).withOpacity(
+                                                _currentFilter == "已解锁"
+                                                    ? 0.3
+                                                    : 0.15,
+                                              ),
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                             ),
@@ -460,7 +468,11 @@ class _AchievementScreenState extends State<AchievementScreen>
                                             decoration: BoxDecoration(
                                               color: const Color(
                                                 0xFF9D4EDD,
-                                              ).withOpacity(0.2),
+                                              ).withOpacity(
+                                                _currentFilter == "未解锁"
+                                                    ? 0.3
+                                                    : 0.15,
+                                              ),
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                             ),

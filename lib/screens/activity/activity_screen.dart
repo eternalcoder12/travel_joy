@@ -167,7 +167,7 @@ class Activity {
         location: '卡帕多奇亚',
         imageUrl: 'assets/images/activities/balloon.jpg',
         icon: Icons.flight,
-        color: AppTheme.neonRed,
+        color: AppTheme.neonPink,
         organizer: '天际冒险公司',
         participantsCount: 8,
         isRegistered: false,
@@ -604,17 +604,53 @@ class _ActivityScreenState extends State<ActivityScreen>
                             ),
                             const SizedBox(height: 16),
 
-                            // 过滤选项栏
-                            SizedBox(
-                              height: 40,
-                              child: ListView(
-                                scrollDirection: Axis.horizontal,
+                            // 增大过滤选项栏 - 使其更符合截图样式
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF242539),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
                                 children: [
-                                  _buildFilterChip('全部活动'),
-                                  _buildFilterChip('未开始'),
-                                  _buildFilterChip('进行中'),
-                                  _buildFilterChip('已结束'),
-                                  _buildFilterChip('已报名'),
+                                  // 全部活动选项
+                                  Expanded(
+                                    child: _buildFilterOption(
+                                      label: '全部活动',
+                                      count: _activities.length,
+                                      icon: Icons.all_inclusive,
+                                      color: const Color(0xFF3A86FF),
+                                    ),
+                                  ),
+
+                                  // 未开始
+                                  Expanded(
+                                    child: _buildFilterOption(
+                                      label: '未开始',
+                                      count:
+                                          _activities
+                                              .where((a) => a.status == '未开始')
+                                              .length,
+                                      icon: Icons.access_time,
+                                      color: Colors.amber,
+                                    ),
+                                  ),
+
+                                  // 进行中
+                                  Expanded(
+                                    child: _buildFilterOption(
+                                      label: '进行中',
+                                      count:
+                                          _activities
+                                              .where((a) => a.status == '进行中')
+                                              .length,
+                                      icon: Icons.play_circle_filled,
+                                      color: Colors.green,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -686,40 +722,38 @@ class _ActivityScreenState extends State<ActivityScreen>
     );
   }
 
-  // 构建过滤选项
-  Widget _buildFilterChip(String label) {
+  // 构建新的过滤选项
+  Widget _buildFilterOption({
+    required String label,
+    required int count,
+    required IconData icon,
+    required Color color,
+  }) {
     final isSelected = _currentFilter == label;
 
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: InkWell(
-        onTap: () => _applyFilter(label),
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color:
-                isSelected
-                    ? AppTheme.neonPurple.withOpacity(0.2)
-                    : AppTheme.cardColor.withOpacity(0.4),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isSelected ? AppTheme.neonPurple : Colors.transparent,
-              width: 1,
+    return GestureDetector(
+      onTap: () => _applyFilter(label),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(isSelected ? 0.3 : 0.15),
+              borderRadius: BorderRadius.circular(8),
             ),
+            child: Icon(icon, color: color, size: 16),
           ),
-          child: Text(
-            label,
+          const SizedBox(width: 8),
+          Text(
+            count > 0 ? '$label ($count)' : label,
             style: TextStyle(
-              color:
-                  isSelected
-                      ? AppTheme.neonPurple
-                      : AppTheme.secondaryTextColor,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
               fontSize: 14,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),
-        ),
+        ],
       ),
     );
   }
