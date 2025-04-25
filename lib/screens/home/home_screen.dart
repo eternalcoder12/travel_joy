@@ -6,11 +6,13 @@ import '../../widgets/animated_item.dart';
 import '../explore/spot_detail_screen.dart';
 import '../explore/map_view_screen.dart';
 import '../message/message_screen.dart';
+import '../activity/activity_center_screen.dart';
 import '../../utils/navigation_utils.dart';
 import 'package:travel_joy/widgets/travel_timeline.dart';
 import 'package:travel_joy/widgets/travel_timeline_preview.dart' as preview;
 import 'package:travel_joy/screens/travel/travel_timeline_screen.dart';
 import 'package:travel_joy/screens/travel/travel_history_screen.dart';
+import 'package:travel_joy/screens/achievement/achievement_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -309,6 +311,15 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
     }
   }
 
+  // 在_HomeTabState类中添加导航方法
+  void _navigateToActivityCenter() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const ActivityCenterScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -589,8 +600,49 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
 
   // 构建推荐区域
   Widget _buildRecommendationsSection() {
-    // 这里可以根据实际需求添加推荐内容
-    return Container(); // 暂时返回空容器
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                '为你推荐',
+                style: TextStyle(
+                  color: AppTheme.primaryTextColor,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              
+              // 添加活动中心入口按钮
+              ElevatedButton.icon(
+                onPressed: _navigateToActivityCenter,
+                icon: const Icon(Icons.event_available, size: 18),
+                label: const Text("活动中心"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.neonYellow,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  elevation: 2,
+                ),
+              ),
+            ],
+          ),
+        ),
+        
+        // ... 其余推荐部分代码 ...
+      ],
+    );
   }
 
   // 横向布局功能卡片 - 带有从上到下依次进行的光波动画
@@ -2309,13 +2361,24 @@ class _ProfileTabState extends State<_ProfileTab>
         'icon': Icons.emoji_events_rounded,
         'title': '我的成就',
         'color': AppTheme.neonYellow,
-        'action': () => print('跳转到我的成就页面'),
+        'action': () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AchievementScreen()),
+          );
+        },
       },
       {
         'icon': Icons.card_giftcard_rounded,
         'title': '积分兑换',
         'color': AppTheme.neonPurple,
         'action': () => print('跳转到积分兑换页面'),
+      },
+      {
+        'icon': Icons.celebration_rounded,
+        'title': '活动中心',
+        'color': AppTheme.neonPink,
+        'action': () => print('跳转到活动中心页面'),
       },
       {
         'icon': Icons.leaderboard_rounded,
@@ -2607,6 +2670,14 @@ class _ProfileTabState extends State<_ProfileTab>
                   "8",
                   "成就",
                   AppTheme.neonYellow,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AchievementScreen(),
+                      ),
+                    );
+                  },
                 ),
                 _buildStatItem(
                   Icons.bookmark_rounded,
@@ -2692,34 +2763,53 @@ class _ProfileTabState extends State<_ProfileTab>
     IconData icon,
     String value,
     String label,
-    Color color,
-  ) {
-    return Column(
-      children: [
-        Container(
-          width: 40.0,
-          height: 40.0,
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.2),
-            shape: BoxShape.circle,
+    Color color, {
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16.0),
+      splashColor: color.withOpacity(0.1),
+      highlightColor: color.withOpacity(0.05),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 48.0,
+            height: 48.0,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color.withOpacity(0.2),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.1),
+                  blurRadius: 4.0,
+                  spreadRadius: 1.0,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: color, size: 24.0),
           ),
-          child: Icon(icon, color: color, size: 20.0),
-        ),
-        const SizedBox(height: 8.0),
-        Text(
-          value,
-          style: TextStyle(
-            color: AppTheme.primaryTextColor,
-            fontSize: 18.0,
-            fontWeight: FontWeight.bold,
+          const SizedBox(height: 8.0),
+          Text(
+            value,
+            style: TextStyle(
+              color: AppTheme.primaryTextColor,
+              fontSize: 18.0,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        const SizedBox(height: 4.0),
-        Text(
-          label,
-          style: TextStyle(color: AppTheme.secondaryTextColor, fontSize: 12.0),
-        ),
-      ],
+          const SizedBox(height: 2.0),
+          Text(
+            label,
+            style: TextStyle(
+              color: AppTheme.secondaryTextColor,
+              fontSize: 12.0,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -2953,3 +3043,27 @@ class BarChartPainter extends CustomPainter {
     return oldDelegate.data != data || oldDelegate.maxValue != maxValue;
   }
 }
+
+// 添加一个活动入口的方法
+void _navigateToActivityCenter(BuildContext context) {
+  Navigator.of(context).pushNamed('/activity_center');
+}
+
+// 在合适的位置添加活动中心入口按钮，例如在首页的某个Tab中或推荐区域
+Container(
+  margin: const EdgeInsets.only(right: 12),
+  child: ElevatedButton.icon(
+    onPressed: () => _navigateToActivityCenter(context),
+    icon: const Icon(Icons.event_available),
+    label: const Text("活动中心"),
+    style: ElevatedButton.styleFrom(
+      backgroundColor: AppTheme.neonYellow,
+      foregroundColor: Colors.black,
+      elevation: 3,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 10,
+      ),
+    ),
+  ),
+)

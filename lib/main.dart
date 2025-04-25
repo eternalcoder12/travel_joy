@@ -6,7 +6,10 @@ import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/auth/forgot_password_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/travel/travel_timeline_screen.dart';
+import 'widgets/travel_timeline.dart'; // 导入 TravelEvent 类定义所在的文件
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:travel_joy/screens/activity/activity_center_screen.dart';
 
 // 应用入口函数
 void main() {
@@ -62,6 +65,42 @@ class _TravelJoyAppState extends State<TravelJoyApp> {
   static final GlobalKey<NavigatorState> _navigatorKey =
       GlobalKey<NavigatorState>();
 
+  // 示例旅行数据 - 在真实应用中，这些数据应该从数据库或API获取
+  final List<TravelEvent> _demoTravelEvents = [
+    TravelEvent(
+      location: '东京',
+      date: '2023-10-15',
+      description: '参观了浅草寺和东京塔，体验了当地美食。',
+      imageUrl: 'assets/images/tokyo.jpg',
+      dotColor: Colors.blue,
+      country: '日本',
+    ),
+    TravelEvent(
+      location: '巴黎',
+      date: '2023-07-22',
+      description: '游览了埃菲尔铁塔和卢浮宫，品尝了正宗的法式甜点。',
+      imageUrl: 'assets/images/paris.jpg',
+      dotColor: Colors.purple,
+      country: '法国',
+    ),
+    TravelEvent(
+      location: '曼谷',
+      date: '2023-04-05',
+      description: '参观了大皇宫和卧佛寺，享受了泰式按摩。',
+      imageUrl: 'assets/images/bangkok.jpg',
+      dotColor: Colors.orange,
+      country: '泰国',
+    ),
+    TravelEvent(
+      location: '纽约',
+      date: '2022-12-18',
+      description: '参观了自由女神像和时代广场，体验了百老汇演出。',
+      imageUrl: 'assets/images/newyork.jpg',
+      dotColor: Colors.green,
+      country: '美国',
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
     // 配置是否使用导航栏的条件
@@ -84,6 +123,11 @@ class _TravelJoyAppState extends State<TravelJoyApp> {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
         '/forgot_password': (context) => const ForgotPasswordScreen(),
+        '/travel_timeline': (context) {
+          // 使用预定义的示例数据
+          return TravelTimelineScreen(events: _demoTravelEvents);
+        },
+        '/activity_center': (context) => const ActivityCenterScreen(),
       },
     );
   }
