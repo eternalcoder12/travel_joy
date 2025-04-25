@@ -1,70 +1,63 @@
-请在 Flutter 项目中为旅游小众软件设计一个美观的首页，文件路径为 `screens/home/home_screen.dart`。页面需符合以下要求：
+具体优化旅行足迹卡片的布局和风格，使其与“旅行偏好分析”卡片风格一致，保持深色主题。
 
-1. **目录和文件**：
-   - 文件路径：`screens/home/home_screen.dart`。
+**具体要求**：
 
-2. **设计目标**：
-   - 打造一个美观、治愈的首页，吸引年轻用户。
-   - 展示核心功能入口：热门景点、酒店预订、餐厅推荐、旅行攻略。
-   - 展示“社区推荐”区域，突出用户生成内容，增强社区氛围。
-   - 确保页面无广告，保持简洁实用，符合免费和方便的主旨。
+2. **布局**：
+   - 背景：渐变背景（从 `AppTheme.cardColor` 到 #2E2E4A），圆角 16.0dp，阴影 4.0dp。
+   - 标题：左侧图标（`Icons.travel_explore`）+ “旅行足迹”，使用 `Theme.of(context).textTheme.labelLarge`。
+   - 地图：占位图（`assets/images/map.jpg`），高度 180.0dp，覆盖 4 个标记点（动态缩放动画）。
+   - 统计：右侧显示“已去过 6 个国家 / 12 个城市”，使用 `Theme.of(context).textTheme.bodyMedium`。
 
-3. **布局**：
-   - 背景：
-     - 使用渐变背景，从 `AppTheme.backgroundColor`（#1E1E1E）到深蓝色（#2E2E4A）。
-   - 顶部：
-     - 标题：“发现你的旅途乐趣”，使用 `Theme.of(context).textTheme.headlineMedium`。
-     - 副标题：“和旅友一起探索小众美景”，使用 `Theme.of(context).textTheme.bodyMedium`。
-   - 功能入口：
-     - 4 个圆形卡片（2x2 网格）：热门景点、酒店预订、餐厅推荐、旅行攻略。
-     - 每个卡片：
-       - 背景色：`AppTheme.cardColor`（#2C2C2E），带渐变边框（#FFFFFF 到 #AEAEAE）。
-       - 图标：使用 `AppTheme.iconColor`，大小 `32.0dp`。
-       - 文字：使用 `Theme.of(context).textTheme.labelLarge`。
-       - 阴影：`elevation: 6.0`。
-   - 社区推荐区域：
-     - 标题：“旅友分享”，使用 `Theme.of(context).textTheme.labelLarge`。
-     - 副标题：“快来分享你的旅行故事，赢取积分！”，使用 `Theme.of(context).textTheme.bodyMedium`。
-     - 内容列表：使用 `ListView` 展示 3 条用户分享内容，每条包含：
-       - 图片：占位图（宽高比 16:9，宽充满，圆角 8.0dp）。
-       - 用户昵称：使用 `Theme.of(context).textTheme.bodyMedium`。
-       - 内容摘要：使用 `Theme.of(context).textTheme.bodyMedium`。
-       - 互动元素：点赞和评论图标，使用 `AppTheme.iconColor`。
-     - 列表项样式：使用 `AppTheme.cardTheme`，添加渐变边框。
-     - 底部按钮：“查看更多”，使用 `AppTheme.elevatedButtonTheme`，点击跳转到 `/discover`。
+3. **动画**：
+   - 标记点：缩放动画（`ScaleTransition`，循环播放，持续时间 2 秒）。
+   - 卡片进入：从右侧滑入（`SlideTransition`，持续时间 600 毫秒，缓动效果 `Curves.easeOutCubic`）。
 
-4. **样式**：
-   - 背景色：渐变从 `AppTheme.backgroundColor` 到 #2E2E4A。
-   - 标题：`Theme.of(context).textTheme.headlineMedium`（24.0sp, FontWeight.w700）。
-   - 副标题：`Theme.of(context).textTheme.bodyMedium`（14.0sp, FontWeight.w400）。
-   - 按钮：`AppTheme.elevatedButtonTheme`（背景色 #D3D3D3，文字颜色 #AEAEAE，圆角 8.0dp）。
+4. **交互**：
+   - 点击卡片：打印日志（模拟跳转到详情页面）。
 
 5. **间距**：
-   - 标题与副标题间距：`8.0dp`。
-   - 副标题与功能卡片间距：`24.0dp`。
-   - 卡片之间的水平和垂直间距：`16.0dp`。
-   - 功能卡片与社区推荐区域间距：`24.0dp`。
-   - 社区推荐标题与内容列表间距：`16.0dp`。
-   - 列表项之间的间距：`16.0dp`。
-   - 列表与“查看更多”按钮间距：`16.0dp`。
+   - 标题与地图间距：`16.0dp`。
+   - 地图与统计间距：`12.0dp`。
 
-6. **动画**：
-   - 卡片淡入动画：使用 `AnimatedOpacity`，从透明到完全显示（持续时间 500 毫秒）。
-   - 卡片悬浮动画：使用 `ScaleTransition`，从 0.95 缩放到 1.0（持续时间 300 毫秒，循环播放）。
-   - 社区内容淡入动画：使用 `AnimatedOpacity`，从透明到完全显示（持续时间 500 毫秒，延迟 200 毫秒）。
-   - 按钮缩放动画：使用 `ScaleTransition`，从 0.8 缩放到 1.0（持续时间 300 毫秒）。
-   - 页面切换动画：使用 `AppTheme.pageTransitionsTheme`.
+6. **注意事项**：
+   - 所有样式从 `AppTheme` 获取，不硬编码颜色或字体。
+   - 保持代码风格与项目一致。
 
-7. **代码要求**：
-   - 使用 `StatefulWidget` 实现 `HomeScreen`。
-   - 使用 `GridView` 实现 2x2 圆形卡片网格。
-   - 使用 `ListView` 实现社区推荐内容列表。
-   - 按钮点击后使用 `Navigator.pushNamed` 跳转到 `/discover`。
-   - 卡片和列表项点击后打印日志（模拟导航逻辑）。
+请提供修改后的 `_ProfileTabState` 类中旅行足迹卡片的代码。
 
-8. **注意事项**：
-   - 所有样式必须从 `AppTheme` 获取，不直接定义颜色或字体样式。
-   - 不要添加额外功能（如实际导航逻辑）。
-   - 代码风格需与现有项目一致。
+请为 Flutter 项目创建一个新的旅行足迹详情页面，展示用户的旅行记录时间线，支持滑动查看，保持与现有深色主题风格一致。
 
-请生成符合要求的 `home_screen.dart` 文件代码。
+**具体要求**：
+
+2. **布局**：
+   - 背景：动态渐变背景，从 `AppTheme.backgroundColor` 到 #2E2E4A，添加光晕效果（`RadialGradient`）。
+   - 顶部：
+     - 标题：“我的旅行足迹”，使用 `Theme.of(context).textTheme.headlineMedium`。
+     - 返回按钮：左侧箭头图标，点击打印日志（模拟返回）。
+   - 时间线：
+     - 使用 `ListView` 展示旅行记录，按时间倒序列出。
+     - 时间线项：
+       - 左侧：时间点（例如“2023年10月16日”），垂直线连接各时间点。
+       - 右侧：旅行记录卡片（城市、国家、日期、描述）。
+       - 卡片背景：渐变色（橙色 #FF5F6D 到粉色 #FFC371），圆角 12.0dp。
+       - 描述：`Theme.of(context).textTheme.bodyMedium`。
+   - 底部：
+     - 统计：显示“总计：4 个城市，2 个国家，12 次旅行记录”。
+
+3. **动画**：
+   - 页面进入：淡入+滑动（`FadeTransition` + `SlideTransition`，持续时间 600 毫秒，缓动效果 `Curves.easeOutCubic`）。
+   - 时间线项：逐个滑入（`SlideTransition`，从左侧，持续时间 600 毫秒）。
+
+4. **数据**：
+   - 模拟数据：4 条旅行记录（东京、日本、2023年10月16日；巴黎、法国、2023年7月22日；纽约、美国、2022年12月18日；纽约、美国、2022年10月15日），包含城市、国家、日期和描述。
+
+5. **间距**：
+   - 标题与时间线间距：`24.0dp`。
+   - 时间线项间距：`16.0dp`。
+   - 时间线与底部统计间距：`20.0dp`。
+
+6. **注意事项**：
+   - 所有样式从 `AppTheme` 获取，不硬编码颜色或字体。
+   - 保持代码风格与项目一致。
+
+请提供完整的 `travel_history_screen.dart` 文件代码。

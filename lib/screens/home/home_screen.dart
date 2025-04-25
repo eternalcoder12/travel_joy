@@ -6,7 +6,6 @@ import '../../widgets/animated_item.dart';
 import '../explore/spot_detail_screen.dart';
 import '../explore/map_view_screen.dart';
 import '../message/message_screen.dart';
-import '../activity/activity_center_screen.dart';
 import '../../utils/navigation_utils.dart';
 import 'package:travel_joy/widgets/travel_timeline.dart';
 import 'package:travel_joy/widgets/travel_timeline_preview.dart' as preview;
@@ -311,15 +310,6 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
     }
   }
 
-  // 在_HomeTabState类中添加导航方法
-  void _navigateToActivityCenter() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const ActivityCenterScreen(),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -600,49 +590,8 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
 
   // 构建推荐区域
   Widget _buildRecommendationsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                '为你推荐',
-                style: TextStyle(
-                  color: AppTheme.primaryTextColor,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              
-              // 添加活动中心入口按钮
-              ElevatedButton.icon(
-                onPressed: _navigateToActivityCenter,
-                icon: const Icon(Icons.event_available, size: 18),
-                label: const Text("活动中心"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.neonYellow,
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  textStyle: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  elevation: 2,
-                ),
-              ),
-            ],
-          ),
-        ),
-        
-        // ... 其余推荐部分代码 ...
-      ],
-    );
+    // 这里可以根据实际需求添加推荐内容
+    return Container(); // 暂时返回空容器
   }
 
   // 横向布局功能卡片 - 带有从上到下依次进行的光波动画
@@ -3043,27 +2992,3 @@ class BarChartPainter extends CustomPainter {
     return oldDelegate.data != data || oldDelegate.maxValue != maxValue;
   }
 }
-
-// 添加一个活动入口的方法
-void _navigateToActivityCenter(BuildContext context) {
-  Navigator.of(context).pushNamed('/activity_center');
-}
-
-// 在合适的位置添加活动中心入口按钮，例如在首页的某个Tab中或推荐区域
-Container(
-  margin: const EdgeInsets.only(right: 12),
-  child: ElevatedButton.icon(
-    onPressed: () => _navigateToActivityCenter(context),
-    icon: const Icon(Icons.event_available),
-    label: const Text("活动中心"),
-    style: ElevatedButton.styleFrom(
-      backgroundColor: AppTheme.neonYellow,
-      foregroundColor: Colors.black,
-      elevation: 3,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 10,
-      ),
-    ),
-  ),
-)
