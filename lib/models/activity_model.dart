@@ -4,250 +4,181 @@ class Activity {
   final String id;
   final String title;
   final String description;
-  final String location;
+  final IconData icon;
+  final Color color;
   final DateTime startDate;
   final DateTime endDate;
-  final String imageUrl;
-  final Color color;
-  final IconData icon;
+  final String location;
   final int participantsCount;
   final int maxParticipants;
-  final bool isHot; // 是否热门
-  final bool isNew; // 是否新活动
+  final String organizer;
   final List<String> tags;
-  final double price; // 价格，0表示免费
-  final String organizerName;
-  final bool isFavorite; // 是否收藏
+  final bool isRegistered;
+  final bool isHot;
+  final String? imageUrl;
+  final double? rating;
 
   Activity({
     required this.id,
     required this.title,
     required this.description,
-    required this.location,
+    required this.icon,
+    required this.color,
     required this.startDate,
     required this.endDate,
-    required this.imageUrl,
-    required this.color,
-    required this.icon,
+    required this.location,
     required this.participantsCount,
     required this.maxParticipants,
-    this.isHot = false,
-    this.isNew = false,
+    required this.organizer,
     required this.tags,
-    required this.price,
-    required this.organizerName,
-    this.isFavorite = false,
+    this.isRegistered = false,
+    this.isHot = false,
+    this.imageUrl,
+    this.rating,
   });
 
-  // 判断活动是否已结束
-  bool get isFinished => DateTime.now().isAfter(endDate);
-
-  // 判断活动是否正在进行中
+  bool get isUpcoming => startDate.isAfter(DateTime.now());
   bool get isOngoing =>
-      DateTime.now().isAfter(startDate) && DateTime.now().isBefore(endDate);
-
-  // 判断活动是否即将开始
-  bool get isUpcoming => DateTime.now().isBefore(startDate);
-
-  // 获取活动状态文本
-  String get statusText {
-    if (isFinished) {
-      return "已结束";
-    } else if (isOngoing) {
-      return "进行中";
-    } else {
-      return "即将开始";
-    }
-  }
-
-  // 获取活动状态颜色
-  Color get statusColor {
-    if (isFinished) {
-      return Colors.grey;
-    } else if (isOngoing) {
-      return const Color(0xFF4CAF50); // 绿色
-    } else {
-      return const Color(0xFF00B4D8); // 蓝色
-    }
-  }
-
-  // 剩余名额
-  int get remainingSpots => maxParticipants - participantsCount;
-
-  // 是否已满员
+      startDate.isBefore(DateTime.now()) && endDate.isAfter(DateTime.now());
+  bool get isPast => endDate.isBefore(DateTime.now());
   bool get isFull => participantsCount >= maxParticipants;
+
+  // 可注册状态：活动未开始且未满员且用户未注册
+  bool get canRegister => isUpcoming && !isFull && !isRegistered;
 
   // 工厂方法：创建样例活动列表
   static List<Activity> getSampleActivities() {
+    final now = DateTime.now();
+
     return [
       Activity(
         id: 'act_001',
-        title: '徒步黄山三日游',
-        description: '探索中国最美的山脉之一，欣赏云海日出和奇松怪石，体验中国传统山水画的真实场景。专业导游带队，含住宿和餐食。',
-        location: '安徽省黄山市',
-        startDate: DateTime.now().add(const Duration(days: 10)),
-        endDate: DateTime.now().add(const Duration(days: 13)),
-        imageUrl: 'assets/images/activities/huangshan.jpg',
-        color: const Color(0xFF39D353), // 绿色
-        icon: Icons.terrain,
+        title: '成都美食探索之旅',
+        description:
+            '一起探索成都的美食文化，品尝正宗川菜，体验火锅文化，探访特色小吃街。活动包含三家知名餐厅和两条美食街的深度游览，专业导游全程陪同。',
+        icon: Icons.restaurant,
+        color: const Color(0xFFFF9E00), // neonOrange
+        startDate: now.add(const Duration(days: 5)),
+        endDate: now.add(const Duration(days: 5, hours: 4)),
+        location: '成都市锦江区春熙路',
         participantsCount: 18,
-        maxParticipants: 25,
+        maxParticipants: 30,
+        organizer: '川味美食会',
+        tags: ['美食', '文化体验', '团队活动'],
         isHot: true,
-        tags: ['户外', '徒步', '摄影', '团建'],
-        price: 1580,
-        organizerName: '户外探险俱乐部',
+        imageUrl: 'https://example.com/chengdu_food.jpg',
+        rating: 4.8,
       ),
       Activity(
         id: 'act_002',
-        title: '西湖单车环湖',
-        description: '骑行西湖一周，欣赏湖光山色，途经十景名胜，品尝地道杭帮菜。提供专业自行车和骑行装备，专业教练带队。',
-        location: '浙江省杭州市',
-        startDate: DateTime.now().add(const Duration(days: 3)),
-        endDate: DateTime.now().add(const Duration(days: 3)),
-        imageUrl: 'assets/images/activities/westlake.jpg',
-        color: const Color(0xFF00B4D8), // 蓝色
-        icon: Icons.directions_bike,
-        participantsCount: 10,
-        maxParticipants: 15,
-        isNew: true,
-        tags: ['骑行', '休闲', '摄影'],
-        price: 128,
-        organizerName: '乐行单车俱乐部',
+        title: '西湖徒步摄影团',
+        description: '环绕西湖进行一次摄影徒步之旅，捕捉西湖十景的美丽瞬间。专业摄影师全程指导，适合各级摄影爱好者参与。',
+        icon: Icons.photo_camera,
+        color: const Color(0xFF9D4EDD), // neonPurple
+        startDate: now.add(const Duration(days: 2)),
+        endDate: now.add(const Duration(days: 2, hours: 6)),
+        location: '杭州市西湖区',
+        participantsCount: 15,
+        maxParticipants: 20,
+        organizer: '杭州摄影协会',
+        tags: ['摄影', '户外', '徒步'],
+        isRegistered: true,
+        isHot: true,
       ),
       Activity(
         id: 'act_003',
-        title: '云南美食文化节',
-        description: '体验云南多民族美食文化，品尝过桥米线、汽锅鸡、饵丝等特色美食，观看民族歌舞表演，参与互动体验活动。',
-        location: '云南省昆明市',
-        startDate: DateTime.now().subtract(const Duration(days: 2)),
-        endDate: DateTime.now().add(const Duration(days: 5)),
-        imageUrl: 'assets/images/activities/yunnan_food.jpg',
-        color: const Color(0xFFFF9E00), // 橙色
-        icon: Icons.restaurant,
-        participantsCount: 200,
-        maxParticipants: 300,
-        isHot: true,
-        tags: ['美食', '文化', '节日'],
-        price: 298,
-        organizerName: '云南旅游局',
+        title: '上海城市探索挑战赛',
+        description: '在上海市中心进行的团队挑战赛，解开谜题，探索地标，发现隐藏景点。各小队将竞争完成任务，获胜团队将获得精美奖品。',
+        icon: Icons.explore,
+        color: const Color(0xFF2EC4B6), // neonTeal
+        startDate: now.add(const Duration(days: 10)),
+        endDate: now.add(const Duration(days: 10, hours: 5)),
+        location: '上海市黄浦区',
+        participantsCount: 45,
+        maxParticipants: 60,
+        organizer: '城市探险者俱乐部',
+        tags: ['团队建设', '城市探索', '比赛'],
+        imageUrl: 'https://example.com/shanghai_explore.jpg',
       ),
       Activity(
         id: 'act_004',
-        title: '北京胡同深度游',
-        description: '走进老北京胡同，探访四合院文化，体验传统手工艺，品尝老北京小吃。专业文化讲解员带队，提供详细历史文化背景介绍。',
-        location: '北京市东城区',
-        startDate: DateTime.now().add(const Duration(days: 15)),
-        endDate: DateTime.now().add(const Duration(days: 15)),
-        imageUrl: 'assets/images/activities/beijing_hutong.jpg',
-        color: const Color(0xFF9D4EDD), // 紫色
+        title: '北京胡同文化之旅',
+        description: '深入北京胡同，了解老北京的传统文化和生活方式。包含四合院参观、传统手工艺体验和当地美食品尝。',
         icon: Icons.history_edu,
-        participantsCount: 8,
-        maxParticipants: 12,
-        tags: ['文化', '历史', '城市探索'],
-        price: 158,
-        organizerName: '北京文化遗产保护协会',
+        color: const Color(0xFF00B4D8), // neonBlue
+        startDate: now.subtract(const Duration(days: 3)),
+        endDate: now
+            .subtract(const Duration(days: 3))
+            .add(const Duration(hours: 3)),
+        location: '北京市东城区南锣鼓巷',
+        participantsCount: 25,
+        maxParticipants: 25,
+        organizer: '北京文化遗产保护协会',
+        tags: ['文化', '历史', '美食'],
+        rating: 4.6,
       ),
       Activity(
         id: 'act_005',
-        title: '三亚海滩瑜伽课',
-        description: '在美丽的三亚海滩上，伴随着海浪声，在专业瑜伽教练指导下进行晨练，放松身心，感受阳光与海风。提供瑜伽垫和装备。',
-        location: '海南省三亚市亚龙湾',
-        startDate: DateTime.now().add(const Duration(days: 7)),
-        endDate: DateTime.now().add(const Duration(days: 9)),
-        imageUrl: 'assets/images/activities/sanya_yoga.jpg',
-        color: const Color(0xFFFF48C4), // 粉色
-        icon: Icons.self_improvement,
-        participantsCount: 15,
-        maxParticipants: 20,
-        isNew: true,
-        tags: ['瑜伽', '健康', '海滩', '放松'],
-        price: 298,
-        organizerName: '三亚健康生活方式促进会',
+        title: '张家界高空玻璃栈道挑战',
+        description: '挑战张家界国家森林公园内的高空玻璃栈道，体验惊险刺激的同时欣赏壮丽的自然风光。包含专业教练指导和安全装备。',
+        icon: Icons.terrain,
+        color: const Color(0xFF39D353), // neonGreen
+        startDate: now.add(const Duration(days: 15)),
+        endDate: now.add(const Duration(days: 15, hours: 8)),
+        location: '湖南省张家界市',
+        participantsCount: 12,
+        maxParticipants: 15,
+        organizer: '极限运动爱好者协会',
+        tags: ['极限运动', '自然风光', '刺激体验'],
+        isHot: true,
+        imageUrl: 'https://example.com/zhangjiajie.jpg',
       ),
       Activity(
         id: 'act_006',
-        title: '重庆火锅品鉴之旅',
-        description:
-            '探访重庆最地道的火锅店，了解火锅文化历史，学习辨别各种食材和锅底，体验正宗重庆火锅的麻辣鲜香。包含3家知名火锅店品鉴。',
-        location: '重庆市渝中区',
-        startDate: DateTime.now().add(const Duration(days: 2)),
-        endDate: DateTime.now().add(const Duration(days: 2)),
-        imageUrl: 'assets/images/activities/chongqing_hotpot.jpg',
-        color: const Color(0xFFE63946), // 红色
-        icon: Icons.local_fire_department,
-        participantsCount: 12,
-        maxParticipants: 12,
-        isHot: true,
-        tags: ['美食', '文化', '体验'],
-        price: 368,
-        organizerName: '重庆美食协会',
+        title: '云南少数民族文化节',
+        description: '参与云南少数民族文化节，体验多样的民族文化、音乐、舞蹈和美食。活动包含参与传统仪式、学习民族舞蹈和品尝特色美食。',
+        icon: Icons.celebration,
+        color: const Color(0xFFFF48C4), // neonPink
+        startDate: now.subtract(const Duration(hours: 12)),
+        endDate: now.add(const Duration(days: 2)),
+        location: '云南省大理市',
+        participantsCount: 120,
+        maxParticipants: 200,
+        organizer: '云南文化旅游局',
+        tags: ['文化节', '民族文化', '音乐舞蹈'],
+        rating: 4.9,
+        imageUrl: 'https://example.com/yunnan_festival.jpg',
       ),
       Activity(
         id: 'act_007',
-        title: '莫干山竹海徒步',
-        description: '穿越莫干山竹海，感受竹林的清新与宁静，聆听竹叶沙沙声，体验农家乐，品尝山野美食。含专业向导和午餐。',
-        location: '浙江省湖州市德清县',
-        startDate: DateTime.now().subtract(const Duration(days: 5)),
-        endDate: DateTime.now().subtract(const Duration(days: 5)),
-        imageUrl: 'assets/images/activities/moganshan.jpg',
-        color: const Color(0xFF2EC4B6), // 青色
-        icon: Icons.forest,
-        participantsCount: 20,
-        maxParticipants: 30,
-        tags: ['徒步', '自然', '摄影', '美食'],
-        price: 198,
-        organizerName: '莫干山旅游协会',
+        title: '海南海滩清洁行动',
+        description: '加入海南三亚湾海滩清洁志愿活动，保护海洋环境，减少塑料污染。活动结束后将举行沙滩烧烤派对，感谢所有志愿者的参与。',
+        icon: Icons.waves,
+        color: const Color(0xFF00B4D8), // neonBlue
+        startDate: now.add(const Duration(days: 8)),
+        endDate: now.add(const Duration(days: 8, hours: 5)),
+        location: '海南省三亚市三亚湾',
+        participantsCount: 35,
+        maxParticipants: 100,
+        organizer: '蓝色海洋保护协会',
+        tags: ['环保', '志愿活动', '海滩'],
+        imageUrl: 'https://example.com/sanya_beach.jpg',
       ),
       Activity(
         id: 'act_008',
-        title: '故宫文化夜游',
-        description:
-            '夜晚的故宫别有一番韵味，在专业讲解员的带领下，了解故宫的历史与文化，欣赏夜色中的紫禁城，体验与白天完全不同的氛围。',
-        location: '北京市东城区故宫博物院',
-        startDate: DateTime.now().add(const Duration(days: 20)),
-        endDate: DateTime.now().add(const Duration(days: 20)),
-        imageUrl: 'assets/images/activities/forbidden_city_night.jpg',
-        color: const Color(0xFFFFD700), // 金色
-        icon: Icons.nightlight_round,
-        participantsCount: 45,
-        maxParticipants: 60,
-        isNew: true,
-        tags: ['文化', '历史', '夜游', '摄影'],
-        price: 258,
-        organizerName: '故宫博物院',
-      ),
-      Activity(
-        id: 'act_009',
-        title: '免费城市定向挑战赛',
-        description: '在城市中进行团队定向挑战，解决谜题，完成任务，探索城市的角落，体验团队合作的乐趣。适合朋友、同事或家庭参与。',
-        location: '全国多地同时举行',
-        startDate: DateTime.now().add(const Duration(days: 13)),
-        endDate: DateTime.now().add(const Duration(days: 13)),
-        imageUrl: 'assets/images/activities/city_challenge.jpg',
-        color: const Color(0xFF00B4D8), // 蓝色
-        icon: Icons.emoji_events,
-        participantsCount: 120,
-        maxParticipants: 200,
-        isHot: true,
-        tags: ['团队', '挑战', '城市探索', '免费'],
-        price: 0,
-        organizerName: '城市探索者联盟',
-      ),
-      Activity(
-        id: 'act_010',
-        title: '传统陶艺工作坊',
-        description: '跟随陶艺大师学习传统陶艺技艺，亲手制作陶器，了解陶艺历史和文化，带走自己的作品。含材料费和午餐。',
-        location: '江苏省宜兴市丁蜀镇',
-        startDate: DateTime.now().add(const Duration(days: 5)),
-        endDate: DateTime.now().add(const Duration(days: 5)),
-        imageUrl: 'assets/images/activities/pottery.jpg',
-        color: const Color(0xFF9D4EDD), // 紫色
-        icon: Icons.design_services,
-        participantsCount: 8,
-        maxParticipants: 10,
-        tags: ['文化', '手工', '艺术', '体验'],
-        price: 368,
-        organizerName: '宜兴紫砂文化协会',
+        title: '西安古城墙骑行',
+        description: '在中国最完整的古城墙上骑行，环绕西安内城，欣赏古都风貌。途中将有文化讲解员介绍西安历史和相关景点。',
+        icon: Icons.directions_bike,
+        color: const Color(0xFFFFD700), // neonYellow
+        startDate: now.add(const Duration(days: 3)),
+        endDate: now.add(const Duration(days: 3, hours: 3)),
+        location: '陕西省西安市城墙',
+        participantsCount: 40,
+        maxParticipants: 50,
+        organizer: '西安旅游局',
+        tags: ['骑行', '历史文化', '户外活动'],
+        isRegistered: true,
+        rating: 4.7,
       ),
     ];
   }
