@@ -8,7 +8,9 @@ import '../explore/map_view_screen.dart';
 import '../message/message_screen.dart';
 import '../../utils/navigation_utils.dart';
 import 'package:travel_joy/widgets/travel_timeline.dart';
+import 'package:travel_joy/widgets/travel_timeline_preview.dart' as preview;
 import 'package:travel_joy/screens/travel/travel_timeline_screen.dart';
+import 'package:travel_joy/screens/travel/travel_history_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -1420,28 +1422,28 @@ class _ProfileTabState extends State<_ProfileTab>
       date: '2023年10月15日',
       description: '参观了浅草寺和东京塔，体验了当地美食。',
       imageUrl: 'assets/images/tokyo.jpg',
-      dotColor: Colors.blue,
+      dotColor: AppTheme.neonBlue,
     ),
     TravelEvent(
       location: '巴黎',
       date: '2023年7月22日',
       description: '游览了埃菲尔铁塔和卢浮宫，品尝了正宗的法式甜点。',
       imageUrl: 'assets/images/paris.jpg',
-      dotColor: Colors.purple,
+      dotColor: AppTheme.neonPurple,
     ),
     TravelEvent(
       location: '曼谷',
       date: '2023年4月5日',
       description: '参观了大皇宫和卧佛寺，享受了泰式按摩。',
       imageUrl: 'assets/images/bangkok.jpg',
-      dotColor: Colors.orange,
+      dotColor: AppTheme.neonOrange,
     ),
     TravelEvent(
       location: '纽约',
       date: '2022年12月18日',
       description: '参观了自由女神像和时代广场，体验了百老汇演出。',
       imageUrl: 'assets/images/newyork.jpg',
-      dotColor: Colors.green,
+      dotColor: AppTheme.neonGreen,
     ),
   ];
 
@@ -1552,122 +1554,294 @@ class _ProfileTabState extends State<_ProfileTab>
     showDialog(
       context: context,
       barrierDismissible: true, // 点击空白处关闭
+      barrierColor: Colors.black.withOpacity(0.6), // 更深的背景遮罩
       builder: (BuildContext context) {
         return Dialog(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.85,
-            padding: const EdgeInsets.all(24.0),
-            decoration: BoxDecoration(
-              color: AppTheme.cardColor.withOpacity(0.95),
-              borderRadius: BorderRadius.circular(20.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 15,
-                  spreadRadius: 5,
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.support_agent,
-                  color: AppTheme.accentColor,
-                  size: 48.0,
-                ),
-                const SizedBox(height: 16.0),
-                Text(
-                  "帮助与反馈",
-                  style: TextStyle(
-                    color: AppTheme.primaryTextColor,
-                    fontSize: 24.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16.0),
-                Text(
-                  "如果您在使用过程中遇到任何问题，或者有任何建议，欢迎随时与我们联系。",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppTheme.secondaryTextColor,
-                    fontSize: 16.0,
-                  ),
-                ),
-                const SizedBox(height: 24.0),
-                Container(
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: AppTheme.backgroundColor.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.email_outlined,
-                            color: AppTheme.accentColor,
-                            size: 20.0,
-                          ),
-                          const SizedBox(width: 8.0),
-                          Text(
-                            "联系邮箱",
-                            style: TextStyle(
-                              color: AppTheme.primaryTextColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8.0),
-                      Text(
-                        "support@traveljoy.com",
-                        style: TextStyle(color: AppTheme.secondaryTextColor),
-                      ),
-                      const SizedBox(height: 16.0),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.phone_outlined,
-                            color: AppTheme.accentColor,
-                            size: 20.0,
-                          ),
-                          const SizedBox(width: 8.0),
-                          Text(
-                            "客服热线",
-                            style: TextStyle(
-                              color: AppTheme.primaryTextColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8.0),
-                      Text(
-                        "400-888-8888",
-                        style: TextStyle(color: AppTheme.secondaryTextColor),
-                      ),
+          insetPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // 主容器
+              Container(
+                width: MediaQuery.of(context).size.width * 0.85,
+                padding: const EdgeInsets.fromLTRB(24.0, 60.0, 24.0, 24.0),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppTheme.cardColor.withOpacity(0.95),
+                      AppTheme.backgroundColor.withOpacity(0.90),
                     ],
                   ),
-                ),
-                const SizedBox(height: 24.0),
-                Text(
-                  "点击任意位置关闭",
-                  style: TextStyle(
-                    color: AppTheme.secondaryTextColor.withOpacity(0.7),
-                    fontSize: 14.0,
-                    fontStyle: FontStyle.italic,
+                  borderRadius: BorderRadius.circular(24.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.neonBlue.withOpacity(0.2),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                  border: Border.all(
+                    color: AppTheme.neonBlue.withOpacity(0.2),
+                    width: 1.5,
                   ),
                 ),
-              ],
-            ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 标题
+                    Text(
+                      "帮助与反馈",
+                      style: TextStyle(
+                        color: AppTheme.primaryTextColor,
+                        fontSize: 26.0,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        shadows: [
+                          Shadow(
+                            color: AppTheme.neonBlue.withOpacity(0.3),
+                            blurRadius: 5,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+
+                    // 分隔线
+                    Container(
+                      height: 3,
+                      width: 60,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppTheme.neonBlue.withOpacity(0.5),
+                            AppTheme.neonPurple.withOpacity(0.5),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(3),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.neonBlue.withOpacity(0.3),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24.0),
+
+                    // 说明文本
+                    Text(
+                      "如果您在使用过程中遇到任何问题，或者有任何建议，欢迎随时与我们联系。",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppTheme.primaryTextColor,
+                        fontSize: 16.0,
+                        height: 1.5,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 30.0),
+
+                    // 联系方式卡片
+                    Container(
+                      padding: const EdgeInsets.all(20.0),
+                      decoration: BoxDecoration(
+                        color: AppTheme.cardColor.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(20.0),
+                        border: Border.all(
+                          color: AppTheme.neonBlue.withOpacity(0.2),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 15,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 邮箱信息
+                          _buildContactItem(
+                            icon: Icons.email_outlined,
+                            title: "联系邮箱",
+                            value: "support@traveljoy.com",
+                            color: AppTheme.neonBlue,
+                          ),
+
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            child: Divider(
+                              color: AppTheme.secondaryTextColor.withOpacity(
+                                0.15,
+                              ),
+                              thickness: 1,
+                            ),
+                          ),
+
+                          // 电话信息
+                          _buildContactItem(
+                            icon: Icons.phone_outlined,
+                            title: "客服热线",
+                            value: "400-888-8888",
+                            color: AppTheme.neonPurple,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 30.0),
+
+                    // 按钮
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.of(context).pop();
+                        },
+                        borderRadius: BorderRadius.circular(50),
+                        splashColor: AppTheme.neonBlue.withOpacity(0.2),
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppTheme.neonBlue.withOpacity(0.8),
+                                AppTheme.neonPurple.withOpacity(0.8),
+                              ],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(50),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.neonBlue.withOpacity(0.3),
+                                blurRadius: 8,
+                                spreadRadius: 1,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 30.0,
+                              vertical: 14.0,
+                            ),
+                            child: Text(
+                              "关闭",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // 顶部图标
+              Positioned(
+                top: -30,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(15.0),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppTheme.neonBlue, AppTheme.neonPurple],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.neonBlue.withOpacity(0.5),
+                          blurRadius: 12,
+                          spreadRadius: 3,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.support_agent,
+                      color: Colors.white,
+                      size: 40.0,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },
+    );
+  }
+
+  // 构建联系方式项目
+  Widget _buildContactItem({
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10.0),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.15),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.2),
+                blurRadius: 8,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: Icon(icon, color: color, size: 22.0),
+        ),
+        const SizedBox(width: 16.0),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  color: AppTheme.secondaryTextColor,
+                  fontSize: 14.0,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 6.0),
+              Text(
+                value,
+                style: TextStyle(
+                  color: AppTheme.primaryTextColor,
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -1676,119 +1850,334 @@ class _ProfileTabState extends State<_ProfileTab>
     showDialog(
       context: context,
       barrierDismissible: true, // 点击空白处关闭
+      barrierColor: Colors.black.withOpacity(0.6), // 更深的背景遮罩
       builder: (BuildContext context) {
         return Dialog(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.85,
-            padding: const EdgeInsets.all(24.0),
-            decoration: BoxDecoration(
-              color: AppTheme.cardColor.withOpacity(0.95),
-              borderRadius: BorderRadius.circular(20.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 15,
-                  spreadRadius: 5,
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 64.0,
-                  height: 64.0,
-                  decoration: BoxDecoration(
-                    color: AppTheme.accentColor.withOpacity(0.2),
-                    shape: BoxShape.circle,
+          insetPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // 主容器
+              Container(
+                width: MediaQuery.of(context).size.width * 0.85,
+                padding: const EdgeInsets.fromLTRB(24.0, 60.0, 24.0, 24.0),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppTheme.cardColor.withOpacity(0.95),
+                      AppTheme.backgroundColor.withOpacity(0.90),
+                    ],
                   ),
-                  child: Icon(
-                    Icons.travel_explore,
-                    color: AppTheme.accentColor,
-                    size: 32.0,
-                  ),
-                ),
-                const SizedBox(height: 16.0),
-                Text(
-                  "关于我们",
-                  style: TextStyle(
-                    color: AppTheme.primaryTextColor,
-                    fontSize: 24.0,
-                    fontWeight: FontWeight.bold,
+                  borderRadius: BorderRadius.circular(24.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.neonPurple.withOpacity(0.2),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                  border: Border.all(
+                    color: AppTheme.neonPurple.withOpacity(0.2),
+                    width: 1.5,
                   ),
                 ),
-                const SizedBox(height: 8.0),
-                Text(
-                  "Travel Joy v1.0.0",
-                  style: TextStyle(
-                    color: AppTheme.secondaryTextColor,
-                    fontSize: 16.0,
-                  ),
-                ),
-                const SizedBox(height: 24.0),
-                Text(
-                  "Travel Joy 是一款专为旅行爱好者设计的社交应用，致力于帮助用户发现精彩目的地、分享旅行体验、结识志同道合的朋友。",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppTheme.secondaryTextColor,
-                    fontSize: 16.0,
-                  ),
-                ),
-                const SizedBox(height: 24.0),
-                Container(
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: AppTheme.backgroundColor.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.public,
-                            color: AppTheme.accentColor,
-                            size: 20.0,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 标题
+                    Text(
+                      "关于我们",
+                      style: TextStyle(
+                        color: AppTheme.primaryTextColor,
+                        fontSize: 26.0,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        shadows: [
+                          Shadow(
+                            color: AppTheme.neonPurple.withOpacity(0.3),
+                            blurRadius: 5,
+                            offset: const Offset(0, 1),
                           ),
-                          const SizedBox(width: 8.0),
-                          Text(
-                            "官方网站",
-                            style: TextStyle(
-                              color: AppTheme.primaryTextColor,
-                              fontWeight: FontWeight.w600,
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+
+                    // 分隔线
+                    Container(
+                      height: 3,
+                      width: 60,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppTheme.neonPurple.withOpacity(0.5),
+                            AppTheme.neonBlue.withOpacity(0.5),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(3),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.neonPurple.withOpacity(0.3),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 20.0),
+
+                    // 版本信息
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 6.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.neonPurple.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(50),
+                        border: Border.all(
+                          color: AppTheme.neonPurple.withOpacity(0.3),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.neonPurple.withOpacity(0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        "Travel Joy v1.0.0",
+                        style: TextStyle(
+                          color: AppTheme.neonPurple,
+                          fontSize: 14.0,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24.0),
+
+                    // 说明文本
+                    Text(
+                      "Travel Joy 是一款专为旅行爱好者设计的社交应用，致力于帮助用户发现精彩目的地、分享旅行体验、结识志同道合的朋友。",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppTheme.primaryTextColor,
+                        fontSize: 16.0,
+                        height: 1.5,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 30.0),
+
+                    // 信息卡片
+                    Container(
+                      padding: const EdgeInsets.all(20.0),
+                      decoration: BoxDecoration(
+                        color: AppTheme.cardColor.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(20.0),
+                        border: Border.all(
+                          color: AppTheme.neonPurple.withOpacity(0.2),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 15,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          // 网站信息
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10.0),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.neonPurple.withOpacity(0.15),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppTheme.neonPurple.withOpacity(
+                                        0.2,
+                                      ),
+                                      blurRadius: 8,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.public,
+                                  color: AppTheme.neonPurple,
+                                  size: 22.0,
+                                ),
+                              ),
+                              const SizedBox(width: 16.0),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "官方网站",
+                                      style: TextStyle(
+                                        color: AppTheme.secondaryTextColor,
+                                        fontSize: 14.0,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6.0),
+                                    Text(
+                                      "www.traveljoy.com",
+                                      style: TextStyle(
+                                        color: AppTheme.primaryTextColor,
+                                        fontSize: 16.0,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0.3,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 20.0),
+
+                          // 版权信息
+                          Container(
+                            padding: const EdgeInsets.all(16.0),
+                            decoration: BoxDecoration(
+                              color: AppTheme.backgroundColor.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(12.0),
+                              border: Border.all(
+                                color: AppTheme.secondaryTextColor.withOpacity(
+                                  0.1,
+                                ),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.copyright,
+                                  color: AppTheme.secondaryTextColor,
+                                  size: 16.0,
+                                ),
+                                const SizedBox(width: 8.0),
+                                Expanded(
+                                  child: Text(
+                                    "2023 Travel Joy Team. All rights reserved.",
+                                    style: TextStyle(
+                                      color: AppTheme.secondaryTextColor,
+                                      fontSize: 14.0,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8.0),
-                      Text(
-                        "www.traveljoy.com",
-                        style: TextStyle(color: AppTheme.accentColor),
-                      ),
-                      const SizedBox(height: 16.0),
-                      Text(
-                        "© 2023 Travel Joy Team. All rights reserved.",
-                        style: TextStyle(
-                          color: AppTheme.secondaryTextColor.withOpacity(0.7),
-                          fontSize: 12.0,
+                    ),
+
+                    const SizedBox(height: 30.0),
+
+                    // 按钮
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.of(context).pop();
+                        },
+                        borderRadius: BorderRadius.circular(50),
+                        splashColor: AppTheme.neonPurple.withOpacity(0.2),
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppTheme.neonPurple.withOpacity(0.8),
+                                AppTheme.neonBlue.withOpacity(0.8),
+                              ],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(50),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.neonPurple.withOpacity(0.3),
+                                blurRadius: 8,
+                                spreadRadius: 1,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 30.0,
+                              vertical: 14.0,
+                            ),
+                            child: Text(
+                              "关闭",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // 顶部图标
+              Positioned(
+                top: -30,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(15.0),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppTheme.neonPurple, AppTheme.neonBlue],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.neonPurple.withOpacity(0.5),
+                          blurRadius: 12,
+                          spreadRadius: 3,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.travel_explore,
+                      color: Colors.white,
+                      size: 40.0,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 24.0),
-                Text(
-                  "点击任意位置关闭",
-                  style: TextStyle(
-                    color: AppTheme.secondaryTextColor.withOpacity(0.7),
-                    fontSize: 14.0,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
@@ -2059,17 +2448,11 @@ class _ProfileTabState extends State<_ProfileTab>
                 ),
               ],
             ),
-            child: TravelTimelinePreview(
+            child: preview.TravelTimelinePreview(
               events: _travelEvents,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (context) =>
-                            TravelTimelineScreen(events: _travelEvents),
-                  ),
-                );
+              onViewAllPressed: () {
+                // 导航到旅行足迹详情页
+                Navigator.pushNamed(context, '/travel_timeline');
               },
             ),
           ),
