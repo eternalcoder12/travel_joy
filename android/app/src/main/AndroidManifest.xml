@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
         android:label="travel_joy"
-        android:name="${applicationName}"
+        android:name=".TravelJoyApplication"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
