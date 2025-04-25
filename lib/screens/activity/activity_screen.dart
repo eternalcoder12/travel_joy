@@ -429,6 +429,9 @@ class _ActivityScreenState extends State<ActivityScreen>
     setState(() {
       _currentFilter = filter;
 
+      // 先清除列表
+      _filteredActivities.clear();
+
       if (filter == "全部活动") {
         _filteredActivities = List.from(_activities);
       } else if (filter == "进行中") {
@@ -443,6 +446,11 @@ class _ActivityScreenState extends State<ActivityScreen>
       } else if (filter == "已结束") {
         _filteredActivities =
             _activities.where((activity) => activity.status == "已结束").toList();
+      }
+
+      // 重置滚动控制器
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(0);
       }
     });
   }
@@ -757,27 +765,35 @@ class _ActivityScreenState extends State<ActivityScreen>
 
     return GestureDetector(
       onTap: () => _applyFilter(label),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(isSelected ? 0.3 : 0.15),
-              borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withOpacity(0.15) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(isSelected ? 0.3 : 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color, size: 16),
             ),
-            child: Icon(icon, color: color, size: 16),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            count > 0 ? '$label ($count)' : label,
-            style: TextStyle(
-              color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
-              fontSize: 14,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            const SizedBox(width: 8),
+            Text(
+              count > 0 ? '$label ($count)' : label,
+              style: TextStyle(
+                color:
+                    isSelected ? Colors.white : Colors.white.withOpacity(0.7),
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -862,19 +878,46 @@ class _ActivityScreenState extends State<ActivityScreen>
                 ),
                 child: Stack(
                   children: [
-                    // 占位图
+                    // 活动图标背景
                     Container(
-                      height: 120,
+                      height: 140, // 增加高度
                       width: double.infinity,
-                      color: activity.color.withOpacity(0.3),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            activity.color.withOpacity(0.4),
+                            activity.color.withOpacity(0.2),
+                          ],
+                        ),
+                      ),
                       child: Center(
                         child: Icon(
                           activity.icon,
-                          size: 40,
+                          size: 70, // 增大图标尺寸
                           color: activity.color.withOpacity(0.7),
                         ),
                       ),
                     ),
+
+                    // 阴影遮罩
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.2),
+                            ],
+                            stops: const [0.7, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+
                     // 状态标签
                     Positioned(
                       top: 12,
@@ -1026,6 +1069,10 @@ class _ActivityScreenState extends State<ActivityScreen>
                               decoration: BoxDecoration(
                                 color: activity.color.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: activity.color.withOpacity(0.3),
+                                  width: 1,
+                                ),
                               ),
                               child: Text(
                                 tag,
@@ -1089,6 +1136,10 @@ class _ActivityScreenState extends State<ActivityScreen>
                               decoration: BoxDecoration(
                                 color: AppTheme.neonOrange.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: AppTheme.neonOrange.withOpacity(0.3),
+                                  width: 1,
+                                ),
                               ),
                               child: Row(
                                 children: [
@@ -1119,6 +1170,10 @@ class _ActivityScreenState extends State<ActivityScreen>
                               decoration: BoxDecoration(
                                 color: AppTheme.neonBlue.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: AppTheme.neonBlue.withOpacity(0.3),
+                                  width: 1,
+                                ),
                               ),
                               child: Row(
                                 children: [
