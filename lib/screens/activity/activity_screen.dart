@@ -19,7 +19,9 @@ class Activity {
   final String status; // 未开始、进行中、已结束
   final int maxParticipants;
   final List<String> tags;
-  final double price; // 0表示免费
+  final double price; // 统一为1元
+  final int points; // 可获得的积分
+  final int experience; // 可获得的经验值
 
   Activity({
     required this.id,
@@ -38,6 +40,8 @@ class Activity {
     required this.maxParticipants,
     required this.tags,
     required this.price,
+    required this.points,
+    required this.experience,
   });
 
   // 样例活动数据
@@ -47,7 +51,7 @@ class Activity {
         id: '1',
         title: '春季樱花摄影之旅',
         description:
-            '加入我们的春季樱花摄影活动，探索城市最美樱花景点，专业摄影师指导拍摄技巧，并有机会赢取最佳照片奖品。适合所有级别的摄影爱好者参加，设备自备。',
+            '快速体验摄影打卡活动，获取旅行积分和经验值。活动结束后可获得50积分和30经验值。活动费用1元仅用于维护服务器运行，不作为商业收益。',
         startDate: DateTime.now().add(const Duration(days: 5)),
         endDate: DateTime.now().add(const Duration(days: 5, hours: 4)),
         location: '东京新宿御苑',
@@ -60,13 +64,15 @@ class Activity {
         status: '未开始',
         maxParticipants: 50,
         tags: ['摄影', '赏花', '春季特辑'],
-        price: 120,
+        price: 1, // 统一为1元
+        points: 50, // 可获得积分
+        experience: 30, // 可获得经验值
       ),
       Activity(
         id: '2',
         title: '古镇美食探索之旅',
         description:
-            '体验传统古镇风味，探索隐藏在小巷中的美食珍宝。本次活动包括5个特色餐厅品尝，当地厨师讲解烹饪技巧，以及美食摄影技巧指导。适合美食爱好者和文化探索者参加。',
+            '体验美食打卡活动，快速获取旅行积分和经验值。活动结束后可获得60积分和40经验值。活动费用1元仅用于维护服务器运行，不作为商业收益。',
         startDate: DateTime.now().add(const Duration(days: 2)),
         endDate: DateTime.now().add(const Duration(days: 2, hours: 6)),
         location: '乌镇景区',
@@ -79,13 +85,15 @@ class Activity {
         status: '未开始',
         maxParticipants: 30,
         tags: ['美食', '文化体验', '品鉴'],
-        price: 258,
+        price: 1,
+        points: 60,
+        experience: 40,
       ),
       Activity(
         id: '3',
         title: '深海潜水体验课程',
         description:
-            '专为初学者设计的潜水入门课程，由专业教练指导学习基本潜水技能和安全知识。活动包括理论学习和实际潜水体验，完成后可获得初级潜水证书。设备由主办方提供。',
+            '参与水上活动打卡，快速获取旅行积分和经验值。活动结束后可获得100积分和80经验值。活动费用1元仅用于维护服务器运行，不作为商业收益。',
         startDate: DateTime.now().subtract(const Duration(days: 2)),
         endDate: DateTime.now().add(const Duration(days: 3)),
         location: '巴厘岛库塔海滩',
@@ -98,13 +106,15 @@ class Activity {
         status: '进行中',
         maxParticipants: 15,
         tags: ['潜水', '水上活动', '技能学习'],
-        price: 680,
+        price: 1,
+        points: 100,
+        experience: 80,
       ),
       Activity(
         id: '4',
         title: '城市文化徒步之旅',
         description:
-            '探索城市隐藏的历史和文化宝藏，在专业导游的带领下徒步游览著名景点和隐秘角落。活动中将了解当地历史、建筑特色和文化习俗，适合文化爱好者和历史探索者。',
+            '探索城市文化打卡，获取旅行积分和经验值。活动结束后可获得40积分和25经验值。活动费用1元仅用于维护服务器运行，不作为商业收益。',
         startDate: DateTime.now().add(const Duration(hours: 48)),
         endDate: DateTime.now().add(const Duration(hours: 52)),
         location: '巴黎蒙马特区',
@@ -117,13 +127,15 @@ class Activity {
         status: '未开始',
         maxParticipants: 25,
         tags: ['徒步', '历史', '城市探索'],
-        price: 85,
+        price: 1,
+        points: 40,
+        experience: 25,
       ),
       Activity(
         id: '5',
         title: '高山露营星空夜',
         description:
-            '远离城市灯光污染，在高山上体验露营和观星的完美结合。活动包括专业天文讲解、望远镜观测和星空摄影指导。提供露营设备和热饮，参与者需自备保暖衣物。',
+            '体验户外露营打卡，快速获取旅行积分和经验值。活动结束后可获得80积分和50经验值。活动费用1元仅用于维护服务器运行，不作为商业收益。',
         startDate: DateTime.now().add(const Duration(days: 14)),
         endDate: DateTime.now().add(const Duration(days: 16)),
         location: '阿尔卑斯山脉',
@@ -136,13 +148,15 @@ class Activity {
         status: '未开始',
         maxParticipants: 40,
         tags: ['露营', '观星', '自然体验'],
-        price: 320,
+        price: 1,
+        points: 80,
+        experience: 50,
       ),
       Activity(
         id: '6',
         title: '传统工艺工作坊',
         description:
-            '学习当地传统手工艺，亲手制作纪念品。在专业工匠指导下，体验陶艺、编织或木雕等工艺，了解技艺背后的文化意义。所有材料由主办方提供，完成的作品可带回家。',
+            '参与文化工艺打卡，快速获取旅行积分和经验值。活动结束后可获得45积分和30经验值。活动费用1元仅用于维护服务器运行，不作为商业收益。',
         startDate: DateTime.now().subtract(const Duration(days: 5)),
         endDate: DateTime.now().subtract(const Duration(days: 5)),
         location: '京都艺术区',
@@ -155,13 +169,15 @@ class Activity {
         status: '已结束',
         maxParticipants: 50,
         tags: ['手工艺', '文化体验', '创作'],
-        price: 150,
+        price: 1,
+        points: 45,
+        experience: 30,
       ),
       Activity(
         id: '7',
         title: '热气球日出体验',
         description:
-            '乘坐热气球在日出时分俯瞰壮丽景色的独特体验。在专业飞行员操作下安全飞行，提供香槟早餐和摄影服务，飞行后发放纪念证书。受天气影响可能改期。',
+            '参与空中体验打卡，获取大量旅行积分和经验值。活动结束后可获得120积分和90经验值。活动费用1元仅用于维护服务器运行，不作为商业收益。',
         startDate: DateTime.now().add(const Duration(days: 30)),
         endDate: DateTime.now().add(const Duration(days: 30, hours: 3)),
         location: '卡帕多奇亚',
@@ -174,13 +190,15 @@ class Activity {
         status: '未开始',
         maxParticipants: 20,
         tags: ['热气球', '日出', '空中体验'],
-        price: 990,
+        price: 1,
+        points: 120,
+        experience: 90,
       ),
       Activity(
         id: '8',
         title: '夏日沙滩瑜伽课',
         description:
-            '在美丽的海滩上参加专业瑜伽课程，伴随着海浪声放松身心。适合所有水平的参与者，初学者也能轻松跟随。活动包括瑜伽垫、冷饮和健康小食。',
+            '参与健康瑜伽打卡，获取旅行积分和经验值。活动结束后可获得30积分和20经验值。活动费用1元仅用于维护服务器运行，不作为商业收益。',
         startDate: DateTime.now().add(const Duration(hours: 36)),
         endDate: DateTime.now().add(const Duration(hours: 38)),
         location: '巴厘岛库塔海滩',
@@ -193,13 +211,15 @@ class Activity {
         status: '未开始',
         maxParticipants: 30,
         tags: ['瑜伽', '健康', '海滩活动'],
-        price: 75,
+        price: 1,
+        points: 30,
+        experience: 20,
       ),
       Activity(
         id: '9',
         title: '冬季温泉疗养之旅',
         description:
-            '在雪山环抱中体验传统温泉疗养，缓解疲劳和压力。包括多个不同温度和矿物质成分的温泉池，以及专业按摩服务。提供浴巾和基本护理用品。',
+            '参与温泉疗养打卡，获取旅行积分和经验值。活动结束后可获得65积分和45经验值。活动费用1元仅用于维护服务器运行，不作为商业收益。',
         startDate: DateTime.now().add(const Duration(days: 45)),
         endDate: DateTime.now().add(const Duration(days: 45, hours: 5)),
         location: '北海道登别温泉',
@@ -212,13 +232,15 @@ class Activity {
         status: '未开始',
         maxParticipants: 40,
         tags: ['温泉', '疗养', '冬季特辑'],
-        price: 420,
+        price: 1,
+        points: 65,
+        experience: 45,
       ),
       Activity(
         id: '10',
         title: '单车环湖一日游',
         description:
-            '骑行环绕美丽湖泊，欣赏沿途自然风光和人文景观。途中有多个休息点和观景台，配备专业导游介绍当地生态和历史。提供自行车和安全装备，参与者需具备基本骑行能力。',
+            '参与骑行打卡，获取旅行积分和经验值。活动结束后可获得55积分和35经验值。活动费用1元仅用于维护服务器运行，不作为商业收益。',
         startDate: DateTime.now().subtract(const Duration(days: 10)),
         endDate: DateTime.now().subtract(const Duration(days: 10)),
         location: '杭州西湖',
@@ -231,7 +253,9 @@ class Activity {
         status: '已结束',
         maxParticipants: 30,
         tags: ['骑行', '自然风光', '户外活动'],
-        price: 65,
+        price: 1,
+        points: 55,
+        experience: 35,
       ),
     ];
   }
@@ -536,7 +560,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                     children: [
                       // 顶部导航栏和过滤器
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                         child: Column(
                           children: [
                             // 返回按钮和标题
@@ -1021,35 +1045,98 @@ class _ActivityScreenState extends State<ActivityScreen>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // 价格
-                        Text(
-                          activity.price > 0
-                              ? "¥${activity.price.toInt()}"
-                              : "免费",
-                          style: TextStyle(
-                            color:
-                                activity.price > 0
-                                    ? AppTheme.neonYellow
-                                    : AppTheme.neonGreen,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-
-                        // 参与人数
+                        // 价格和说明
                         Row(
                           children: [
-                            Icon(
-                              Icons.people,
-                              size: 14,
-                              color: Colors.white.withOpacity(0.6),
+                            const Text(
+                              "¥1",
+                              style: TextStyle(
+                                color: AppTheme.neonYellow,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             const SizedBox(width: 4),
-                            Text(
-                              "${activity.participantsCount}人参加",
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.6),
-                                fontSize: 12,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                "服务器维护费",
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.6),
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // 积分和经验值
+                        Row(
+                          children: [
+                            // 积分
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.neonOrange.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.star,
+                                    size: 12,
+                                    color: AppTheme.neonOrange,
+                                  ),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    "+${activity.points}",
+                                    style: TextStyle(
+                                      color: AppTheme.neonOrange,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            // 经验值
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.neonBlue.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.emoji_events,
+                                    size: 12,
+                                    color: AppTheme.neonBlue,
+                                  ),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    "+${activity.experience}",
+                                    style: TextStyle(
+                                      color: AppTheme.neonBlue,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -1184,25 +1271,106 @@ class _ActivityScreenState extends State<ActivityScreen>
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color:
-                                  activity.price > 0
-                                      ? AppTheme.neonYellow.withOpacity(0.1)
-                                      : AppTheme.neonGreen.withOpacity(0.1),
+                              color: AppTheme.neonYellow.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Text(
-                              activity.price > 0
-                                  ? "¥${activity.price.toInt()}/人"
-                                  : "免费活动",
-                              style: TextStyle(
-                                color:
-                                    activity.price > 0
-                                        ? AppTheme.neonYellow
-                                        : AppTheme.neonGreen,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text(
+                                  "¥1/人",
+                                  style: TextStyle(
+                                    color: AppTheme.neonYellow,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  "(仅用于服务器维护)",
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.7),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // 积分和经验值标签
+                          Row(
+                            children: [
+                              // 积分
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.neonOrange.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: AppTheme.neonOrange.withOpacity(0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.star,
+                                      color: AppTheme.neonOrange,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      "获得${activity.points}积分",
+                                      style: const TextStyle(
+                                        color: AppTheme.neonOrange,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              // 经验值
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.neonBlue.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: AppTheme.neonBlue.withOpacity(0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.emoji_events,
+                                      color: AppTheme.neonBlue,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      "+${activity.experience}经验值",
+                                      style: const TextStyle(
+                                        color: AppTheme.neonBlue,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 20),
 
@@ -1322,6 +1490,56 @@ class _ActivityScreenState extends State<ActivityScreen>
                                   );
                                 }).toList(),
                           ),
+                          const SizedBox(height: 24),
+
+                          // 重要提示卡片
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade800.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.amber.withOpacity(0.5),
+                                width: 1,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline,
+                                      color: Colors.amber,
+                                      size: 18,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      "重要提示",
+                                      style: TextStyle(
+                                        color: Colors.amber,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  "1. 活动费用¥1仅用于服务器维护，不作为商业收益；\n"
+                                  "2. 活动目的是帮助用户快速获取积分和旅行经验值；\n"
+                                  "3. 活动完成后积分和经验值将自动添加到您的账户；\n"
+                                  "4. 同类型活动每天最多参与3次。",
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 14,
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                           const SizedBox(height: 32),
                         ],
                       ),
@@ -1406,14 +1624,68 @@ class _ActivityScreenState extends State<ActivityScreen>
                             ),
                             elevation: 0,
                           ),
-                          child: Text(
-                            activity.isRegistered
-                                ? "取消报名"
-                                : (activity.status == "已结束" ? "活动已结束" : "立即报名"),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                activity.isRegistered
+                                    ? "取消报名"
+                                    : (activity.status == "已结束"
+                                        ? "活动已结束"
+                                        : "立即报名"),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              if (!activity.isRegistered &&
+                                  activity.status != "已结束") ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.star,
+                                        size: 12,
+                                        color: AppTheme.neonOrange,
+                                      ),
+                                      const SizedBox(width: 2),
+                                      Text(
+                                        "+${activity.points}",
+                                        style: const TextStyle(
+                                          color: AppTheme.neonOrange,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      const Icon(
+                                        Icons.emoji_events,
+                                        size: 12,
+                                        color: AppTheme.neonBlue,
+                                      ),
+                                      const SizedBox(width: 2),
+                                      Text(
+                                        "+${activity.experience}",
+                                        style: const TextStyle(
+                                          color: AppTheme.neonBlue,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ),
