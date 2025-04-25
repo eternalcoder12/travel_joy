@@ -12,6 +12,7 @@ import 'package:travel_joy/widgets/travel_timeline_preview.dart' as preview;
 import 'package:travel_joy/screens/travel/travel_timeline_screen.dart';
 import 'package:travel_joy/screens/travel/travel_history_screen.dart';
 import 'package:travel_joy/screens/achievement/achievement_screen.dart';
+import 'package:travel_joy/screens/activity/activity_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -2327,7 +2328,12 @@ class _ProfileTabState extends State<_ProfileTab>
         'icon': Icons.celebration_rounded,
         'title': '活动中心',
         'color': AppTheme.neonPink,
-        'action': () => print('跳转到活动中心页面'),
+        'action': () {
+          NavigationUtils.slideAndFadeNavigateTo(
+            context: context,
+            page: const ActivityScreen(),
+          );
+        },
       },
       {
         'icon': Icons.leaderboard_rounded,
