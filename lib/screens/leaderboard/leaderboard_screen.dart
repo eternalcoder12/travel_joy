@@ -11,7 +11,7 @@ class LeaderboardScreen extends StatefulWidget {
 }
 
 class _LeaderboardScreenState extends State<LeaderboardScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late TabController _tabController;
   final List<String> _tabs = ['全球榜', '好友榜', '城市榜'];
   bool _isLoading = true;
