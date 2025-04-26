@@ -13,6 +13,7 @@ import 'package:travel_joy/screens/travel/travel_timeline_screen.dart';
 import 'package:travel_joy/screens/travel/travel_history_screen.dart';
 import 'package:travel_joy/screens/achievement/achievement_screen.dart';
 import 'package:travel_joy/screens/activity/activity_screen.dart';
+import 'package:travel_joy/screens/collection/collection_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -2305,7 +2306,12 @@ class _ProfileTabState extends State<_ProfileTab>
         'icon': Icons.bookmark_rounded,
         'title': '我的收藏',
         'color': AppTheme.neonBlue,
-        'action': () => print('跳转到我的收藏页面'),
+        'action': () {
+          NavigationUtils.slideAndFadeNavigateTo(
+            context: context,
+            page: const CollectionScreen(),
+          );
+        },
       },
       {
         'icon': Icons.emoji_events_rounded,
