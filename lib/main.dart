@@ -7,6 +7,7 @@ import 'screens/auth/register_screen.dart';
 import 'screens/auth/forgot_password_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/travel/travel_timeline_screen.dart';
+import 'screens/leaderboard/leaderboard_screen.dart';
 import 'widgets/travel_timeline.dart'; // 导入 TravelEvent 类定义所在的文件
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -126,6 +127,7 @@ class _TravelJoyAppState extends State<TravelJoyApp> {
           // 使用预定义的示例数据
           return TravelTimelineScreen(events: _demoTravelEvents);
         },
+        '/leaderboard': (context) => const LeaderboardScreen(),
       },
     );
   }
