@@ -14,6 +14,7 @@ import 'package:travel_joy/screens/travel/travel_history_screen.dart';
 import 'package:travel_joy/screens/achievement/achievement_screen.dart';
 import 'package:travel_joy/screens/activity/activity_screen.dart';
 import 'package:travel_joy/screens/collection/collection_screen.dart';
+import 'package:travel_joy/screens/profile/user_stats_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -1450,6 +1451,42 @@ class _ProfileTabState extends State<_ProfileTab>
     ),
   ];
 
+  // 个人资料统计项构建方法
+  Widget _buildProfileStat({
+    required IconData icon,
+    required Color color,
+    required String value,
+    required String label,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.15),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 18),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 11),
+        ),
+      ],
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -2292,16 +2329,32 @@ class _ProfileTabState extends State<_ProfileTab>
 
   // 构建个人资料内容 - 按要求优化布局
   Widget _buildProfileContent() {
-    // 模拟数据
-    final List<DonutSegment> travelTypes = [
-      DonutSegment(label: "自然风光", value: 45, color: AppTheme.neonBlue),
-      DonutSegment(label: "城市探索", value: 30, color: AppTheme.neonPurple),
-      DonutSegment(label: "历史文化", value: 15, color: AppTheme.neonYellow),
-      DonutSegment(label: "美食体验", value: 10, color: AppTheme.neonPink),
-    ];
-
     // 功能列表数据
     final List<Map<String, dynamic>> functionItems = [
+      {
+        'icon': Icons.person_outline_rounded,
+        'title': '我的信息',
+        'color': AppTheme.neonTeal,
+        'action': () {
+          // 跳转到用户信息页面
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const UserStatsScreen()),
+          );
+        },
+      },
+      {
+        'icon': Icons.map_outlined,
+        'title': '旅行足迹',
+        'color': AppTheme.neonPurple,
+        'action': () {
+          // 跳转到旅行足迹页面
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const UserStatsScreen()),
+          );
+        },
+      },
       {
         'icon': Icons.bookmark_rounded,
         'title': '我的收藏',
@@ -2375,75 +2428,369 @@ class _ProfileTabState extends State<_ProfileTab>
         _buildAnimatedCard(
           Container(
             margin: const EdgeInsets.only(bottom: 24.0),
-            child: Row(
+            padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppTheme.neonPurple.withOpacity(0.35),
+                  AppTheme.neonBlue.withOpacity(0.35),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.1),
+                width: 0.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
               children: [
-                // 头像 - 带微光效果
-                Container(
-                  width: 60.0,
-                  height: 60.0,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.accentColor.withOpacity(0.3),
-                        blurRadius: 10,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      "assets/images/avatars/default_avatar.png",
-                      fit: BoxFit.cover,
+                // 头像和用户信息行
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // 头像 - 带等级标识
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // 外层炫彩光环
+                        Container(
+                          width: 74,
+                          height: 74,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: SweepGradient(
+                              colors: [
+                                AppTheme.neonBlue,
+                                AppTheme.neonPurple,
+                                AppTheme.neonYellow,
+                                AppTheme.neonTeal,
+                                AppTheme.neonBlue,
+                              ],
+                            ),
+                          ),
+                        ),
+                        // 内层暗色衬底
+                        Container(
+                          width: 70,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppTheme.backgroundColor,
+                          ),
+                        ),
+                        // 头像
+                        Container(
+                          width: 66,
+                          height: 66,
+                          child: ClipOval(
+                            child: Image.asset(
+                              "assets/images/avatars/default_avatar.png",
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        // 等级标志
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppTheme.neonBlue,
+                                  AppTheme.neonPurple,
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.neonBlue.withOpacity(0.5),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  "Lv.6",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-                const SizedBox(width: 16.0),
-                // 用户信息
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "艾米丽",
-                        style: Theme.of(
-                          context,
-                        ).textTheme.headlineMedium?.copyWith(
-                          fontSize: 24.0,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.primaryTextColor,
-                        ),
+                    const SizedBox(width: 16),
+
+                    // 用户信息
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // 用户名
+                              Text(
+                                "艾米丽",
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              // 编辑按钮 - 无背景色
+                              IconButton(
+                                onPressed: () {
+                                  print('编辑个人资料');
+                                },
+                                icon: Icon(
+                                  Icons.edit_outlined,
+                                  color: Colors.white.withOpacity(0.8),
+                                  size: 20,
+                                ),
+                                padding: EdgeInsets.zero,
+                                constraints: BoxConstraints(
+                                  minWidth: 30,
+                                  minHeight: 30,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+
+                          // 旅行家和认证标签
+                          Row(
+                            children: [
+                              // 旅行家标签
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.neonYellow.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: AppTheme.neonYellow.withOpacity(0.3),
+                                    width: 0.5,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.star,
+                                      color: AppTheme.neonYellow,
+                                      size: 12,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      "高级旅行家",
+                                      style: TextStyle(
+                                        color: AppTheme.neonYellow,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+
+                              // 认证标签
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.neonTeal.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: AppTheme.neonTeal.withOpacity(0.3),
+                                    width: 0.5,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.verified,
+                                      color: AppTheme.neonTeal,
+                                      size: 12,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      "已认证",
+                                      style: TextStyle(
+                                        color: AppTheme.neonTeal,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+
+                          // 简介
+                          Text(
+                            "热爱探索，喜欢记录美好时刻",
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.white.withOpacity(0.8),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 4.0),
-                      Text(
-                        "热爱探索，喜欢记录美好时刻",
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.w400,
-                          color: AppTheme.secondaryTextColor,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                // 编辑按钮
-                InkWell(
-                  onTap: () {
-                    print('编辑个人资料');
-                  },
-                  borderRadius: BorderRadius.circular(12.0),
+
+                // 分隔线
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                   child: Container(
-                    padding: const EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                      color: AppTheme.cardColor.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    child: Icon(
-                      Icons.edit_outlined,
-                      color: AppTheme.primaryTextColor,
-                      size: 20.0,
-                    ),
+                    height: 1,
+                    color: Colors.white.withOpacity(0.1),
                   ),
+                ),
+
+                // 经验值进度条
+                Row(
+                  children: [
+                    Text(
+                      "经验值: ",
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    Text(
+                      "2850/3000",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      "距离下一级: ",
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    Text(
+                      "150",
+                      style: TextStyle(
+                        color: AppTheme.neonBlue,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // 进度条
+                Stack(
+                  children: [
+                    // 底层进度条
+                    Container(
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                    // 实际进度
+                    FractionallySizedBox(
+                      widthFactor: 0.95, // 95%进度
+                      child: Container(
+                        height: 6,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppTheme.neonTeal,
+                              AppTheme.neonBlue,
+                              AppTheme.neonPurple,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.neonBlue.withOpacity(0.4),
+                              blurRadius: 4,
+                              spreadRadius: 0,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // 旅行统计数据 - 四项主要统计
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildProfileStat(
+                      icon: Icons.flight_takeoff_rounded,
+                      color: AppTheme.neonTeal,
+                      value: "12",
+                      label: "总旅行",
+                    ),
+                    _buildProfileStat(
+                      icon: Icons.location_on_rounded,
+                      color: AppTheme.neonPurple,
+                      value: "8",
+                      label: "国家",
+                    ),
+                    _buildProfileStat(
+                      icon: Icons.location_city_rounded,
+                      color: AppTheme.neonOrange,
+                      value: "23",
+                      label: "城市",
+                    ),
+                    _buildProfileStat(
+                      icon: Icons.emoji_events_rounded,
+                      color: AppTheme.neonYellow,
+                      value: "15",
+                      label: "成就",
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -2451,202 +2798,7 @@ class _ProfileTabState extends State<_ProfileTab>
           0,
         ),
 
-        // 2. 旅行足迹卡片
-        _buildAnimatedCard(
-          Container(
-            margin: const EdgeInsets.only(bottom: 20.0),
-            decoration: BoxDecoration(
-              color: AppTheme.cardColor,
-              borderRadius: BorderRadius.circular(16.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4.0,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: preview.TravelTimelinePreview(
-              events: _travelEvents,
-              onViewAllPressed: () {
-                // 导航到旅行足迹详情页
-                Navigator.pushNamed(context, '/travel_timeline');
-              },
-            ),
-          ),
-          1,
-        ),
-
-        // 3. 旅行偏好分析
-        _buildAnimatedCard(
-          Container(
-            margin: const EdgeInsets.only(bottom: 20.0),
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: AppTheme.cardColor,
-              borderRadius: BorderRadius.circular(16.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4.0,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 标题
-                Row(
-                  children: [
-                    Icon(
-                      Icons.pie_chart_rounded,
-                      color: AppTheme.accentColor,
-                      size: 20.0,
-                    ),
-                    const SizedBox(width: 8.0),
-                    Text(
-                      "旅行偏好分析",
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.primaryTextColor,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16.0),
-                // 图表 - 添加动画效果
-                Row(
-                  children: [
-                    // 甜甜圈图表 - 使用AnimatedBuilder添加旋转动画
-                    Expanded(
-                      flex: 5,
-                      child: SizedBox(
-                        height: 150.0,
-                        child: AnimatedBuilder(
-                          animation: _donutChartAnimation,
-                          builder: (context, _) {
-                            return CustomPaint(
-                              painter: DonutChartPainter(
-                                segments: travelTypes,
-                                width: 24.0,
-                                rotationAngle:
-                                    _donutChartAnimation.value, // 传入动画值作为旋转角度
-                              ),
-                              child: Center(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      travelTypes.first.label,
-                                      style: TextStyle(
-                                        color: AppTheme.primaryTextColor,
-                                        fontSize: 14.0,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4.0),
-                                    Text(
-                                      "${travelTypes.first.value.toInt()}%",
-                                      style: TextStyle(
-                                        color: travelTypes.first.color,
-                                        fontSize: 18.0,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    // 图例
-                    Expanded(
-                      flex: 4,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children:
-                            travelTypes.map((type) {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 8.0),
-                                child: _buildTypeItem(
-                                  type.label,
-                                  "${(type.value).toInt()}%",
-                                  type.color,
-                                ),
-                              );
-                            }).toList(),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          2,
-        ),
-
-        // 4. 核心数据展示
-        _buildAnimatedCard(
-          Container(
-            margin: const EdgeInsets.only(bottom: 20.0),
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            decoration: BoxDecoration(
-              color: AppTheme.cardColor,
-              borderRadius: BorderRadius.circular(16.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4.0,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildStatItem(
-                  Icons.route_rounded,
-                  "12",
-                  "总旅行",
-                  AppTheme.neonBlue,
-                ),
-                _buildStatItem(
-                  Icons.monetization_on_rounded,
-                  "1242",
-                  "积分",
-                  AppTheme.neonPurple,
-                ),
-                _buildStatItem(
-                  Icons.emoji_events_rounded,
-                  "8",
-                  "成就",
-                  AppTheme.neonYellow,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AchievementScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _buildStatItem(
-                  Icons.bookmark_rounded,
-                  "42",
-                  "收藏",
-                  AppTheme.neonGreen,
-                ),
-              ],
-            ),
-          ),
-          3,
-        ),
-
-        // 5. 功能列表
+        // 3. 功能列表
         _buildAnimatedCard(
           Container(
             decoration: BoxDecoration(
@@ -2704,7 +2856,7 @@ class _ProfileTabState extends State<_ProfileTab>
               },
             ),
           ),
-          4,
+          2,
         ),
 
         // 底部间距
