@@ -12,13 +12,19 @@ class LeaderboardScreen extends StatefulWidget {
 
 class _LeaderboardScreenState extends State<LeaderboardScreen>
     with TickerProviderStateMixin {
-  late TabController _tabController;
-  final List<String> _tabs = ['全球榜', '好友榜', '城市榜'];
   bool _isLoading = true;
 
-  // 添加动画控制器
+  // 动画控制器
   late AnimationController _backgroundAnimController;
   late Animation<double> _backgroundAnimation;
+
+  // 添加排行榜项目动画控制器
+  late AnimationController _itemAnimController;
+  late Animation<double> _itemAnimation;
+
+  // 添加粒子效果动画控制器
+  late AnimationController _particleAnimController;
+  late Animation<double> _particleAnimation;
 
   // 模拟排行榜数据
   final List<Map<String, dynamic>> _leaderboardData = [
@@ -117,11 +123,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
 
     // 初始化背景动画控制器
     _backgroundAnimController = AnimationController(
-      duration: const Duration(seconds: 5),
+      duration: const Duration(seconds: 8),
       vsync: this,
     )..repeat(reverse: true);
 
@@ -130,20 +135,45 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       curve: Curves.easeInOut,
     );
 
+    // 初始化列表项动画控制器
+    _itemAnimController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+
+    _itemAnimation = CurvedAnimation(
+      parent: _itemAnimController,
+      curve: Curves.elasticOut,
+    );
+
+    // 初始化粒子效果动画控制器
+    _particleAnimController = AnimationController(
+      duration: const Duration(seconds: 10),
+      vsync: this,
+    )..repeat();
+
+    _particleAnimation = CurvedAnimation(
+      parent: _particleAnimController,
+      curve: Curves.linear,
+    );
+
     // 模拟加载数据
     Future.delayed(const Duration(seconds: 1), () {
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
+        // 启动列表项动画
+        _itemAnimController.forward();
       }
     });
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     _backgroundAnimController.dispose();
+    _itemAnimController.dispose();
+    _particleAnimController.dispose();
     super.dispose();
   }
 
@@ -157,7 +187,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [AppTheme.backgroundColor, const Color(0xFF2A2A45)],
+            colors: [
+              AppTheme.backgroundColor,
+              const Color(0xFF2A2A45),
+              const Color(0xFF1A1A2E),
+            ],
+            stops: const [0.0, 0.5, 1.0],
           ),
         ),
         child: Stack(
@@ -233,7 +268,89 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                         ),
                       ),
                     ),
+
+                    // 动态光晕效果3 - 新增
+                    Positioned(
+                      right:
+                          MediaQuery.of(context).size.width *
+                          (0.1 +
+                              0.15 *
+                                  math.sin(
+                                    _backgroundAnimation.value * math.pi * 0.7,
+                                  )),
+                      top:
+                          MediaQuery.of(context).size.height *
+                          (0.1 +
+                              0.1 *
+                                  math.cos(
+                                    _backgroundAnimation.value * math.pi * 0.7,
+                                  )),
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.5,
+                        height: MediaQuery.of(context).size.width * 0.5,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              AppTheme.neonPurple.withOpacity(0.25),
+                              AppTheme.neonPurple.withOpacity(0.1),
+                              Colors.transparent,
+                            ],
+                            stops: const [0.0, 0.4, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
+                );
+              },
+            ),
+
+            // 浮动粒子效果
+            AnimatedBuilder(
+              animation: _particleAnimation,
+              builder: (context, child) {
+                return Stack(
+                  children: List.generate(15, (index) {
+                    final double size = 4.0 + (index % 3) * 2.0;
+                    final double opacity = 0.1 + (index % 5) * 0.1;
+                    final Color color =
+                        index % 3 == 0
+                            ? AppTheme.neonGreen
+                            : (index % 3 == 1
+                                ? AppTheme.neonBlue
+                                : AppTheme.neonPurple);
+                    final double dx =
+                        math.sin(
+                          (_particleAnimation.value * math.pi * 2) + index,
+                        ) *
+                        150;
+                    final double dy =
+                        math.cos(
+                          (_particleAnimation.value * math.pi * 2) + index + 1,
+                        ) *
+                        200;
+
+                    return Positioned(
+                      left: MediaQuery.of(context).size.width / 2 + dx,
+                      top: MediaQuery.of(context).size.height / 2 + dy,
+                      child: Container(
+                        width: size,
+                        height: size,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: color.withOpacity(opacity),
+                          boxShadow: [
+                            BoxShadow(
+                              color: color.withOpacity(opacity * 0.8),
+                              blurRadius: 5.0,
+                              spreadRadius: 1.0,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
                 );
               },
             ),
@@ -242,7 +359,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             SafeArea(
               child: Column(
                 children: [
-                  // 自定义AppBar
+                  // 顶部导航栏
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 0.0),
                     child: Row(
@@ -255,6 +372,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                             decoration: BoxDecoration(
                               color: AppTheme.cardColor.withOpacity(0.4),
                               shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.neonBlue.withOpacity(0.2),
+                                  blurRadius: 8.0,
+                                  spreadRadius: 1.0,
+                                ),
+                              ],
                             ),
                             child: Icon(
                               Icons.arrow_back,
@@ -267,58 +391,46 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                         ),
 
                         // 标题
-                        Text(
-                          "旅行排行榜",
-                          style: TextStyle(
-                            color: AppTheme.primaryTextColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18.0,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0,
+                            vertical: 6.0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.cardColor.withOpacity(0.4),
+                            borderRadius: BorderRadius.circular(20.0),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.neonGreen.withOpacity(0.2),
+                                blurRadius: 8.0,
+                                spreadRadius: 1.0,
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.emoji_events,
+                                color: AppTheme.neonGreen,
+                                size: 18.0,
+                              ),
+                              const SizedBox(width: 8.0),
+                              Text(
+                                "全球旅行排行榜",
+                                style: TextStyle(
+                                  color: AppTheme.primaryTextColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18.0,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
 
-                        // 保持对称的空白区域
+                        // 空白区域，保持对称
                         SizedBox(width: 48.0),
                       ],
-                    ),
-                  ),
-
-                  // 自定义标签选择器
-                  Container(
-                    margin: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF242539),
-                      borderRadius: BorderRadius.circular(16.0),
-                    ),
-                    padding: const EdgeInsets.all(8.0),
-                    child: TabBar(
-                      controller: _tabController,
-                      indicator: BoxDecoration(
-                        color: AppTheme.neonGreen.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      labelColor: AppTheme.neonGreen,
-                      unselectedLabelColor: AppTheme.secondaryTextColor,
-                      labelStyle: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14.0,
-                      ),
-                      unselectedLabelStyle: const TextStyle(
-                        fontWeight: FontWeight.normal,
-                        fontSize: 14.0,
-                      ),
-                      tabs:
-                          _tabs
-                              .map(
-                                (tab) => Tab(
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 8.0,
-                                    ),
-                                    child: Text(tab),
-                                  ),
-                                ),
-                              )
-                              .toList(),
                     ),
                   ),
 
@@ -327,15 +439,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     child:
                         _isLoading
                             ? _buildLoadingState()
-                            : TabBarView(
-                              controller: _tabController,
-                              children:
-                                  _tabs
-                                      .map(
-                                        (tab) => _buildLeaderboardContent(tab),
-                                      )
-                                      .toList(),
-                            ),
+                            : _buildLeaderboardContent(),
                   ),
                 ],
               ),
@@ -351,20 +455,70 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.neonGreen),
+          // 自定义加载动画
+          SizedBox(
+            width: 60,
+            height: 60,
+            child: Stack(
+              children: [
+                TweenAnimationBuilder(
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  duration: const Duration(seconds: 2),
+                  builder: (context, double value, child) {
+                    return Center(
+                      child: Transform.rotate(
+                        angle: value * 2 * math.pi,
+                        child: Container(
+                          width: 55,
+                          height: 55,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: SweepGradient(
+                              colors: [
+                                AppTheme.neonGreen.withOpacity(0.1),
+                                AppTheme.neonGreen.withOpacity(0.8),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(),
+                ),
+                Center(
+                  child: Container(
+                    width: 45,
+                    height: 45,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppTheme.backgroundColor,
+                    ),
+                    child: Icon(
+                      Icons.emoji_events,
+                      color: AppTheme.neonGreen,
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
           Text(
             "正在加载排行榜数据...",
-            style: TextStyle(color: AppTheme.secondaryTextColor, fontSize: 16),
+            style: TextStyle(
+              color: AppTheme.primaryTextColor,
+              fontWeight: FontWeight.w500,
+              fontSize: 16,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildLeaderboardContent(String tabName) {
+  Widget _buildLeaderboardContent() {
     return Column(
       children: [
         // 前三名特殊显示
@@ -379,8 +533,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               gradient: LinearGradient(
                 colors: [
                   Colors.transparent,
-                  AppTheme.cardColor,
-                  AppTheme.cardColor,
+                  AppTheme.neonGreen.withOpacity(0.5),
+                  AppTheme.neonBlue.withOpacity(0.5),
                   Colors.transparent,
                 ],
                 stops: const [0.0, 0.2, 0.8, 1.0],
@@ -396,23 +550,68 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Widget _buildTopThreeSection() {
-    return Container(
-      height: 200,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          // 第二名
-          _buildTopRanker(_leaderboardData[1], 2),
+    return AnimatedBuilder(
+      animation: _itemAnimation,
+      builder: (context, child) {
+        // 计算三个位置的动画偏移和缩放
+        final double scale1 =
+            Tween<double>(begin: 0.3, end: 1.0)
+                .animate(
+                  CurvedAnimation(
+                    parent: _itemAnimController,
+                    curve: const Interval(0.0, 0.7, curve: Curves.elasticOut),
+                  ),
+                )
+                .value;
 
-          // 第一名 (居中且最高)
-          _buildTopRanker(_leaderboardData[0], 1),
+        final double scale2 =
+            Tween<double>(begin: 0.3, end: 1.0)
+                .animate(
+                  CurvedAnimation(
+                    parent: _itemAnimController,
+                    curve: const Interval(0.2, 0.8, curve: Curves.elasticOut),
+                  ),
+                )
+                .value;
 
-          // 第三名
-          _buildTopRanker(_leaderboardData[2], 3),
-        ],
-      ),
+        final double scale3 =
+            Tween<double>(begin: 0.3, end: 1.0)
+                .animate(
+                  CurvedAnimation(
+                    parent: _itemAnimController,
+                    curve: const Interval(0.4, 0.9, curve: Curves.elasticOut),
+                  ),
+                )
+                .value;
+
+        return Container(
+          height: 200,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // 第二名
+              Transform.scale(
+                scale: scale2,
+                child: _buildTopRanker(_leaderboardData[1], 2),
+              ),
+
+              // 第一名 (居中且最高)
+              Transform.scale(
+                scale: scale1,
+                child: _buildTopRanker(_leaderboardData[0], 1),
+              ),
+
+              // 第三名
+              Transform.scale(
+                scale: scale3,
+                child: _buildTopRanker(_leaderboardData[2], 3),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -431,21 +630,29 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         Stack(
           alignment: Alignment.center,
           children: [
-            // 荣耀光环
-            Container(
-              width: position == 1 ? 90.0 : 75.0,
-              height: position == 1 ? 90.0 : 75.0,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    podiumColor.withOpacity(0.7),
-                    podiumColor.withOpacity(0.3),
-                    Colors.transparent,
-                  ],
-                  stops: const [0.7, 0.9, 1.0],
-                ),
-              ),
+            // 光环动画效果
+            TweenAnimationBuilder(
+              tween: Tween<double>(begin: 0.8, end: 1.2),
+              duration: const Duration(seconds: 1),
+              curve: Curves.easeInOut,
+              builder: (context, double value, child) {
+                return Container(
+                  width: (position == 1 ? 90.0 : 75.0) * value,
+                  height: (position == 1 ? 90.0 : 75.0) * value,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        podiumColor.withOpacity(0.7),
+                        podiumColor.withOpacity(0.3),
+                        Colors.transparent,
+                      ],
+                      stops: const [0.7, 0.9, 1.0],
+                    ),
+                  ),
+                );
+              },
+              child: Container(),
             ),
 
             // 头像容器
@@ -457,8 +664,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 border: Border.all(color: podiumColor, width: 3.0),
                 boxShadow: [
                   BoxShadow(
-                    color: podiumColor.withOpacity(0.5),
-                    blurRadius: 10,
+                    color: podiumColor.withOpacity(0.6),
+                    blurRadius: 12,
                     spreadRadius: 2,
                   ),
                 ],
@@ -482,18 +689,30 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                   boxShadow: [
                     BoxShadow(
                       color: podiumColor.withOpacity(0.5),
-                      blurRadius: 4,
+                      blurRadius: 8,
                       spreadRadius: 0,
                     ),
                   ],
                 ),
-                child: Text(
-                  "$position",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14.0,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (position == 1)
+                      Icon(
+                        Icons.workspace_premium,
+                        color: Colors.white,
+                        size: 12.0,
+                      ),
+                    if (position == 1) const SizedBox(width: 4.0),
+                    Text(
+                      "$position",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14.0,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -519,6 +738,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           decoration: BoxDecoration(
             color: podiumColor.withOpacity(0.2),
             borderRadius: BorderRadius.circular(12.0),
+            boxShadow: [
+              BoxShadow(
+                color: podiumColor.withOpacity(0.3),
+                blurRadius: 4,
+                spreadRadius: 0,
+              ),
+            ],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -572,7 +798,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             boxShadow: [
               BoxShadow(
                 color: podiumColor.withOpacity(0.5),
-                blurRadius: 10,
+                blurRadius: 12,
                 spreadRadius: 2,
                 offset: const Offset(0, 5),
               ),
@@ -591,13 +817,54 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Widget _buildLeaderboardList() {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      itemCount: _leaderboardData.length - 3, // 除去前三名
-      physics: const BouncingScrollPhysics(),
-      itemBuilder: (context, index) {
-        final userData = _leaderboardData[index + 3]; // 从第4名开始
-        return _buildLeaderboardItem(userData);
+    return AnimatedBuilder(
+      animation: _itemAnimation,
+      builder: (context, child) {
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          itemCount: _leaderboardData.length - 3, // 除去前三名
+          physics: const BouncingScrollPhysics(),
+          itemBuilder: (context, index) {
+            final userData = _leaderboardData[index + 3]; // 从第4名开始
+
+            // 为每一项创建滑入和渐入动画
+            final Animation<double> slideAnimation = Tween<double>(
+              begin: 100.0,
+              end: 0.0,
+            ).animate(
+              CurvedAnimation(
+                parent: _itemAnimController,
+                curve: Interval(
+                  0.4 + (index * 0.05),
+                  0.7 + (index * 0.05),
+                  curve: Curves.easeOutCubic,
+                ),
+              ),
+            );
+
+            final Animation<double> fadeAnimation = Tween<double>(
+              begin: 0.0,
+              end: 1.0,
+            ).animate(
+              CurvedAnimation(
+                parent: _itemAnimController,
+                curve: Interval(
+                  0.4 + (index * 0.05),
+                  0.7 + (index * 0.05),
+                  curve: Curves.easeOut,
+                ),
+              ),
+            );
+
+            return Transform.translate(
+              offset: Offset(slideAnimation.value, 0),
+              child: Opacity(
+                opacity: fadeAnimation.value,
+                child: _buildLeaderboardItem(userData),
+              ),
+            );
+          },
+        );
       },
     );
   }
@@ -645,29 +912,39 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                   width: 1.5,
                 )
                 : null,
-        boxShadow:
-            userData['isCurrentUser']
-                ? [
-                  BoxShadow(
-                    color: AppTheme.neonGreen.withOpacity(0.2),
-                    blurRadius: 10,
-                    spreadRadius: 1,
-                  ),
-                ]
-                : null,
+        boxShadow: [
+          BoxShadow(
+            color:
+                userData['isCurrentUser']
+                    ? AppTheme.neonGreen.withOpacity(0.2)
+                    : Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            spreadRadius: 1,
+          ),
+        ],
       ),
       child: Row(
         children: [
           // 排名
           Container(
-            width: 30,
-            height: 30,
+            width: 35,
+            height: 35,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color:
                   userData['isCurrentUser']
                       ? AppTheme.neonGreen.withOpacity(0.2)
                       : AppTheme.cardColor.withOpacity(0.5),
+              boxShadow: [
+                BoxShadow(
+                  color:
+                      userData['isCurrentUser']
+                          ? AppTheme.neonGreen.withOpacity(0.3)
+                          : Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  spreadRadius: 0,
+                ),
+              ],
             ),
             child: Center(
               child: Text(
@@ -704,7 +981,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                           ? AppTheme.neonGreen
                           : AppTheme.accentColor)
                       .withOpacity(0.3),
-                  blurRadius: 5,
+                  blurRadius: 8,
                   spreadRadius: 1,
                 ),
               ],
@@ -781,7 +1058,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     Text(
                       "${userData['points']}",
                       style: TextStyle(
-                        color: AppTheme.secondaryTextColor,
+                        color: AppTheme.primaryTextColor.withOpacity(0.7),
+                        fontWeight: FontWeight.w500,
                         fontSize: 12.0,
                       ),
                     ),
@@ -792,26 +1070,48 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           ),
 
           // 排名变化
-          Container(
-            padding: const EdgeInsets.all(6.0),
-            decoration: BoxDecoration(
-              color: changeColor.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(changeIcon, color: changeColor, size: 16.0),
-                Text(
-                  userData['change'] != 0 ? "${userData['change'].abs()}" : "-",
-                  style: TextStyle(
-                    color: changeColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12.0,
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0.8, end: 1.2),
+            duration: const Duration(milliseconds: 800),
+            curve: Curves.easeInOut,
+            builder: (context, value, child) {
+              return Transform.scale(
+                scale: userData['change'] != 0 ? value : 1.0,
+                child: Container(
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: changeColor.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                    boxShadow:
+                        userData['change'] != 0
+                            ? [
+                              BoxShadow(
+                                color: changeColor.withOpacity(0.2),
+                                blurRadius: 6.0,
+                                spreadRadius: 1.0,
+                              ),
+                            ]
+                            : null,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(changeIcon, color: changeColor, size: 16.0),
+                      Text(
+                        userData['change'] != 0
+                            ? "${userData['change'].abs()}"
+                            : "-",
+                        style: TextStyle(
+                          color: changeColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12.0,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              );
+            },
           ),
         ],
       ),
