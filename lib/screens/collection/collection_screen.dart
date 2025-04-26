@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
 import '../../widgets/animated_item.dart';
-import '../../utils/navigation_utils.dart';
+import 'dart:math' as math;
 
 class CollectionScreen extends StatefulWidget {
   const CollectionScreen({Key? key}) : super(key: key);
@@ -10,7 +10,20 @@ class CollectionScreen extends StatefulWidget {
   _CollectionScreenState createState() => _CollectionScreenState();
 }
 
-class _CollectionScreenState extends State<CollectionScreen> {
+class _CollectionScreenState extends State<CollectionScreen>
+    with TickerProviderStateMixin {
+  // 内容动画控制器
+  late AnimationController _animationController;
+  late Animation<double> _contentAnimation;
+
+  // 背景动画控制器
+  late AnimationController _backgroundAnimController;
+  late Animation<double> _backgroundAnimation;
+
+  // 滚动控制器
+  final ScrollController _scrollController = ScrollController();
+  bool _showBackToTopButton = false;
+
   // 模拟收藏数据
   final List<Map<String, dynamic>> _collections = [
     {
@@ -58,307 +71,392 @@ class _CollectionScreenState extends State<CollectionScreen> {
     },
   ];
 
-  // 收藏分类列表
-  final List<String> _categories = ['全部', '景点', '美食', '住宿', '交通', '购物', '活动'];
+  @override
+  void initState() {
+    super.initState();
 
-  // 当前选中的分类
-  String _selectedCategory = '全部';
+    // 初始化页面动画控制器
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    _contentAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutCubic,
+    );
+
+    // 初始化背景动画控制器
+    _backgroundAnimController = AnimationController(
+      duration: const Duration(seconds: 5),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _backgroundAnimation = CurvedAnimation(
+      parent: _backgroundAnimController,
+      curve: Curves.easeInOut,
+    );
+
+    // 添加滚动监听
+    _scrollController.addListener(() {
+      setState(() {
+        _showBackToTopButton = _scrollController.offset >= 200;
+      });
+    });
+
+    // 开始动画
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _backgroundAnimController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // 返回顶部
+  void _scrollToTop() {
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          '我的收藏',
-          style: TextStyle(
-            color: AppTheme.primaryTextColor,
-            fontWeight: FontWeight.bold,
+      floatingActionButton:
+          _showBackToTopButton
+              ? FloatingActionButton(
+                backgroundColor: AppTheme.buttonColor.withOpacity(0.8),
+                mini: true,
+                child: const Icon(Icons.keyboard_arrow_up, color: Colors.white),
+                onPressed: _scrollToTop,
+              )
+              : null,
+      body: Container(
+        decoration: BoxDecoration(
+          // 添加动态渐变背景，实现背景微动效果
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [AppTheme.backgroundColor, const Color(0xFF2A2A45)],
           ),
         ),
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_rounded,
-            color: AppTheme.primaryTextColor,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search_rounded, color: AppTheme.primaryTextColor),
-            onPressed: () {
-              // 搜索功能
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text('搜索功能开发中')));
-            },
-          ),
-          IconButton(
-            icon: Icon(
-              Icons.filter_list_rounded,
-              color: AppTheme.primaryTextColor,
-            ),
-            onPressed: () {
-              // 筛选功能
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text('筛选功能开发中')));
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // 分类选择
-          Container(
-            height: 50,
-            margin: EdgeInsets.symmetric(vertical: 8),
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _categories.length,
-              itemBuilder: (context, index) {
-                final category = _categories[index];
-                final isSelected = category == _selectedCategory;
-
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedCategory = category;
-                    });
-                  },
-                  child: Container(
-                    margin: EdgeInsets.only(right: 12),
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color:
-                          isSelected
-                              ? AppTheme.accentColor
-                              : AppTheme.cardColor,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow:
-                          isSelected
-                              ? [
-                                BoxShadow(
-                                  color: AppTheme.accentColor.withOpacity(0.3),
-                                  blurRadius: 8,
-                                  offset: Offset(0, 2),
-                                ),
-                              ]
-                              : null,
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      category,
-                      style: TextStyle(
-                        color:
-                            isSelected
-                                ? Colors.white
-                                : AppTheme.secondaryTextColor,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.normal,
+        child: Stack(
+          children: [
+            // 动态光晕效果
+            AnimatedBuilder(
+              animation: _backgroundAnimation,
+              builder: (context, child) {
+                return Stack(
+                  children: [
+                    // 动态光晕效果1
+                    Positioned(
+                      left:
+                          MediaQuery.of(context).size.width *
+                          (0.3 +
+                              0.3 *
+                                  math.sin(
+                                    _backgroundAnimation.value * math.pi,
+                                  )),
+                      top:
+                          MediaQuery.of(context).size.height *
+                          (0.3 +
+                              0.2 *
+                                  math.cos(
+                                    _backgroundAnimation.value * math.pi,
+                                  )),
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        height: MediaQuery.of(context).size.width * 0.8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              AppTheme.neonBlue.withOpacity(0.4),
+                              AppTheme.neonBlue.withOpacity(0.1),
+                              Colors.transparent,
+                            ],
+                            stops: const [0.0, 0.4, 1.0],
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
-          ),
 
-          // 收藏列表
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.all(16),
-              itemCount: _collections.length,
-              itemBuilder: (context, index) {
-                final item = _collections[index];
-                return AnimatedItem(
-                  delay: 100 * index,
-                  type: AnimationType.fadeSlideUp,
-                  child: _buildCollectionCard(item),
+                    // 动态光晕效果2
+                    Positioned(
+                      right:
+                          MediaQuery.of(context).size.width *
+                          (0.2 +
+                              0.2 *
+                                  math.cos(
+                                    _backgroundAnimation.value * math.pi + 1,
+                                  )),
+                      bottom:
+                          MediaQuery.of(context).size.height *
+                          (0.2 +
+                              0.2 *
+                                  math.sin(
+                                    _backgroundAnimation.value * math.pi + 1,
+                                  )),
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.7,
+                        height: MediaQuery.of(context).size.width * 0.7,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              AppTheme.neonPurple.withOpacity(0.3),
+                              AppTheme.neonPurple.withOpacity(0.1),
+                              Colors.transparent,
+                            ],
+                            stops: const [0.0, 0.4, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 );
               },
             ),
-          ),
-        ],
+
+            // 主内容
+            SafeArea(
+              child: FadeTransition(
+                opacity: _contentAnimation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0.3, 0),
+                    end: Offset.zero,
+                  ).animate(_contentAnimation),
+                  child: Column(
+                    children: [
+                      // 顶部导航栏
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // 返回按钮
+                            IconButton(
+                              icon: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.cardColor.withOpacity(0.4),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.arrow_back,
+                                  color: AppTheme.primaryTextColor,
+                                  size: 20,
+                                ),
+                              ),
+                              onPressed: () => Navigator.of(context).pop(),
+                              padding: EdgeInsets.zero,
+                            ),
+
+                            // 标题
+                            Text(
+                              '我的收藏',
+                              style: TextStyle(
+                                color: AppTheme.primaryTextColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+
+                            // 为了对称预留空间
+                            SizedBox(width: 48),
+                          ],
+                        ),
+                      ),
+
+                      // 收藏列表
+                      Expanded(
+                        child:
+                            _collections.isEmpty
+                                ? Center(
+                                  child: Text(
+                                    '暂无收藏',
+                                    style: TextStyle(
+                                      color: AppTheme.secondaryTextColor,
+                                    ),
+                                  ),
+                                )
+                                : ListView.builder(
+                                  controller: _scrollController,
+                                  padding: const EdgeInsets.all(16),
+                                  itemCount: _collections.length,
+                                  itemBuilder: (context, index) {
+                                    final item = _collections[index];
+                                    return AnimatedItem(
+                                      delay: 100 * index,
+                                      type: AnimationType.fadeSlideUp,
+                                      child: _buildCollectionCard(item),
+                                    );
+                                  },
+                                ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildCollectionCard(Map<String, dynamic> collection) {
     return Container(
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: AppTheme.cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 4),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 图片部分
-            Stack(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('查看详情功能开发中')));
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Image.asset(
-                  collection['imageUrl'],
-                  height: 180,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-                // 收藏按钮
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.8),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.bookmark,
-                      color: AppTheme.accentColor,
-                      size: 20,
-                    ),
-                  ),
-                ),
-                // 底部渐变遮罩
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: 60,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withOpacity(0.7),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                // 位置信息
-                Positioned(
-                  bottom: 12,
-                  left: 12,
-                  child: Row(
-                    children: [
-                      Icon(Icons.location_on, color: Colors.white, size: 16),
-                      SizedBox(width: 4),
-                      Text(
-                        collection['location'],
+                // 标题和日期
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        collection['title'],
                         style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryTextColor,
                         ),
                       ),
-                    ],
+                    ),
+                    Text(
+                      collection['date'],
+                      style: TextStyle(
+                        color: AppTheme.secondaryTextColor,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+
+                // 位置
+                Row(
+                  children: [
+                    Icon(
+                      Icons.location_on,
+                      color: AppTheme.secondaryTextColor,
+                      size: 14,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      collection['location'],
+                      style: TextStyle(
+                        color: AppTheme.secondaryTextColor,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // 描述
+                Text(
+                  collection['description'],
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: AppTheme.secondaryTextColor.withOpacity(0.9),
+                    fontSize: 14,
+                    height: 1.4,
                   ),
                 ),
-                // 收藏日期
-                Positioned(
-                  bottom: 12,
-                  right: 12,
-                  child: Text(
-                    collection['date'],
-                    style: TextStyle(color: Colors.white, fontSize: 12),
-                  ),
+                const SizedBox(height: 12),
+
+                // 操作按钮
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    _buildActionButton(
+                      icon: Icons.share,
+                      color: AppTheme.neonBlue,
+                      onTap: () {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text('分享功能开发中')));
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    _buildActionButton(
+                      icon: Icons.arrow_forward,
+                      color: AppTheme.neonBlue,
+                      onTap: () {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text('查看详情功能开发中')));
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    _buildActionButton(
+                      icon: Icons.delete_outline,
+                      color: AppTheme.errorColor,
+                      onTap: () => _showDeleteConfirmation(collection),
+                    ),
+                  ],
                 ),
               ],
             ),
-            // 内容部分
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    collection['title'],
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryTextColor,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    collection['description'],
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppTheme.secondaryTextColor,
-                    ),
-                  ),
-                  SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // 详情按钮
-                      OutlinedButton(
-                        onPressed: () {
-                          // 查看详情
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text('查看详情功能开发中')));
-                        },
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: AppTheme.accentColor),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: Text(
-                          '查看详情',
-                          style: TextStyle(color: AppTheme.accentColor),
-                        ),
-                      ),
-                      // 快捷操作按钮
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              Icons.share_rounded,
-                              color: AppTheme.secondaryTextColor,
-                            ),
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('分享功能开发中')),
-                              );
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(
-                              Icons.delete_outline_rounded,
-                              color: AppTheme.secondaryTextColor,
-                            ),
-                            onPressed: () {
-                              _showDeleteConfirmation(collection);
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 操作按钮样式封装
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Icon(icon, color: color, size: 18),
+          ),
         ),
       ),
     );
@@ -379,7 +477,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
               style: TextStyle(color: AppTheme.primaryTextColor),
             ),
             content: Text(
-              '确定要删除"${collection['title']}"吗？此操作不可撤销。',
+              '确定要删除"${collection['title']}"吗？',
               style: TextStyle(color: AppTheme.secondaryTextColor),
             ),
             actions: [
