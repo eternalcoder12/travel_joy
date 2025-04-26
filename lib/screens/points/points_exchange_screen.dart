@@ -248,16 +248,17 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         height: 120,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [AppTheme.nearlyBlue, AppTheme.nearlyBlue.withOpacity(0.7)],
+          gradient: const LinearGradient(
+            colors: [AppTheme.buttonColor, AppTheme.accentColor],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppTheme.nearlyBlue.withOpacity(0.3),
-              blurRadius: 8,
+              color: AppTheme.accentColor.withOpacity(0.3),
+              blurRadius: 10,
+              spreadRadius: 1,
               offset: const Offset(0, 4),
             ),
           ],
@@ -272,7 +273,7 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: AppTheme.primaryTextColor.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -284,7 +285,7 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: AppTheme.primaryTextColor.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -300,7 +301,11 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                     children: [
                       const Text(
                         '我的积分',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
+                        style: TextStyle(
+                          color: AppTheme.primaryTextColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -308,23 +313,28 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: AppTheme.primaryTextColor.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppTheme.primaryTextColor.withOpacity(0.3),
+                            width: 1,
+                          ),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               Icons.add_circle_outline,
-                              color: Colors.white,
+                              color: AppTheme.primaryTextColor,
                               size: 16,
                             ),
-                            SizedBox(width: 4),
+                            const SizedBox(width: 4),
                             Text(
                               '获取更多积分',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppTheme.primaryTextColor,
                                 fontSize: 12,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
@@ -339,17 +349,22 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                       Text(
                         '$userPoints',
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 32,
+                          color: AppTheme.primaryTextColor,
+                          fontSize: 36,
                           fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
                         ),
                       ),
                       const SizedBox(width: 8),
                       const Padding(
-                        padding: EdgeInsets.only(bottom: 4),
+                        padding: EdgeInsets.only(bottom: 6),
                         child: Text(
                           '积分',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
+                          style: TextStyle(
+                            color: AppTheme.primaryTextColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ],
@@ -365,7 +380,7 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
 
   Widget _buildCategoryTabs(List<String> categories) {
     return Container(
-      height: 40,
+      height: 44,
       margin: const EdgeInsets.only(bottom: 16),
       child: AnimatedItemSlideInFromTop(
         animationController: _cardAnimationController,
@@ -387,25 +402,50 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
               },
               child: Container(
                 margin: const EdgeInsets.only(right: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 2,
+                ),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppTheme.nearlyBlue : Colors.white,
+                  color:
+                      isSelected
+                          ? AppTheme.buttonColor
+                          : AppTheme.cardColor.withOpacity(0.7),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
+                    if (isSelected)
+                      BoxShadow(
+                        color: AppTheme.buttonColor.withOpacity(0.3),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                        offset: const Offset(0, 2),
+                      )
+                    else
+                      BoxShadow(
+                        color: AppTheme.cardColor.withOpacity(0.3),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
                   ],
+                  border:
+                      isSelected
+                          ? null
+                          : Border.all(
+                            color: AppTheme.secondaryTextColor.withOpacity(0.3),
+                            width: 1,
+                          ),
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   category,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : AppTheme.darkText,
+                    color:
+                        isSelected
+                            ? AppTheme.primaryTextColor
+                            : AppTheme.secondaryTextColor,
                     fontWeight:
                         isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontSize: 14,
                   ),
                 ),
               ),
@@ -423,7 +463,7 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
       return const Center(
         child: Text(
           '暂无该分类兑换项目',
-          style: TextStyle(color: AppTheme.grey, fontSize: 16),
+          style: TextStyle(color: AppTheme.secondaryTextColor, fontSize: 16),
         ),
       );
     }
@@ -460,13 +500,13 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.cardColor,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: AppTheme.backgroundColor.withOpacity(0.2),
               blurRadius: 8,
-              offset: const Offset(0, 2),
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -480,7 +520,7 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: AppTheme.nearlyBlue.withOpacity(0.1),
+                      color: AppTheme.buttonColor.withOpacity(0.15),
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(12),
                       ),
@@ -490,7 +530,7 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                       child: Icon(
                         Icons.card_giftcard,
                         size: 60,
-                        color: AppTheme.nearlyBlue.withOpacity(0.3),
+                        color: AppTheme.buttonColor.withOpacity(0.5),
                       ),
                     ),
                   ),
@@ -504,13 +544,24 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.nearlyDarkBlue,
-                          borderRadius: BorderRadius.circular(4),
+                          gradient: const LinearGradient(
+                            colors: [AppTheme.neonOrange, AppTheme.neonPink],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.neonOrange.withOpacity(0.3),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Text(
                           item.discount!,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppTheme.primaryTextColor,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
@@ -532,6 +583,7 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                     Text(
                       item.name,
                       style: const TextStyle(
+                        color: AppTheme.primaryTextColor,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
@@ -543,19 +595,10 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                       children: [
                         Row(
                           children: [
-                            Image.asset(
-                              'assets/images/coin.png',
-                              width: 16,
-                              height: 16,
-                              // 假设有个积分图标
-                              // 如果没有，可以用Icon替代
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Icon(
-                                  Icons.monetization_on,
-                                  color: AppTheme.nearlyBlue,
-                                  size: 16,
-                                );
-                              },
+                            Icon(
+                              Icons.monetization_on,
+                              color: AppTheme.neonYellow,
+                              size: 16,
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -563,8 +606,8 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                               style: TextStyle(
                                 color:
                                     canExchange
-                                        ? AppTheme.nearlyBlue
-                                        : Colors.red,
+                                        ? AppTheme.neonYellow
+                                        : AppTheme.errorColor,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                               ),
@@ -573,17 +616,40 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
+                            horizontal: 10,
+                            vertical: 5,
                           ),
                           decoration: BoxDecoration(
                             color:
-                                canExchange ? AppTheme.nearlyBlue : Colors.grey,
-                            borderRadius: BorderRadius.circular(4),
+                                canExchange
+                                    ? AppTheme.buttonColor
+                                    : AppTheme.secondaryTextColor.withOpacity(
+                                      0.3,
+                                    ),
+                            borderRadius: BorderRadius.circular(6),
+                            boxShadow:
+                                canExchange
+                                    ? [
+                                      BoxShadow(
+                                        color: AppTheme.buttonColor.withOpacity(
+                                          0.3,
+                                        ),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ]
+                                    : null,
                           ),
-                          child: const Text(
+                          child: Text(
                             '兑换',
-                            style: TextStyle(color: Colors.white, fontSize: 12),
+                            style: TextStyle(
+                              color: AppTheme.primaryTextColor,
+                              fontSize: 12,
+                              fontWeight:
+                                  canExchange
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                            ),
                           ),
                         ),
                       ],
@@ -608,9 +674,17 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
       builder: (context) {
         return Container(
           height: MediaQuery.of(context).size.height * 0.7,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: AppTheme.backgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 10,
+                spreadRadius: 2,
+                offset: const Offset(0, -5),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -618,9 +692,15 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
               // 顶部关闭按钮
               Align(
                 alignment: Alignment.centerRight,
-                child: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 10, right: 10),
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: AppTheme.primaryTextColor,
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                  ),
                 ),
               ),
 
@@ -628,12 +708,16 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
               Container(
                 height: 180,
                 width: double.infinity,
-                color: AppTheme.nearlyBlue.withOpacity(0.1),
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: AppTheme.buttonColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Center(
                   child: Icon(
-                    Icons.image,
+                    Icons.card_giftcard,
                     size: 80,
-                    color: AppTheme.nearlyBlue.withOpacity(0.3),
+                    color: AppTheme.buttonColor.withOpacity(0.5),
                   ),
                 ),
               ),
@@ -651,25 +735,33 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                           child: Text(
                             item.name,
                             style: const TextStyle(
+                              color: AppTheme.primaryTextColor,
                               fontWeight: FontWeight.bold,
-                              fontSize: 20,
+                              fontSize: 22,
                             ),
                           ),
                         ),
                         if (item.discount != null)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
+                              horizontal: 10,
+                              vertical: 5,
                             ),
                             decoration: BoxDecoration(
-                              color: AppTheme.nearlyDarkBlue,
-                              borderRadius: BorderRadius.circular(4),
+                              gradient: const LinearGradient(
+                                colors: [
+                                  AppTheme.neonOrange,
+                                  AppTheme.neonPink,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               item.discount!,
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: AppTheme.primaryTextColor,
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -678,69 +770,98 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                       ],
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
 
                     Row(
                       children: [
-                        const Icon(
-                          Icons.monetization_on,
-                          color: AppTheme.nearlyBlue,
-                          size: 20,
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AppTheme.neonYellow.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.monetization_on,
+                            color: AppTheme.neonYellow,
+                            size: 20,
+                          ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 10),
                         Text(
                           '${item.points}积分',
                           style: TextStyle(
                             color:
-                                canExchange ? AppTheme.nearlyBlue : Colors.red,
+                                canExchange
+                                    ? AppTheme.neonYellow
+                                    : AppTheme.errorColor,
                             fontWeight: FontWeight.bold,
-                            fontSize: 18,
+                            fontSize: 20,
                           ),
                         ),
                       ],
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
 
-                    const Text(
-                      '商品详情',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                    // 信息标签栏
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppTheme.cardColor,
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '商品详情',
+                            style: TextStyle(
+                              color: AppTheme.primaryTextColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
 
-                    const SizedBox(height: 8),
+                          const SizedBox(height: 8),
 
-                    Text(
-                      item.description,
-                      style: const TextStyle(
-                        color: AppTheme.grey,
-                        fontSize: 14,
-                        height: 1.5,
-                      ),
-                    ),
+                          Text(
+                            item.description,
+                            style: const TextStyle(
+                              color: AppTheme.secondaryTextColor,
+                              fontSize: 14,
+                              height: 1.5,
+                            ),
+                          ),
 
-                    const SizedBox(height: 16),
+                          const SizedBox(height: 16),
+                          Divider(
+                            color: AppTheme.secondaryTextColor.withOpacity(0.2),
+                            height: 1,
+                          ),
+                          const SizedBox(height: 16),
 
-                    const Text(
-                      '兑换须知',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
+                          const Text(
+                            '兑换须知',
+                            style: TextStyle(
+                              color: AppTheme.primaryTextColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
 
-                    const SizedBox(height: 8),
+                          const SizedBox(height: 8),
 
-                    const Text(
-                      '1. 兑换成功后，兑换码将发送到您的账户\n'
-                      '2. 兑换后积分将立即扣除，不支持退换\n'
-                      '3. 如有疑问，请联系客服',
-                      style: TextStyle(
-                        color: AppTheme.grey,
-                        fontSize: 14,
-                        height: 1.5,
+                          const Text(
+                            '1. 兑换成功后，兑换码将发送到您的账户\n'
+                            '2. 兑换后积分将立即扣除，不支持退换\n'
+                            '3. 如有疑问，请联系客服',
+                            style: TextStyle(
+                              color: AppTheme.secondaryTextColor,
+                              fontSize: 14,
+                              height: 1.5,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -762,12 +883,14 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                           }
                           : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.nearlyBlue,
+                    backgroundColor: AppTheme.buttonColor,
+                    foregroundColor: AppTheme.primaryTextColor,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    disabledBackgroundColor: Colors.grey,
+                    disabledBackgroundColor: AppTheme.secondaryTextColor
+                        .withOpacity(0.3),
                   ),
                   child: Text(
                     canExchange ? '立即兑换' : '积分不足',
@@ -790,12 +913,28 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('确认兑换'),
-          content: Text('您确定要使用${item.points}积分兑换"${item.name}"吗？'),
+          backgroundColor: AppTheme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            '确认兑换',
+            style: TextStyle(
+              color: AppTheme.primaryTextColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            '您确定要使用${item.points}积分兑换"${item.name}"吗？',
+            style: const TextStyle(color: AppTheme.secondaryTextColor),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('取消'),
+              child: const Text(
+                '取消',
+                style: TextStyle(color: AppTheme.secondaryTextColor),
+              ),
             ),
             TextButton(
               onPressed: () {
@@ -806,7 +945,10 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                 });
                 _showExchangeSuccess();
               },
-              child: const Text('确认'),
+              child: const Text(
+                '确认',
+                style: TextStyle(color: AppTheme.buttonColor),
+              ),
             ),
           ],
         );
@@ -819,36 +961,63 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
       context: context,
       builder: (context) {
         return AlertDialog(
+          backgroundColor: AppTheme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: Row(
             children: [
-              const Icon(Icons.check_circle, color: Colors.green),
-              const SizedBox(width: 8),
-              const Text('兑换成功'),
+              Icon(Icons.check_circle, color: AppTheme.successColor),
+              const SizedBox(width: 10),
+              const Text(
+                '兑换成功',
+                style: TextStyle(
+                  color: AppTheme.primaryTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
           content: const Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('兑换码已发送至您的账户'),
+              Text(
+                '兑换码已发送至您的账户',
+                style: TextStyle(color: AppTheme.primaryTextColor),
+              ),
               SizedBox(height: 8),
               Text(
                 '可在"我的-兑换记录"中查看',
-                style: TextStyle(color: AppTheme.grey, fontSize: 14),
+                style: TextStyle(
+                  color: AppTheme.secondaryTextColor,
+                  fontSize: 14,
+                ),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('知道了'),
+              child: const Text(
+                '知道了',
+                style: TextStyle(color: AppTheme.secondaryTextColor),
+              ),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
                 // 跳转到兑换记录页面
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ExchangeHistoryScreen(),
+                  ),
+                );
               },
-              style: TextButton.styleFrom(foregroundColor: AppTheme.nearlyBlue),
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.buttonColor,
+              ),
               child: const Text('查看记录'),
             ),
           ],
