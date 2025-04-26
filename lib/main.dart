@@ -9,6 +9,7 @@ import 'screens/home/home_screen.dart';
 import 'screens/travel/travel_timeline_screen.dart';
 import 'widgets/travel_timeline.dart'; // 导入 TravelEvent 类定义所在的文件
 import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/points/points_exchange_screen.dart';
 
 // 应用入口函数
 void main() {
@@ -126,6 +127,8 @@ class _TravelJoyAppState extends State<TravelJoyApp> {
           // 使用预定义的示例数据
           return TravelTimelineScreen(events: _demoTravelEvents);
         },
+        '/leaderboard': (BuildContext context) => LeaderboardScreen(),
+        '/points_exchange': (BuildContext context) => PointsExchangeScreen(),
       },
     );
   }
