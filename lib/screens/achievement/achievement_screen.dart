@@ -290,7 +290,7 @@ class _AchievementScreenState extends State<AchievementScreen>
                     children: [
                       // 顶部导航栏和统计信息
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                         child: Column(
                           children: [
                             // 返回按钮和标题

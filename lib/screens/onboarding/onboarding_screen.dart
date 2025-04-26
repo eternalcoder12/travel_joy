@@ -31,7 +31,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     {
       'icon': Icons.emoji_events,
       'title': '旅行成就系统',
-      'description': '完成旅行挑战，解锁独特成就徽章\n登上旅行者排行榜',
+      'description': '完成旅行挑战，解锁独特成就徽章\n记录个人旅行里程碑',
       'color': AppTheme.neonBlue,
     },
     {

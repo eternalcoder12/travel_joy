@@ -14,7 +14,6 @@ import 'package:travel_joy/screens/travel/travel_history_screen.dart';
 import 'package:travel_joy/screens/achievement/achievement_screen.dart';
 import 'package:travel_joy/screens/activity/activity_screen.dart';
 import 'package:travel_joy/screens/collection/collection_screen.dart';
-import 'package:travel_joy/screens/leaderboard/leaderboard_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -2340,14 +2339,6 @@ class _ProfileTabState extends State<_ProfileTab>
             context: context,
             page: const ActivityScreen(),
           );
-        },
-      },
-      {
-        'icon': Icons.leaderboard_rounded,
-        'title': '旅行排行榜',
-        'color': AppTheme.neonGreen,
-        'action': () {
-          Navigator.pushNamed(context, '/leaderboard');
         },
       },
       {
