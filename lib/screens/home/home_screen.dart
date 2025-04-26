@@ -2328,7 +2328,7 @@ class _ProfileTabState extends State<_ProfileTab>
         'icon': Icons.card_giftcard_rounded,
         'title': '积分兑换',
         'color': AppTheme.neonPurple,
-        'action': () => print('跳转到积分兑换页面'),
+        'action': () => Navigator.pushNamed(context, '/points_exchange'),
       },
       {
         'icon': Icons.celebration_rounded,
@@ -2344,19 +2344,19 @@ class _ProfileTabState extends State<_ProfileTab>
       {
         'icon': Icons.settings_rounded,
         'title': '设置',
-        'color': AppTheme.secondaryTextColor,
+        'color': AppTheme.neonTeal,
         'action': () => print('跳转到设置页面'),
       },
       {
         'icon': Icons.help_outline_rounded,
         'title': '帮助与反馈',
-        'color': AppTheme.secondaryTextColor,
+        'color': AppTheme.neonOrange,
         'action': () => _showHelpAndFeedbackDialog(context), // 修改为显示帮助与反馈弹窗
       },
       {
         'icon': Icons.info_outline_rounded,
         'title': '关于我们',
-        'color': AppTheme.secondaryTextColor,
+        'color': AppTheme.neonGreen,
         'action': () => _showAboutUsDialog(context), // 修改为显示关于我们弹窗
       },
       {
@@ -2393,7 +2393,7 @@ class _ProfileTabState extends State<_ProfileTab>
                   ),
                   child: ClipOval(
                     child: Image.asset(
-                      "assets/images/avatar.jpg",
+                      "assets/images/avatars/default_avatar.png",
                       fit: BoxFit.cover,
                     ),
                   ),

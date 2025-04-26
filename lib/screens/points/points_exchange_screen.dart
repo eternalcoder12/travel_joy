@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../app_theme.dart';
 import '../../widgets/animated_item.dart';
+import 'exchange_history_screen.dart';
 import 'dart:math' as math;
 
 class PointsExchangeScreen extends StatefulWidget {
@@ -222,6 +223,12 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                   icon: const Icon(Icons.history, color: AppTheme.darkText),
                   onPressed: () {
                     // 查看兑换历史
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ExchangeHistoryScreen(),
+                      ),
+                    );
                   },
                 ),
               ),
@@ -481,7 +488,7 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                     width: double.infinity,
                     child: Center(
                       child: Icon(
-                        Icons.image,
+                        Icons.card_giftcard,
                         size: 60,
                         color: AppTheme.nearlyBlue.withOpacity(0.3),
                       ),
