@@ -716,7 +716,7 @@ class _AchievementScreenState extends State<AchievementScreen>
                                 borderRadius: BorderRadius.circular(6),
                                 child: LinearProgressIndicator(
                                   value: progressPercent,
-                                  backgroundColor: const Color(0xFF1A1B2E),
+                                  backgroundColor: AppTheme.cardColor,
                                   valueColor: AlwaysStoppedAnimation<Color>(
                                     achievement.color,
                                   ),
@@ -807,7 +807,7 @@ class _AchievementScreenState extends State<AchievementScreen>
           (context) => Container(
             height: MediaQuery.of(context).size.height * 0.75,
             decoration: const BoxDecoration(
-              color: Color(0xFF121212), // 更深的背景色
+              color: AppTheme.backgroundColor,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(24),
                 topRight: Radius.circular(24),
@@ -903,7 +903,7 @@ class _AchievementScreenState extends State<AchievementScreen>
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
                           value: progressPercent,
-                          backgroundColor: const Color(0xFF1E1E1E),
+                          backgroundColor: AppTheme.cardColor,
                           valueColor: AlwaysStoppedAnimation<Color>(
                             achievement.color,
                           ),
@@ -943,7 +943,7 @@ class _AchievementScreenState extends State<AchievementScreen>
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1E1E1E),
+                              color: AppTheme.cardColor,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: achievement.color.withOpacity(0.2),
@@ -991,7 +991,7 @@ class _AchievementScreenState extends State<AchievementScreen>
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1E1E1E),
+                              color: AppTheme.cardColor,
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Column(
@@ -1205,7 +1205,7 @@ class _AchievementScreenState extends State<AchievementScreen>
                           value:
                               achievement.currentProgress /
                               achievement.maxProgress,
-                          backgroundColor: const Color(0xFF2A2A2A),
+                          backgroundColor: AppTheme.cardColor,
                           valueColor: AlwaysStoppedAnimation<Color>(
                             achievement.color.withOpacity(0.7),
                           ),

@@ -13,6 +13,14 @@ class AppTheme {
   static const Color errorColor = Color(0xFFFF5252); // 错误颜色
   static const Color successColor = Color(0xFF4CAF50); // 成功颜色
 
+  // 为与现有代码兼容添加的颜色常量
+  static const Color darkText = primaryTextColor; // 与primaryTextColor保持一致
+  static const Color grey = secondaryTextColor; // 与secondaryTextColor保持一致
+  static const Color nearlyWhite = Color(0xFFFAFAFA); // 接近白色
+  static const Color nearlyBlue = buttonColor; // 与buttonColor保持一致
+  static const Color nearlyDarkBlue = Color(0xFF2633C5); // 深蓝色
+  static const Color background = backgroundColor; // 与backgroundColor保持一致
+
   // 2023流行趋势: 鲜艳色彩和渐变
   static const Color neonPurple = Color(0xFF9D4EDD); // 霓虹紫色
   static const Color neonBlue = Color(0xFF00B4D8); // 霓虹蓝色

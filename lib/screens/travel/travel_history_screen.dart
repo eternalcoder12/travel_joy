@@ -157,48 +157,6 @@ class _TravelHistoryScreenState extends State<TravelHistoryScreen>
                           child: TravelTimeline(events: _addCountryToEvents()),
                         ),
                       ),
-
-                      // 底部统计
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppTheme.cardColor.withOpacity(0.6),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _buildStatItem(
-                                icon: Icons.location_city,
-                                label: '城市',
-                                value: _cityCount.toString(),
-                                color: AppTheme.neonPurple,
-                              ),
-                              _buildStatItem(
-                                icon: Icons.flag_outlined,
-                                label: '国家',
-                                value: _countryCount.toString(),
-                                color: AppTheme.neonBlue,
-                              ),
-                              _buildStatItem(
-                                icon: Icons.history_outlined,
-                                label: '足迹记录',
-                                value: widget.events.length.toString(),
-                                color: AppTheme.neonOrange,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),

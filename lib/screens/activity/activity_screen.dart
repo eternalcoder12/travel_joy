@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:travel_joy/app_theme.dart';
 import 'dart:math' as math;
+import '../../widgets/animated_item.dart';
+import '../../widgets/circle_button.dart';
 
 // 活动数据模型
 class Activity {
@@ -295,18 +297,15 @@ class ActivityScreen extends StatefulWidget {
   const ActivityScreen({Key? key}) : super(key: key);
 
   @override
-  State<ActivityScreen> createState() => _ActivityScreenState();
+  _ActivityScreenState createState() => _ActivityScreenState();
 }
 
 class _ActivityScreenState extends State<ActivityScreen>
     with TickerProviderStateMixin {
-  // 页面动画控制器 - 与消息页面保持一致
   late AnimationController _animationController;
-  late Animation<double> _contentAnimation;
-
-  // 背景动画控制器 - 与消息页面保持一致
   late AnimationController _backgroundAnimController;
   late Animation<double> _backgroundAnimation;
+  late Animation<double> _contentAnimation;
 
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
@@ -324,7 +323,6 @@ class _ActivityScreenState extends State<ActivityScreen>
   void initState() {
     super.initState();
 
-    // 初始化页面动画控制器 - 与消息页面保持一致
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -335,25 +333,33 @@ class _ActivityScreenState extends State<ActivityScreen>
       curve: Curves.easeOutCubic,
     );
 
-    // 初始化背景动画控制器 - 与消息页面保持一致
+    // 背景动画控制器
     _backgroundAnimController = AnimationController(
       duration: const Duration(seconds: 5),
       vsync: this,
-    )..repeat(reverse: true);
+    );
 
+    // 背景动画
     _backgroundAnimation = CurvedAnimation(
       parent: _backgroundAnimController,
       curve: Curves.easeInOut,
     );
 
-    _scrollController.addListener(() {
-      setState(() {
-        _showBackToTopButton = _scrollController.offset >= 200;
-      });
-    });
+    // 启动背景动画循环
+    _backgroundAnimController.repeat(reverse: true);
 
-    _loadActivities();
+    // 启动入场动画
     _animationController.forward();
+
+    // 加载活动数据
+    _loadActivities();
+  }
+
+  void _loadActivities() {
+    setState(() {
+      _activities = Activity.getSampleActivities();
+      _applyFilter(_currentFilter);
+    });
   }
 
   @override
@@ -364,34 +370,580 @@ class _ActivityScreenState extends State<ActivityScreen>
     super.dispose();
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
+      floatingActionButton:
+          _showBackToTopButton
+              ? FloatingActionButton(
+                backgroundColor: AppTheme.buttonColor.withOpacity(0.8),
+                mini: true,
+                child: const Icon(Icons.keyboard_arrow_up, color: Colors.white),
+                onPressed: _scrollToTop,
+              )
+              : null,
+      body: Stack(
+        children: [
+          // 背景动画
+          _buildAnimatedBackground(),
+
+          // 主内容
+          SafeArea(
+            child: FadeTransition(
+              opacity: _contentAnimation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.1),
+                  end: Offset.zero,
+                ).animate(_contentAnimation),
+                child: Column(
+                  children: [
+                    // 顶部导航栏
+                    _buildAppBar(),
+
+                    // 活动列表
+                    Expanded(
+                      child:
+                          _isLoading
+                              ? const Center(
+                                child: CircularProgressIndicator(
+                                  color: AppTheme.neonPurple,
+                                ),
+                              )
+                              : _filteredActivities.isEmpty
+                              ? _buildEmptyState()
+                              : NotificationListener<ScrollNotification>(
+                                onNotification: (
+                                  ScrollNotification notification,
+                                ) {
+                                  // 当滚动到底部附近时加载更多
+                                  if (notification
+                                          is ScrollUpdateNotification &&
+                                      notification.metrics.pixels >=
+                                          notification.metrics.maxScrollExtent -
+                                              200 &&
+                                      !_isLoadingMore &&
+                                      _hasMoreData) {
+                                    _loadMoreActivities();
+                                  }
+                                  return true;
+                                },
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  padding: const EdgeInsets.all(16),
+                                  physics: const BouncingScrollPhysics(),
+                                  itemCount:
+                                      _filteredActivities.length +
+                                      (_hasMoreData ? 1 : 0),
+                                  itemBuilder: (context, index) {
+                                    if (index < _filteredActivities.length) {
+                                      return AnimatedItemSlideInFromLeft(
+                                        animationController:
+                                            _animationController,
+                                        animationStart: 0.2 + (index * 0.1),
+                                        animationEnd: 0.6 + (index * 0.1),
+                                        child: _buildActivityCard(
+                                          _filteredActivities[index],
+                                        ),
+                                      );
+                                    } else {
+                                      // 显示加载更多指示器
+                                      return _buildLoadingIndicator();
+                                    }
+                                  },
+                                ),
+                              ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedBackground() {
+    return AnimatedBuilder(
+      animation: _backgroundAnimation,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            // 基础背景
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [AppTheme.backgroundColor, const Color(0xFF2A2A45)],
+                ),
+              ),
+            ),
+
+            // 动态光晕效果1
+            Positioned(
+              left:
+                  MediaQuery.of(context).size.width *
+                  (0.3 + 0.2 * math.sin(_backgroundAnimation.value * math.pi)),
+              top:
+                  MediaQuery.of(context).size.height *
+                  (0.2 + 0.1 * math.cos(_backgroundAnimation.value * math.pi)),
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: MediaQuery.of(context).size.width * 0.8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppTheme.neonBlue.withOpacity(0.2),
+                      AppTheme.neonBlue.withOpacity(0.1),
+                      Colors.transparent,
+                    ],
+                    stops: const [0.0, 0.4, 1.0],
+                  ),
+                ),
+              ),
+            ),
+
+            // 动态光晕效果2
+            Positioned(
+              right:
+                  MediaQuery.of(context).size.width *
+                  (0.2 +
+                      0.2 * math.cos(_backgroundAnimation.value * math.pi + 1)),
+              bottom:
+                  MediaQuery.of(context).size.height *
+                  (0.2 +
+                      0.1 * math.sin(_backgroundAnimation.value * math.pi + 1)),
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.7,
+                height: MediaQuery.of(context).size.width * 0.7,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppTheme.neonPurple.withOpacity(0.2),
+                      AppTheme.neonPurple.withOpacity(0.1),
+                      Colors.transparent,
+                    ],
+                    stops: const [0.0, 0.4, 1.0],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildAppBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // 返回按钮
+          CircleButton(
+            icon: Icons.arrow_back_ios_rounded,
+            onPressed: () => Navigator.pop(context),
+            size: 38,
+            iconSize: 16,
+          ),
+
+          // 标题
+          const Text(
+            '活动中心',
+            style: TextStyle(
+              color: AppTheme.primaryTextColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              letterSpacing: 1,
+            ),
+          ),
+
+          // 搜索按钮
+          CircleButton(
+            icon: Icons.search_rounded,
+            onPressed: () {
+              // 搜索活动
+            },
+            size: 38,
+            iconSize: 16,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityCard(Activity activity) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: AppTheme.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 活动图片区域 - 重新设计
+          Stack(
+            children: [
+              // 活动图片
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
+                ),
+                child: Container(
+                  height: 150,
+                  width: double.infinity,
+                  color: activity.getStatusColor().withOpacity(0.3),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // 加载中心图标
+                      Icon(
+                        activity.icon,
+                        color: Colors.white.withOpacity(0.6),
+                        size: 40,
+                      ),
+                      // 状态标签
+                      Positioned(
+                        top: 10,
+                        right: 10,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Color(0xFF191A2D),
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(
+                              color: activity.getStatusColor(),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: activity.getStatusColor(),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                activity.status,
+                                style: TextStyle(
+                                  color: activity.getStatusColor(),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // 活动标题
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  activity.title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (activity.price == 0)
+                  Container(
+                    margin: const EdgeInsets.only(top: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '免费活动',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
+                  )
+                else
+                  Container(
+                    margin: const EdgeInsets.only(top: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.neonYellow.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '${activity.price}/人 (仅用于服务器维护)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.neonYellow,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          // 奖励信息
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.neonYellow.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.star, color: AppTheme.neonYellow, size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        '获得${activity.points}积分',
+                        style: TextStyle(
+                          color: AppTheme.neonYellow,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.neonBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.trending_up,
+                        color: AppTheme.neonBlue,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '+${activity.experience}经验值',
+                        style: TextStyle(
+                          color: AppTheme.neonBlue,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 活动详情
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.cardColor.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.withOpacity(0.1), width: 1),
+            ),
+            child: Column(
+              children: [
+                _buildInfoRow(
+                  Icons.access_time_rounded,
+                  '活动时间',
+                  activity.getFormattedDate(),
+                ),
+                const SizedBox(height: 12),
+                _buildInfoRow(
+                  Icons.location_on_rounded,
+                  '活动地点',
+                  activity.location,
+                ),
+                const SizedBox(height: 12),
+                _buildInfoRow(
+                  Icons.people_rounded,
+                  '参与人数',
+                  '${activity.participantsCount}/${activity.maxParticipants}人',
+                ),
+                const SizedBox(height: 12),
+                _buildInfoRow(
+                  Icons.business_center_rounded,
+                  '组织者',
+                  activity.organizer,
+                ),
+              ],
+            ),
+          ),
+
+          // 活动详情按钮
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // 分享按钮
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardColor.withOpacity(0.7),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.grey.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.share_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    onPressed: () {},
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // 收藏按钮
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardColor.withOpacity(0.7),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.grey.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.favorite_border_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    onPressed: () {},
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // 参与活动按钮
+                Expanded(
+                  child: SizedBox(
+                    height: 44,
+                    child: ElevatedButton(
+                      onPressed: activity.status == '已结束' ? null : () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            activity.status == '已结束'
+                                ? Colors.grey.withOpacity(0.3)
+                                : AppTheme.errorColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: activity.status == '已结束' ? 0 : 2,
+                      ),
+                      child: Text(
+                        activity.status == '已结束' ? '活动已结束' : '取消报名',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: Colors.white.withOpacity(0.7), size: 18),
+        ),
+        const SizedBox(width: 12),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.5),
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              value,
+              style: const TextStyle(color: Colors.white, fontSize: 14),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   void _scrollToTop() {
     _scrollController.animateTo(
       0,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
     );
-  }
-
-  // 加载活动数据
-  Future<void> _loadActivities() async {
-    setState(() {
-      _isLoading = true;
-      _currentPage = 1;
-      _hasMoreData = true;
-    });
-
-    // 模拟网络请求延迟
-    await Future.delayed(const Duration(seconds: 1));
-
-    // 获取样例活动数据
-    final mockActivities = Activity.getSampleActivities();
-
-    setState(() {
-      _activities.clear();
-      _activities.addAll(mockActivities);
-      _applyFilter(_currentFilter);
-      _isLoading = false;
-    });
   }
 
   // 加载更多活动
@@ -455,390 +1007,6 @@ class _ActivityScreenState extends State<ActivityScreen>
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      floatingActionButton:
-          _showBackToTopButton
-              ? FloatingActionButton(
-                backgroundColor: AppTheme.buttonColor.withOpacity(0.8),
-                mini: true,
-                child: const Icon(Icons.keyboard_arrow_up, color: Colors.white),
-                onPressed: _scrollToTop,
-              )
-              : null,
-      body: Container(
-        decoration: BoxDecoration(
-          // 添加动态渐变背景，实现背景微动效果 - 参考成就页面
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [AppTheme.backgroundColor, const Color(0xFF2A2A45)],
-          ),
-        ),
-        child: Stack(
-          children: [
-            // 动态光晕效果 - 参考成就页面
-            AnimatedBuilder(
-              animation: _backgroundAnimation,
-              builder: (context, child) {
-                return Stack(
-                  children: [
-                    // 动态光晕效果1
-                    Positioned(
-                      left:
-                          MediaQuery.of(context).size.width *
-                          (0.3 +
-                              0.3 *
-                                  math.sin(
-                                    _backgroundAnimation.value * math.pi,
-                                  )),
-                      top:
-                          MediaQuery.of(context).size.height *
-                          (0.3 +
-                              0.2 *
-                                  math.cos(
-                                    _backgroundAnimation.value * math.pi,
-                                  )),
-                      child: Container(
-                        width: MediaQuery.of(context).size.width * 0.8,
-                        height: MediaQuery.of(context).size.width * 0.8,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: [
-                              AppTheme.neonPurple.withOpacity(0.4),
-                              AppTheme.neonPurple.withOpacity(0.1),
-                              Colors.transparent,
-                            ],
-                            stops: const [0.0, 0.4, 1.0],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // 动态光晕效果2
-                    Positioned(
-                      right:
-                          MediaQuery.of(context).size.width *
-                          (0.2 +
-                              0.2 *
-                                  math.cos(
-                                    _backgroundAnimation.value * math.pi + 1,
-                                  )),
-                      bottom:
-                          MediaQuery.of(context).size.height *
-                          (0.2 +
-                              0.2 *
-                                  math.sin(
-                                    _backgroundAnimation.value * math.pi + 1,
-                                  )),
-                      child: Container(
-                        width: MediaQuery.of(context).size.width * 0.7,
-                        height: MediaQuery.of(context).size.width * 0.7,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: [
-                              AppTheme.neonBlue.withOpacity(0.3),
-                              AppTheme.neonBlue.withOpacity(0.1),
-                              Colors.transparent,
-                            ],
-                            stops: const [0.0, 0.4, 1.0],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-
-            // 主内容
-            SafeArea(
-              child: FadeTransition(
-                opacity: _contentAnimation,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0.3, 0),
-                    end: Offset.zero,
-                  ).animate(_contentAnimation),
-                  child: Column(
-                    children: [
-                      // 顶部导航栏和过滤器
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                        child: Column(
-                          children: [
-                            // 返回按钮和标题
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                // 返回按钮
-                                IconButton(
-                                  icon: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.cardColor.withOpacity(
-                                        0.4,
-                                      ),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.arrow_back,
-                                      color: AppTheme.primaryTextColor,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  padding: EdgeInsets.zero,
-                                ),
-
-                                // 中间标题
-                                Text(
-                                  '活动中心',
-                                  style: TextStyle(
-                                    color: AppTheme.primaryTextColor,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                                ),
-
-                                // 搜索按钮
-                                IconButton(
-                                  icon: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.cardColor.withOpacity(
-                                        0.4,
-                                      ),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.search,
-                                      color: AppTheme.primaryTextColor,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    // 搜索功能
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("搜索功能尚未实现"),
-                                        duration: Duration(seconds: 1),
-                                      ),
-                                    );
-                                  },
-                                  padding: EdgeInsets.zero,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-
-                            // 增大过滤选项栏 - 使其更符合截图样式
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 12,
-                                horizontal: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF242539),
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  // 全部活动选项
-                                  Expanded(
-                                    child: _buildFilterOption(
-                                      label: '全部活动',
-                                      count: _activities.length,
-                                      icon: Icons.all_inclusive,
-                                      color: const Color(0xFF3A86FF),
-                                    ),
-                                  ),
-
-                                  // 未开始
-                                  Expanded(
-                                    child: _buildFilterOption(
-                                      label: '未开始',
-                                      count:
-                                          _activities
-                                              .where((a) => a.status == '未开始')
-                                              .length,
-                                      icon: Icons.access_time,
-                                      color: Colors.amber,
-                                    ),
-                                  ),
-
-                                  // 进行中
-                                  Expanded(
-                                    child: _buildFilterOption(
-                                      label: '进行中',
-                                      count:
-                                          _activities
-                                              .where((a) => a.status == '进行中')
-                                              .length,
-                                      icon: Icons.play_circle_filled,
-                                      color: Colors.green,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // 活动列表
-                      Expanded(
-                        child:
-                            _isLoading
-                                ? const Center(
-                                  child: CircularProgressIndicator(
-                                    color: AppTheme.neonPurple,
-                                  ),
-                                )
-                                : _filteredActivities.isEmpty
-                                ? _buildEmptyState()
-                                : NotificationListener<ScrollNotification>(
-                                  onNotification: (
-                                    ScrollNotification notification,
-                                  ) {
-                                    // 当滚动到底部附近时加载更多
-                                    if (notification
-                                            is ScrollUpdateNotification &&
-                                        notification.metrics.pixels >=
-                                            notification
-                                                    .metrics
-                                                    .maxScrollExtent -
-                                                200 &&
-                                        !_isLoadingMore &&
-                                        _hasMoreData) {
-                                      _loadMoreActivities();
-                                    }
-                                    return true;
-                                  },
-                                  child: ListView.builder(
-                                    controller: _scrollController,
-                                    padding: const EdgeInsets.fromLTRB(
-                                      16,
-                                      16,
-                                      16,
-                                      16,
-                                    ),
-                                    itemCount:
-                                        _filteredActivities.length +
-                                        (_hasMoreData ? 1 : 0),
-                                    itemBuilder: (context, index) {
-                                      if (index < _filteredActivities.length) {
-                                        return _buildActivityCard(
-                                          _filteredActivities[index],
-                                        );
-                                      } else {
-                                        // 显示加载更多指示器
-                                        return _buildLoadingIndicator();
-                                      }
-                                    },
-                                  ),
-                                ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // 构建过滤选项按钮
-  Widget _buildFilterOption({
-    required String label,
-    required int count,
-    required IconData icon,
-    required Color color,
-  }) {
-    final isSelected = _currentFilter == label;
-
-    return GestureDetector(
-      onTap: () => _applyFilter(label),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.15) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          border:
-              isSelected
-                  ? Border.all(color: color.withOpacity(0.5), width: 1.5)
-                  : null,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
-                shape: BoxShape.circle,
-                border: Border.all(color: color.withOpacity(0.5), width: 1.5),
-              ),
-              child: Icon(icon, color: color, size: 14),
-            ),
-            const SizedBox(width: 6),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: isSelected ? color : Colors.white,
-                    fontSize: 12,
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
-                  ),
-                ),
-                Text(
-                  '($count)',
-                  style: TextStyle(
-                    color: isSelected ? color : Colors.white.withOpacity(0.6),
-                    fontSize: 10,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // 构建加载指示器
-  Widget _buildLoadingIndicator() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      alignment: Alignment.center,
-      child: const SizedBox(
-        width: 24,
-        height: 24,
-        child: CircularProgressIndicator(
-          strokeWidth: 2.0,
-          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.neonPurple),
-        ),
-      ),
-    );
-  }
-
   // 构建空状态
   Widget _buildEmptyState() {
     return Center(
@@ -872,919 +1040,19 @@ class _ActivityScreenState extends State<ActivityScreen>
     );
   }
 
-  // 构建活动卡片
-  Widget _buildActivityCard(Activity activity) {
-    return GestureDetector(
-      onTap: () => _showActivityDetails(context, activity),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF242539),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF242539),
-              const Color(0xFF242539).withOpacity(0.8),
-            ],
-          ),
-        ),
-        child: Column(
-          children: [
-            // 活动主内容区域
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 左侧图标
-                  Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      color: activity.color,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: activity.color.withOpacity(0.3),
-                          blurRadius: 10,
-                          spreadRadius: 1,
-                        ),
-                      ],
-                      gradient: RadialGradient(
-                        colors: [
-                          activity.color,
-                          activity.color.withOpacity(0.8),
-                        ],
-                        stops: const [0.5, 1.0],
-                      ),
-                    ),
-                    child: Icon(activity.icon, color: Colors.white, size: 34),
-                  ),
-                  const SizedBox(width: 16),
-
-                  // 右侧内容区
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // 标题和状态
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 活动标题
-                            Expanded(
-                              child: Text(
-                                activity.title,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.3,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-
-                            // 状态标签
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: activity.getStatusColor().withOpacity(
-                                  0.9,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 3,
-                                    offset: const Offset(0, 1),
-                                  ),
-                                ],
-                              ),
-                              child: Text(
-                                activity.status,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-
-                        // 时间
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.access_time,
-                              size: 14,
-                              color: Colors.white.withOpacity(0.7),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              activity.getFormattedDate(),
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-
-                        // 地点
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.location_on,
-                              size: 14,
-                              color: Colors.white.withOpacity(0.7),
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                activity.location,
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.7),
-                                  fontSize: 13,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // 底部区域（标签和价格）
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 标签区域
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children:
-                        activity.tags.map((tag) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: activity.color.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: activity.color.withOpacity(0.4),
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              tag,
-                              style: TextStyle(
-                                color: activity.color,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // 底部价格和积分区域
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // 价格部分
-                      Row(
-                        children: [
-                          Text(
-                            "¥${activity.price.toStringAsFixed(1)}",
-                            style: const TextStyle(
-                              color: AppTheme.neonYellow,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: Colors.grey.withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              "服务器维护费",
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // 积分和经验值
-                      Row(
-                        children: [
-                          // 积分
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.neonOrange.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: AppTheme.neonOrange.withOpacity(0.4),
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.star,
-                                  size: 12,
-                                  color: AppTheme.neonOrange,
-                                ),
-                                const SizedBox(width: 3),
-                                Text(
-                                  "+${activity.points}",
-                                  style: TextStyle(
-                                    color: AppTheme.neonOrange,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          // 经验值
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.neonBlue.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: AppTheme.neonBlue.withOpacity(0.4),
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.emoji_events,
-                                  size: 12,
-                                  color: AppTheme.neonBlue,
-                                ),
-                                const SizedBox(width: 3),
-                                Text(
-                                  "+${activity.experience}",
-                                  style: TextStyle(
-                                    color: AppTheme.neonBlue,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
+  // 构建加载指示器
+  Widget _buildLoadingIndicator() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      alignment: Alignment.center,
+      child: const SizedBox(
+        width: 24,
+        height: 24,
+        child: CircularProgressIndicator(
+          strokeWidth: 2.0,
+          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.neonPurple),
         ),
       ),
-    );
-  }
-
-  // 显示活动详情
-  void _showActivityDetails(BuildContext context, Activity activity) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder:
-          (context) => Container(
-            height: MediaQuery.of(context).size.height * 0.85,
-            decoration: const BoxDecoration(
-              color: Color(0xFF1A1A2E),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(24),
-                topRight: Radius.circular(24),
-              ),
-            ),
-            child: Column(
-              children: [
-                // 顶部拖动条
-                Container(
-                  margin: const EdgeInsets.only(top: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-
-                // 活动图片
-                Container(
-                  height: 200,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: activity.color.withOpacity(0.3),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(24),
-                      topRight: Radius.circular(24),
-                    ),
-                  ),
-                  child: Stack(
-                    children: [
-                      Center(
-                        child: Icon(
-                          activity.icon,
-                          size: 60,
-                          color: activity.color.withOpacity(0.7),
-                        ),
-                      ),
-                      // 状态标签
-                      Positioned(
-                        top: 16,
-                        right: 16,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.7),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: activity.getStatusColor(),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                activity.status,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // 活动内容
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // 活动标题
-                          Text(
-                            activity.title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-
-                          // 价格标签
-                          Container(
-                            margin: const EdgeInsets.only(top: 8),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.neonYellow.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Text(
-                                  "¥1/人",
-                                  style: TextStyle(
-                                    color: AppTheme.neonYellow,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  "(仅用于服务器维护)",
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.7),
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-
-                          // 积分和经验值标签
-                          Row(
-                            children: [
-                              // 积分
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.neonOrange.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: AppTheme.neonOrange.withOpacity(0.3),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.star,
-                                      color: AppTheme.neonOrange,
-                                      size: 16,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      "获得${activity.points}积分",
-                                      style: const TextStyle(
-                                        color: AppTheme.neonOrange,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              // 经验值
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.neonBlue.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: AppTheme.neonBlue.withOpacity(0.3),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.emoji_events,
-                                      color: AppTheme.neonBlue,
-                                      size: 16,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      "+${activity.experience}经验值",
-                                      style: const TextStyle(
-                                        color: AppTheme.neonBlue,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-
-                          // 活动基本信息卡片
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF242539),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Column(
-                              children: [
-                                _buildInfoRow(
-                                  icon: Icons.access_time,
-                                  title: "活动时间",
-                                  content: activity.getFormattedDate(),
-                                ),
-                                const Divider(
-                                  color: Color(0xFF353750),
-                                  height: 24,
-                                ),
-                                _buildInfoRow(
-                                  icon: Icons.location_on,
-                                  title: "活动地点",
-                                  content: activity.location,
-                                ),
-                                const Divider(
-                                  color: Color(0xFF353750),
-                                  height: 24,
-                                ),
-                                _buildInfoRow(
-                                  icon: Icons.people,
-                                  title: "参与人数",
-                                  content:
-                                      "${activity.participantsCount}/${activity.maxParticipants}人",
-                                ),
-                                const Divider(
-                                  color: Color(0xFF353750),
-                                  height: 24,
-                                ),
-                                _buildInfoRow(
-                                  icon: Icons.business,
-                                  title: "组织者",
-                                  content: activity.organizer,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // 活动描述
-                          const Text(
-                            "活动详情",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF242539),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: activity.color.withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              activity.description,
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 14,
-                                height: 1.5,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // 活动标签
-                          const Text(
-                            "活动标签",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            children:
-                                activity.tags.map((tag) {
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: activity.color.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color: activity.color.withOpacity(0.3),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      tag,
-                                      style: TextStyle(
-                                        color: activity.color,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // 重要提示卡片
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade800.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.amber.withOpacity(0.5),
-                                width: 1,
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Row(
-                                  children: [
-                                    Icon(
-                                      Icons.info_outline,
-                                      color: Colors.amber,
-                                      size: 18,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      "重要提示",
-                                      style: TextStyle(
-                                        color: Colors.amber,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  "1. 活动费用¥1仅用于服务器维护，不作为商业收益；\n"
-                                  "2. 活动目的是帮助用户快速获取积分和旅行经验值；\n"
-                                  "3. 活动完成后积分和经验值将自动添加到您的账户；\n"
-                                  "4. 同类型活动每天最多参与3次。",
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.8),
-                                    fontSize: 14,
-                                    height: 1.5,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // 底部按钮
-                Container(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A1A2E),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, -5),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      // 分享按钮
-                      IconButton(
-                        onPressed: () {
-                          // 分享功能
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("分享功能尚未实现"),
-                              duration: Duration(seconds: 1),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.share, color: Colors.white70),
-                      ),
-                      // 收藏按钮
-                      IconButton(
-                        onPressed: () {
-                          // 收藏功能
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("收藏功能尚未实现"),
-                              duration: Duration(seconds: 1),
-                            ),
-                          );
-                        },
-                        icon: const Icon(
-                          Icons.favorite_border,
-                          color: Colors.white70,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // 主按钮
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed:
-                              activity.status == "已结束"
-                                  ? null
-                                  : () {
-                                    Navigator.of(context).pop();
-                                    // 报名/取消报名功能
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          activity.isRegistered
-                                              ? "取消报名功能尚未实现"
-                                              : "报名功能尚未实现",
-                                        ),
-                                        duration: const Duration(seconds: 1),
-                                      ),
-                                    );
-                                  },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                activity.isRegistered
-                                    ? Colors.red.shade700
-                                    : AppTheme.neonPurple,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                activity.isRegistered
-                                    ? "取消报名"
-                                    : (activity.status == "已结束"
-                                        ? "活动已结束"
-                                        : "立即报名"),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              if (!activity.isRegistered &&
-                                  activity.status != "已结束") ...[
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.star,
-                                        size: 12,
-                                        color: AppTheme.neonOrange,
-                                      ),
-                                      const SizedBox(width: 2),
-                                      Text(
-                                        "+${activity.points}",
-                                        style: const TextStyle(
-                                          color: AppTheme.neonOrange,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      const Icon(
-                                        Icons.emoji_events,
-                                        size: 12,
-                                        color: AppTheme.neonBlue,
-                                      ),
-                                      const SizedBox(width: 2),
-                                      Text(
-                                        "+${activity.experience}",
-                                        style: const TextStyle(
-                                          color: AppTheme.neonBlue,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-    );
-  }
-
-  // 构建信息行
-  Widget _buildInfoRow({
-    required IconData icon,
-    required String title,
-    required String content,
-  }) {
-    return Row(
-      children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: AppTheme.neonPurple.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, color: AppTheme.neonPurple, size: 18),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.6),
-                fontSize: 12,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              content,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }

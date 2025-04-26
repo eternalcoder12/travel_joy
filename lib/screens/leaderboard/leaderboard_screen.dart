@@ -371,275 +371,325 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Widget _buildTopUsers() {
-    // 确保至少有3个用户显示
-    final topUsers =
-        isLoading
-            ? List.generate(3, (index) => null)
-            : leaderboardData.take(3).toList();
+    // 确保至少有3名用户
+    while (leaderboardData.length < 3) {
+      leaderboardData.add(
+        LeaderboardUser(
+          id: 'placeholder-${leaderboardData.length + 1}',
+          rank: leaderboardData.length + 1,
+          avatar: 'assets/images/avatars/default_avatar.png',
+          name: '用户${leaderboardData.length + 1}',
+          points: 0,
+          level: 1,
+          positionChange: 0,
+        ),
+      );
+    }
 
-    return Container(
-      height: 220,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          // 第二名底座
-          AnimatedBuilder(
-            animation: _podiumController,
-            builder: (context, child) {
-              return Positioned(
-                left: 20,
-                bottom: 0,
+    return AnimatedBuilder(
+      animation: _podiumController,
+      builder: (context, child) {
+        // 第二名的偏移和透明度动画
+        final secondUserOffsetY =
+            Tween<double>(begin: 50.0, end: 0.0)
+                .animate(
+                  CurvedAnimation(
+                    parent: _podiumController,
+                    curve: const Interval(0.0, 0.7, curve: Curves.easeOutBack),
+                  ),
+                )
+                .value;
+
+        // 第一名的偏移和透明度动画
+        final firstUserOffsetY =
+            Tween<double>(begin: 80.0, end: 0.0)
+                .animate(
+                  CurvedAnimation(
+                    parent: _podiumController,
+                    curve: const Interval(0.2, 0.8, curve: Curves.easeOutBack),
+                  ),
+                )
+                .value;
+
+        // 第三名的偏移和透明度动画
+        final thirdUserOffsetY =
+            Tween<double>(begin: 50.0, end: 0.0)
+                .animate(
+                  CurvedAnimation(
+                    parent: _podiumController,
+                    curve: const Interval(0.1, 0.6, curve: Curves.easeOutBack),
+                  ),
+                )
+                .value;
+
+        return Container(
+          width: double.infinity,
+          height: 280,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
+            children: [
+              // 第二名（左侧）
+              Positioned(
+                left: 0,
+                bottom: 30,
                 child: Transform.translate(
-                  offset: Offset(0, 40 * (1 - _podiumController.value)),
+                  offset: Offset(0, secondUserOffsetY),
                   child: Opacity(
                     opacity: _podiumController.value,
-                    child: _buildRankBase(
-                      height: 70,
-                      width: 80,
-                      rank: 2,
-                      color: const Color(0xFFADD8E6), // 淡蓝色
+                    child: _buildTopUserAvatar(
+                      leaderboardData[1],
+                      80,
+                      AppTheme.neonBlue,
+                      showCrown: false,
                     ),
                   ),
                 ),
-              );
-            },
-          ),
+              ),
 
-          // 第一名底座
-          AnimatedBuilder(
-            animation: _podiumController,
-            builder: (context, child) {
-              return Positioned(
-                bottom: 0,
+              // 第一名（中间）
+              Positioned(
+                bottom: 30,
                 child: Transform.translate(
-                  offset: Offset(0, 50 * (1 - _podiumController.value)),
+                  offset: Offset(0, firstUserOffsetY),
                   child: Opacity(
                     opacity: _podiumController.value,
-                    child: _buildRankBase(
-                      height: 100,
-                      width: 90,
-                      rank: 1,
-                      color: const Color(0xFFFFD700), // 金色
+                    child: _buildTopUserAvatar(
+                      leaderboardData[0],
+                      100,
+                      Colors.amber,
+                      showCrown: true,
                     ),
                   ),
                 ),
-              );
-            },
-          ),
+              ),
 
-          // 第三名底座
-          AnimatedBuilder(
-            animation: _podiumController,
-            builder: (context, child) {
-              return Positioned(
-                right: 20,
-                bottom: 0,
+              // 第三名（右侧）
+              Positioned(
+                right: 0,
+                bottom: 30,
                 child: Transform.translate(
-                  offset: Offset(0, 30 * (1 - _podiumController.value)),
+                  offset: Offset(0, thirdUserOffsetY),
                   child: Opacity(
                     opacity: _podiumController.value,
-                    child: _buildRankBase(
-                      height: 50,
-                      width: 80,
-                      rank: 3,
-                      color: const Color(0xFFD2B48C), // 铜色
+                    child: _buildTopUserAvatar(
+                      leaderboardData[2],
+                      70,
+                      AppTheme.accentColor,
+                      showCrown: false,
                     ),
                   ),
                 ),
-              );
-            },
+              ),
+
+              // 排名基座
+              Positioned(
+                bottom: 0,
+                child: Container(
+                  width: MediaQuery.of(context).size.width - 32,
+                  height: 70,
+                  child: Stack(
+                    children: [
+                      // 第二名基座
+                      Positioned(
+                        left: 20,
+                        bottom: 0,
+                        child: _buildRankBase(
+                          70,
+                          AppTheme.neonBlue,
+                          '2',
+                          animation: _podiumController,
+                          delay: const Interval(
+                            0.1,
+                            0.6,
+                            curve: Curves.easeOut,
+                          ),
+                        ),
+                      ),
+
+                      // 第一名基座
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: Center(
+                          child: _buildRankBase(
+                            100,
+                            Colors.amber,
+                            '1',
+                            animation: _podiumController,
+                            delay: const Interval(
+                              0.2,
+                              0.7,
+                              curve: Curves.easeOut,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // 第三名基座
+                      Positioned(
+                        right: 20,
+                        bottom: 0,
+                        child: _buildRankBase(
+                          50,
+                          AppTheme.accentColor,
+                          '3',
+                          animation: _podiumController,
+                          delay: const Interval(
+                            0.0,
+                            0.5,
+                            curve: Curves.easeOut,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-
-          // 第二名头像
-          if (!isLoading && topUsers.length > 1)
-            AnimatedBuilder(
-              animation: _podiumController,
-              builder: (context, child) {
-                final user = topUsers[1];
-                return Positioned(
-                  left: 30,
-                  bottom: 70,
-                  child: Transform.translate(
-                    offset: Offset(0, 40 * (1 - _podiumController.value)),
-                    child: Opacity(
-                      opacity: _podiumController.value,
-                      child: _buildTopUserAvatar(user!, 2),
-                    ),
-                  ),
-                );
-              },
-            ),
-
-          // 第一名头像
-          if (!isLoading && topUsers.isNotEmpty)
-            AnimatedBuilder(
-              animation: _podiumController,
-              builder: (context, child) {
-                final user = topUsers[0];
-                return Positioned(
-                  bottom: 100,
-                  child: Transform.translate(
-                    offset: Offset(0, 50 * (1 - _podiumController.value)),
-                    child: Opacity(
-                      opacity: _podiumController.value,
-                      child: _buildTopUserAvatar(user!, 1),
-                    ),
-                  ),
-                );
-              },
-            ),
-
-          // 第三名头像
-          if (!isLoading && topUsers.length > 2)
-            AnimatedBuilder(
-              animation: _podiumController,
-              builder: (context, child) {
-                final user = topUsers[2];
-                return Positioned(
-                  right: 30,
-                  bottom: 50,
-                  child: Transform.translate(
-                    offset: Offset(0, 30 * (1 - _podiumController.value)),
-                    child: Opacity(
-                      opacity: _podiumController.value,
-                      child: _buildTopUserAvatar(user!, 3),
-                    ),
-                  ),
-                );
-              },
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildRankBase({
-    required double height,
-    required double width,
-    required int rank,
-    required Color color,
+  // 构建排名基座
+  Widget _buildRankBase(
+    double height,
+    Color color,
+    String rank, {
+    required Animation<double> animation,
+    required Interval delay,
   }) {
-    return Container(
-      height: height,
-      width: width,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [color, color.withOpacity(0.7)],
-        ),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(8),
-          topRight: Radius.circular(8),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          '$rank',
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-      ),
-    );
-  }
+    final heightAnim = Tween<double>(
+      begin: 0.0,
+      end: height,
+    ).animate(CurvedAnimation(parent: animation, curve: delay));
 
-  Widget _buildTopUserAvatar(LeaderboardUser user, int rank) {
-    final isCrowned = rank == 1;
-
-    return Column(
-      children: [
-        if (isCrowned)
-          CustomPaint(size: const Size(30, 20), painter: CrownPainter()),
-        const SizedBox(height: 5),
-        Container(
-          width: 60,
-          height: 60,
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        return Container(
+          width: 70,
+          height: heightAnim.value,
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
             gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                rank == 1
-                    ? const Color(0xFFFFD700)
-                    : rank == 2
-                    ? const Color(0xFFADD8E6)
-                    : const Color(0xFFD2B48C),
-                Colors.white,
-              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [color.withOpacity(0.7), color.withOpacity(0.3)],
+            ),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(10),
+              topRight: Radius.circular(10),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 6,
-                offset: const Offset(0, 3),
+                color: color.withOpacity(0.5),
+                blurRadius: 20,
+                spreadRadius: 1,
               ),
             ],
           ),
           child: Center(
-            child: Container(
-              width: 55,
-              height: 55,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: AssetImage(user.avatar),
-                  fit: BoxFit.cover,
+            child: Opacity(
+              opacity: animation.value,
+              child: Text(
+                rank,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
                 ),
-                border: Border.all(color: Colors.white, width: 2),
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  // 构建顶部用户头像
+  Widget _buildTopUserAvatar(
+    LeaderboardUser user,
+    double size,
+    Color color, {
+    bool showCrown = false,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 皇冠
+        if (showCrown)
+          SizedBox(
+            width: 60,
+            height: 30,
+            child: CustomPaint(painter: CrownPainter(color: Colors.amber)),
+          ),
+
+        // 用户头像
+        Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [color.withOpacity(0.7), color.withOpacity(0.3)],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.5),
+                blurRadius: 15,
+                spreadRadius: 2,
+              ),
+            ],
+            border: Border.all(color: Colors.white.withOpacity(0.8), width: 3),
+          ),
+          padding: const EdgeInsets.all(2),
+          child: ClipOval(child: Image.asset(user.avatar, fit: BoxFit.cover)),
         ),
+
         const SizedBox(height: 8),
+
+        // 用户名称
         Text(
           user.name,
           style: const TextStyle(
-            color: AppTheme.primaryTextColor,
-            fontWeight: FontWeight.bold,
+            color: Colors.white,
             fontSize: 14,
+            fontWeight: FontWeight.bold,
           ),
         ),
+
         const SizedBox(height: 4),
+
+        // 等级和积分
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              'Lv.${user.level}',
-              style: TextStyle(
-                color:
-                    rank == 1
-                        ? const Color(0xFFFFD700)
-                        : rank == 2
-                        ? const Color(0xFFADD8E6)
-                        : const Color(0xFFD2B48C),
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: color.withOpacity(0.5), width: 1),
+              ),
+              child: Text(
+                'Lv.${user.level}',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.9),
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            const SizedBox(width: 4),
-            Container(
-              width: 1,
-              height: 10,
-              color: AppTheme.secondaryTextColor.withOpacity(0.5),
-            ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 5),
             Text(
               '${user.points}分',
               style: TextStyle(
-                color: AppTheme.secondaryTextColor,
-                fontSize: 12,
+                color: Colors.white.withOpacity(0.7),
+                fontSize: 10,
               ),
             ),
           ],
@@ -665,188 +715,212 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         if (index < 3) return const SizedBox.shrink();
 
         final user = leaderboardData[index];
-        return AnimatedBuilder(
-          animation: _itemController,
-          builder: (context, child) {
-            final delay = index * 0.05;
-            final curvedAnimation = CurvedAnimation(
-              parent: _itemController,
-              curve: Interval(delay, delay + 0.3, curve: Curves.easeOut),
-            );
+        return _buildLeaderboardItem(user, index);
+      },
+    );
+  }
 
-            return Transform.translate(
-              offset: Offset(0, 50 * (1 - curvedAnimation.value)),
-              child: Opacity(
-                opacity: curvedAnimation.value,
-                child: _buildLeaderboardItem(user),
+  // 构建排行榜项目
+  Widget _buildLeaderboardItem(LeaderboardUser user, int index) {
+    final rankColor =
+        user.rank <= 10 ? AppTheme.accentColor : AppTheme.secondaryTextColor;
+
+    return AnimatedBuilder(
+      animation: _itemController,
+      builder: (context, child) {
+        // 为每个项目应用延迟进入动画
+        final delay = index * 0.1;
+        final startTime = delay * 0.75;
+        final endTime = startTime + 0.25;
+
+        double animationValue;
+        if (_itemController.value < startTime) {
+          animationValue = 0.0;
+        } else if (_itemController.value >= endTime) {
+          animationValue = 1.0;
+        } else {
+          animationValue =
+              (_itemController.value - startTime) / (endTime - startTime);
+        }
+
+        // 使用Curves.easeOutBack曲线使动画更加生动
+        final curveValue = Curves.easeOutBack.transform(animationValue);
+
+        return Transform.translate(
+          offset: Offset(0, 50 * (1.0 - curveValue)),
+          child: Opacity(
+            opacity: curveValue,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.1),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.accentColor.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-            );
-          },
+              child: Row(
+                children: [
+                  // 排名
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: rankColor.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${user.rank}',
+                        style: TextStyle(
+                          color: rankColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // 头像
+                  Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          AppTheme.accentColor.withOpacity(0.5),
+                          AppTheme.accentColor.withOpacity(0.2),
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.accentColor.withOpacity(0.2),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(2),
+                    child: ClipOval(
+                      child: Image.asset(user.avatar, fit: BoxFit.cover),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // 用户名和等级
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user.name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.accentColor.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                'Lv.${user.level}',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${user.points}分',
+                              style: const TextStyle(
+                                color: AppTheme.secondaryTextColor,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // 排名变化
+                  _buildPositionChange(user.positionChange),
+                ],
+              ),
+            ),
+          ),
         );
       },
     );
   }
 
-  Widget _buildLeaderboardItem(LeaderboardUser user) {
-    final rankColor =
-        user.rank <= 10 ? AppTheme.neonBlue : AppTheme.secondaryTextColor;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            // 排名
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: rankColor.withOpacity(0.1),
-              ),
-              child: Center(
-                child: Text(
-                  '${user.rank}',
-                  style: TextStyle(
-                    color: rankColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            // 用户头像
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: AssetImage(user.avatar),
-                  fit: BoxFit.cover,
-                ),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.5),
-                  width: 2,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            // 用户信息
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    user.name,
-                    style: const TextStyle(
-                      color: AppTheme.primaryTextColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppTheme.buttonColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'Lv.${user.level}',
-                          style: const TextStyle(
-                            color: AppTheme.buttonColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(
-                        Icons.star,
-                        color: AppTheme.neonYellow,
-                        size: 12,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${user.points}',
-                        style: const TextStyle(
-                          color: AppTheme.secondaryTextColor,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // 排名变化
-            _buildPositionChangeIndicator(user.positionChange),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPositionChangeIndicator(int change) {
+  // 构建排名变化指示器
+  Widget _buildPositionChange(int change) {
     if (change == 0) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.grey.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(4),
+          color: Colors.grey.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: const Text(
-          '-',
-          style: TextStyle(
-            color: Colors.grey,
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(Icons.remove, color: Colors.grey, size: 14),
+            SizedBox(width: 2),
+            Text(
+              '0',
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
       );
     }
 
     final isUp = change > 0;
-    final color = isUp ? AppTheme.neonGreen : Colors.red;
+    final color = isUp ? Colors.green : Colors.red;
+    final icon = isUp ? Icons.arrow_upward : Icons.arrow_downward;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(4),
+        color: color.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            isUp ? Icons.arrow_upward : Icons.arrow_downward,
-            color: color,
-            size: 12,
-          ),
+          Icon(icon, color: color, size: 14),
           const SizedBox(width: 2),
           Text(
-            change.abs().toString(),
+            '${change.abs()}',
             style: TextStyle(
               color: color,
               fontSize: 12,
@@ -857,14 +931,92 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       ),
     );
   }
+
+  // 构建霓虹背景
+  Widget _buildNeonBackground() {
+    return Stack(
+      children: [
+        // 深色渐变背景
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withOpacity(0.9),
+                AppTheme.backgroundColor.withOpacity(0.9),
+              ],
+            ),
+          ),
+        ),
+
+        // 霓虹光效
+        Positioned(
+          top: -100,
+          left: -100,
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.neonBlue.withOpacity(0.5),
+                  blurRadius: 150,
+                  spreadRadius: 50,
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        Positioned(
+          top: 150,
+          right: -120,
+          child: Container(
+            width: 250,
+            height: 250,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.accentColor.withOpacity(0.4),
+                  blurRadius: 150,
+                  spreadRadius: 50,
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // 霓虹粒子效果
+        AnimatedBuilder(
+          animation: _particleController,
+          builder: (context, child) {
+            return CustomPaint(
+              size: Size(
+                MediaQuery.of(context).size.width,
+                MediaQuery.of(context).size.height,
+              ),
+              painter: ParticlePainter(animation: _particleController),
+            );
+          },
+        ),
+      ],
+    );
+  }
 }
 
 class CrownPainter extends CustomPainter {
+  final Color color;
+
+  const CrownPainter({required this.color});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint =
         Paint()
-          ..color = const Color(0xFFFFD700)
+          ..color = color
           ..style = PaintingStyle.fill;
 
     final path = Path();
@@ -917,5 +1069,74 @@ class LeaderboardUser {
     required this.points,
     required this.level,
     required this.positionChange,
+  });
+}
+
+/// 粒子动画绘制器 - 用于创建霓虹粒子效果
+class ParticlePainter extends CustomPainter {
+  final Animation<double> animation;
+  final List<Particle> particles;
+
+  ParticlePainter({required this.animation})
+    : particles = List.generate(50, (index) {
+        return Particle(
+          position: Offset(
+            math.Random().nextDouble() * 400,
+            math.Random().nextDouble() * 800,
+          ),
+          color:
+              [
+                AppTheme.neonBlue.withOpacity(0.6),
+                Colors.pinkAccent.withOpacity(0.6),
+                AppTheme.accentColor.withOpacity(0.6),
+              ][math.Random().nextInt(3)],
+          size: math.Random().nextDouble() * 6 + 1,
+          speed: math.Random().nextDouble() * 2 + 0.5,
+        );
+      });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (var particle in particles) {
+      // 更新粒子位置，加入一些随机性和波动效果
+      final yOffset =
+          math.sin(animation.value * 2 * math.pi + particle.position.dx / 50) *
+          5;
+      final position = Offset(
+        (particle.position.dx + particle.speed * animation.value * 20) %
+            size.width,
+        (particle.position.dy + yOffset) % size.height,
+      );
+
+      final paint =
+          Paint()
+            ..color = particle.color
+            ..style = PaintingStyle.fill
+            ..blendMode = BlendMode.srcOver;
+
+      // 根据动画值调整粒子大小
+      final particleSize =
+          particle.size * (0.5 + 0.5 * math.sin(animation.value * 2 * math.pi));
+
+      canvas.drawCircle(position, particleSize, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(ParticlePainter oldDelegate) => true;
+}
+
+/// 粒子模型
+class Particle {
+  Offset position;
+  Color color;
+  double size;
+  double speed;
+
+  Particle({
+    required this.position,
+    required this.color,
+    required this.size,
+    required this.speed,
   });
 }

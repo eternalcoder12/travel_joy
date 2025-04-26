@@ -248,3 +248,203 @@ class AnimatedItemSequence extends StatelessWidget {
     );
   }
 }
+
+/// 从底部滑入的动画组件
+class AnimatedItemSlideInFromBottom extends StatelessWidget {
+  final AnimationController animationController;
+  final double animationStart;
+  final double animationEnd;
+  final Widget child;
+
+  const AnimatedItemSlideInFromBottom({
+    Key? key,
+    required this.animationController,
+    required this.animationStart,
+    required this.animationEnd,
+    required this.child,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final Animation<double> animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: animationController,
+        curve: Interval(animationStart, animationEnd, curve: Curves.easeOut),
+      ),
+    );
+
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0.0, 50.0 * (1.0 - animation.value)),
+          child: Opacity(opacity: animation.value, child: child),
+        );
+      },
+      child: child,
+    );
+  }
+}
+
+/// 从顶部滑入的动画组件
+class AnimatedItemSlideInFromTop extends StatelessWidget {
+  final AnimationController animationController;
+  final double animationStart;
+  final double animationEnd;
+  final Widget child;
+
+  const AnimatedItemSlideInFromTop({
+    Key? key,
+    required this.animationController,
+    required this.animationStart,
+    required this.animationEnd,
+    required this.child,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final Animation<double> animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: animationController,
+        curve: Interval(animationStart, animationEnd, curve: Curves.easeOut),
+      ),
+    );
+
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0.0, -50.0 * (1.0 - animation.value)),
+          child: Opacity(opacity: animation.value, child: child),
+        );
+      },
+      child: child,
+    );
+  }
+}
+
+/// 从左侧滑入的动画组件
+class AnimatedItemSlideInFromLeft extends StatelessWidget {
+  final AnimationController animationController;
+  final double animationStart;
+  final double animationEnd;
+  final Widget child;
+
+  const AnimatedItemSlideInFromLeft({
+    Key? key,
+    required this.animationController,
+    required this.animationStart,
+    required this.animationEnd,
+    required this.child,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final Animation<double> animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: animationController,
+        curve: Interval(animationStart, animationEnd, curve: Curves.easeOut),
+      ),
+    );
+
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(-50.0 * (1.0 - animation.value), 0.0),
+          child: Opacity(opacity: animation.value, child: child),
+        );
+      },
+      child: child,
+    );
+  }
+}
+
+/// 从右侧滑入的动画组件
+class AnimatedItemSlideInFromRight extends StatelessWidget {
+  final AnimationController animationController;
+  final double animationStart;
+  final double animationEnd;
+  final Widget child;
+
+  const AnimatedItemSlideInFromRight({
+    Key? key,
+    required this.animationController,
+    required this.animationStart,
+    required this.animationEnd,
+    required this.child,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final Animation<double> animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: animationController,
+        curve: Interval(animationStart, animationEnd, curve: Curves.easeOut),
+      ),
+    );
+
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(50.0 * (1.0 - animation.value), 0.0),
+          child: Opacity(opacity: animation.value, child: child),
+        );
+      },
+      child: child,
+    );
+  }
+}
+
+/// 弹出动画组件
+class AnimatedItemPop extends StatelessWidget {
+  final AnimationController animationController;
+  final double animationStart;
+  final double animationEnd;
+  final Widget child;
+
+  const AnimatedItemPop({
+    Key? key,
+    required this.animationController,
+    required this.animationStart,
+    required this.animationEnd,
+    required this.child,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final Animation<double> animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: animationController,
+        curve: Interval(animationStart, animationEnd, curve: Curves.elasticOut),
+      ),
+    );
+
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: animation.value,
+          child: Opacity(opacity: animation.value, child: child),
+        );
+      },
+      child: child,
+    );
+  }
+}
