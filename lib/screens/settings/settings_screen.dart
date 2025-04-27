@@ -331,102 +331,185 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Widget _buildMenuSection() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppTheme.cardColor.withOpacity(0.8),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        children: [
-          _buildMenuItem(
-            icon: Icons.notifications_active,
-            iconColor: AppTheme.neonBlue,
-            title: '通知设置',
-            onTap: () {
-              _showNotificationsDialog();
-            },
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.cardColor.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: AppTheme.cardColor.withOpacity(0.8),
+            width: 1,
           ),
-          _buildDivider(),
-          _buildMenuItem(
-            icon: Icons.dark_mode,
-            iconColor: AppTheme.neonPurple,
-            title: '深色模式',
-            trailing: Switch(
-              value: _darkModeEnabled,
-              onChanged: (value) async {
+        ),
+        child: Column(
+          children: [
+            _buildMenuItem(
+              icon: Icons.notifications_active,
+              iconColor: AppTheme.neonBlue,
+              title: '通知设置',
+              onTap: () {
+                _showNotificationsDialog();
+              },
+            ),
+            _buildDivider(),
+            GestureDetector(
+              onTap: () async {
                 setState(() {
-                  _darkModeEnabled = value;
+                  _darkModeEnabled = !_darkModeEnabled;
                 });
-                // 保存并应用设置
                 await _saveSettings();
                 _applySettings();
               },
-              activeColor: Colors.white,
-              activeTrackColor: AppTheme.neonPurple,
-              inactiveThumbColor: Colors.white,
-              inactiveTrackColor: Colors.grey.withOpacity(0.3),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppTheme.neonPurple.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.neonPurple.withOpacity(0.1),
+                            blurRadius: 4,
+                            spreadRadius: 0,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.dark_mode,
+                          color: AppTheme.neonPurple,
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        '深色模式',
+                        style: TextStyle(
+                          color: AppTheme.primaryTextColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        setState(() {
+                          _darkModeEnabled = !_darkModeEnabled;
+                        });
+                        await _saveSettings();
+                        _applySettings();
+                      },
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Container(
+                          width: 50,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15),
+                            color:
+                                _darkModeEnabled
+                                    ? AppTheme.neonPurple.withOpacity(0.7)
+                                    : Colors.grey.withOpacity(0.3),
+                          ),
+                          child: Stack(
+                            children: [
+                              AnimatedPositioned(
+                                duration: Duration(milliseconds: 200),
+                                curve: Curves.easeInOut,
+                                left: _darkModeEnabled ? 20 : 0,
+                                child: Container(
+                                  width: 30,
+                                  height: 30,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        blurRadius: 4,
+                                        spreadRadius: 0.5,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-          _buildDivider(),
-          _buildMenuItem(
-            icon: Icons.language,
-            iconColor: AppTheme.neonOrange,
-            title: '语言',
-            onTap: () {
-              _showLanguageDialog();
-            },
-          ),
-          _buildDivider(),
-          _buildMenuItem(
-            icon: Icons.security,
-            iconColor: AppTheme.neonPink,
-            title: '隐私与安全',
-            onTap: () {
-              _showPrivacySecurityDialog();
-            },
-          ),
-          _buildDivider(),
-          _buildMenuItem(
-            icon: Icons.cleaning_services,
-            iconColor: AppTheme.neonGreen,
-            title: '清除缓存',
-            onTap: () {
-              _showClearCacheDialog();
-            },
-          ),
-          _buildDivider(),
-          _buildMenuItem(
-            icon: Icons.help_center,
-            iconColor: AppTheme.neonTeal,
-            title: '帮助中心',
-            onTap: () {
-              _showHelpCenterDialog();
-            },
-          ),
-          _buildDivider(),
-          _buildMenuItem(
-            icon: Icons.contact_support,
-            iconColor: AppTheme.neonYellow,
-            title: '联系我们',
-            onTap: () {
-              _showContactUsDialog();
-            },
-          ),
-          _buildDivider(),
-          _buildMenuItem(
-            icon: Icons.info,
-            iconColor: AppTheme.neonBlue,
-            title: '关于',
-            subtitle: '版本 1.0.0',
-            onTap: () {
-              _showAboutDialog();
-            },
-          ),
-        ],
+            _buildDivider(),
+            _buildMenuItem(
+              icon: Icons.language,
+              iconColor: AppTheme.neonOrange,
+              title: '语言',
+              onTap: () {
+                _showLanguageDialog();
+              },
+            ),
+            _buildDivider(),
+            _buildMenuItem(
+              icon: Icons.security,
+              iconColor: AppTheme.neonPink,
+              title: '隐私与安全',
+              onTap: () {
+                _showPrivacySecurityDialog();
+              },
+            ),
+            _buildDivider(),
+            _buildMenuItem(
+              icon: Icons.cleaning_services,
+              iconColor: AppTheme.neonGreen,
+              title: '清除缓存',
+              onTap: () {
+                _showClearCacheDialog();
+              },
+            ),
+            _buildDivider(),
+            _buildMenuItem(
+              icon: Icons.help_center,
+              iconColor: AppTheme.neonTeal,
+              title: '帮助中心',
+              onTap: () {
+                _showHelpCenterDialog();
+              },
+            ),
+            _buildDivider(),
+            _buildMenuItem(
+              icon: Icons.contact_support,
+              iconColor: AppTheme.neonYellow,
+              title: '联系我们',
+              onTap: () {
+                _showContactUsDialog();
+              },
+            ),
+            _buildDivider(),
+            _buildMenuItem(
+              icon: Icons.info,
+              iconColor: AppTheme.neonBlue,
+              title: '关于',
+              subtitle: '版本 1.0.0',
+              onTap: () {
+                _showAboutDialog();
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -439,56 +522,80 @@ class _SettingsScreenState extends State<SettingsScreen>
     Widget? trailing,
     VoidCallback? onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(12),
+    final hasTrailing = trailing != null;
+
+    final rowContent = Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: iconColor.withOpacity(0.1),
+                blurRadius: 4,
+                spreadRadius: 0,
+                offset: const Offset(0, 2),
               ),
-              child: Center(child: Icon(icon, color: iconColor, size: 22)),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
+            ],
+          ),
+          child: Center(child: Icon(icon, color: iconColor, size: 22)),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  color: AppTheme.primaryTextColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              if (subtitle != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    subtitle,
                     style: TextStyle(
-                      color: AppTheme.primaryTextColor,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                      color: AppTheme.secondaryTextColor,
+                      fontSize: 14,
                     ),
                   ),
-                  if (subtitle != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        subtitle,
-                        style: TextStyle(
-                          color: AppTheme.secondaryTextColor,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            trailing ??
-                Icon(
-                  Icons.arrow_forward_ios,
-                  color: AppTheme.secondaryTextColor.withOpacity(0.7),
-                  size: 16,
                 ),
-          ],
+            ],
+          ),
         ),
+        trailing ??
+            Icon(
+              Icons.arrow_forward_ios,
+              color: AppTheme.secondaryTextColor.withOpacity(0.7),
+              size: 16,
+            ),
+      ],
+    );
+
+    // 如果有trailing组件（如Switch），则不将整行包装在InkWell中
+    if (hasTrailing) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: rowContent,
+      );
+    }
+
+    // 否则使用InkWell实现点击效果
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      splashColor: iconColor.withOpacity(0.1),
+      highlightColor: iconColor.withOpacity(0.05),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: rowContent,
       ),
     );
   }
@@ -504,28 +611,33 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Widget _buildLogoutButton() {
-    return InkWell(
-      onTap: () {
-        _showLogoutDialog();
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 15),
-        decoration: BoxDecoration(
-          color: AppTheme.neonPink.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppTheme.neonPink.withOpacity(0.3),
-            width: 1,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          _showLogoutDialog();
+        },
+        borderRadius: BorderRadius.circular(12),
+        splashColor: AppTheme.neonPink.withOpacity(0.2),
+        highlightColor: AppTheme.neonPink.withOpacity(0.1),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          decoration: BoxDecoration(
+            color: AppTheme.neonPink.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppTheme.neonPink.withOpacity(0.3),
+              width: 1,
+            ),
           ),
-        ),
-        child: Center(
-          child: Text(
-            '退出登录',
-            style: TextStyle(
-              color: AppTheme.neonPink,
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
+          child: Center(
+            child: Text(
+              '退出登录',
+              style: TextStyle(
+                color: AppTheme.neonPink,
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
             ),
           ),
         ),
@@ -646,62 +758,54 @@ class _SettingsScreenState extends State<SettingsScreen>
                               onChanged: (value) async {
                                 setState(() {
                                   _notificationsEnabled = value;
-                                  if (!value) {
-                                    _messageNotificationsEnabled = false;
-                                    _activityNotificationsEnabled = false;
-                                  }
                                 });
                                 await _saveSettings();
                                 // 请求通知权限或更新通知设置
                                 // 实际应用中可能需要使用平台通道请求权限
-                                Navigator.pop(context);
-                                _showNotificationsDialog(); // 重新打开对话框以刷新状态
                               },
                             ),
 
-                            if (_notificationsEnabled) ...[
-                              Divider(
-                                color: AppTheme.secondaryTextColor.withOpacity(
-                                  0.15,
-                                ),
-                                thickness: 1,
-                                height: 24,
+                            Divider(
+                              color: AppTheme.secondaryTextColor.withOpacity(
+                                0.15,
                               ),
+                              thickness: 1,
+                              height: 24,
+                            ),
 
-                              // 消息通知
-                              _buildNeonSwitchItem(
-                                icon: Icons.message,
-                                iconColor: AppTheme.neonGreen,
-                                title: '消息通知',
-                                subtitle: '接收新消息提醒',
-                                value: _messageNotificationsEnabled,
-                                onChanged: (value) async {
-                                  setState(() {
-                                    _messageNotificationsEnabled = value;
-                                  });
-                                  await _saveSettings();
-                                  // 更新消息通知设置
-                                },
-                              ),
+                            // 消息通知
+                            _buildNeonSwitchItem(
+                              icon: Icons.message,
+                              iconColor: AppTheme.neonGreen,
+                              title: '消息通知',
+                              subtitle: '接收新消息提醒',
+                              value: _messageNotificationsEnabled,
+                              onChanged: (value) async {
+                                setState(() {
+                                  _messageNotificationsEnabled = value;
+                                });
+                                await _saveSettings();
+                                // 更新消息通知设置
+                              },
+                            ),
 
-                              const SizedBox(height: 16),
+                            const SizedBox(height: 16),
 
-                              // 活动通知
-                              _buildNeonSwitchItem(
-                                icon: Icons.event_note,
-                                iconColor: AppTheme.neonOrange,
-                                title: '活动通知',
-                                subtitle: '接收活动和行程相关提醒',
-                                value: _activityNotificationsEnabled,
-                                onChanged: (value) async {
-                                  setState(() {
-                                    _activityNotificationsEnabled = value;
-                                  });
-                                  await _saveSettings();
-                                  // 更新活动通知设置
-                                },
-                              ),
-                            ],
+                            // 活动通知
+                            _buildNeonSwitchItem(
+                              icon: Icons.event_note,
+                              iconColor: AppTheme.neonOrange,
+                              title: '活动通知',
+                              subtitle: '接收活动和行程相关提醒',
+                              value: _activityNotificationsEnabled,
+                              onChanged: (value) async {
+                                setState(() {
+                                  _activityNotificationsEnabled = value;
+                                });
+                                await _saveSettings();
+                                // 更新活动通知设置
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -709,36 +813,45 @@ class _SettingsScreenState extends State<SettingsScreen>
                       const SizedBox(height: 24.0),
 
                       // 完成按钮
-                      InkWell(
-                        onTap: () => Navigator.of(context).pop(),
-                        borderRadius: BorderRadius.circular(30),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [AppTheme.neonBlue, AppTheme.neonPurple],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.of(context).pop(),
+                          borderRadius: BorderRadius.circular(30),
+                          splashColor: AppTheme.neonBlue.withOpacity(0.3),
+                          highlightColor: AppTheme.neonBlue.withOpacity(0.1),
+                          child: Container(
+                            margin: EdgeInsets.symmetric(vertical: 8),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 16,
                             ),
-                            borderRadius: BorderRadius.circular(30),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.neonBlue.withOpacity(0.4),
-                                blurRadius: 8,
-                                spreadRadius: 1,
-                                offset: const Offset(0, 2),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppTheme.neonBlue,
+                                  AppTheme.neonPurple,
+                                ],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
                               ),
-                            ],
-                          ),
-                          child: Text(
-                            '完成',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.neonBlue.withOpacity(0.4),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              '完成',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
                             ),
                           ),
                         ),
@@ -793,61 +906,100 @@ class _SettingsScreenState extends State<SettingsScreen>
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: iconColor.withOpacity(0.2),
-                blurRadius: 6,
-                spreadRadius: 1,
+    return GestureDetector(
+      onTap: () {
+        onChanged(!value); // 点击整行时切换开关
+      },
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: iconColor.withOpacity(0.2),
+                    blurRadius: 6,
+                    spreadRadius: 1,
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Center(child: Icon(icon, color: iconColor, size: 22)),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  color: AppTheme.primaryTextColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+              child: Center(child: Icon(icon, color: iconColor, size: 22)),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: AppTheme.primaryTextColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: AppTheme.secondaryTextColor,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // 使用Material包裹的自定义开关按钮
+            GestureDetector(
+              onTap: () {
+                onChanged(!value); // 直接点击开关时切换
+              },
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  width: 50,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    color:
+                        value
+                            ? iconColor.withOpacity(0.7)
+                            : Colors.grey.withOpacity(0.3),
+                  ),
+                  child: Stack(
+                    children: [
+                      AnimatedPositioned(
+                        duration: Duration(milliseconds: 200),
+                        curve: Curves.easeInOut,
+                        left: value ? 20 : 0,
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                                spreadRadius: 0.5,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  color: AppTheme.secondaryTextColor,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-        // 使用标准的Switch替代自定义开关
-        Switch(
-          value: value,
-          onChanged: (value) async {
-            onChanged(value);
-            await _saveSettings(); // 保存设置
-            _applySettings(); // 应用设置
-          },
-          activeColor: Colors.white,
-          activeTrackColor: iconColor.withOpacity(0.7),
-          inactiveThumbColor: Colors.white,
-          inactiveTrackColor: Colors.grey.withOpacity(0.3),
-        ),
-      ],
+      ),
     );
   }
 
@@ -956,89 +1108,92 @@ class _SettingsScreenState extends State<SettingsScreen>
                               _languageOptions.map((language) {
                                 final isSelected =
                                     language == _selectedLanguage;
-                                return InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedLanguage = language;
-                                    });
-                                    Navigator.pop(context);
-                                  },
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: 12,
-                                      horizontal: 16,
-                                    ),
-                                    margin: EdgeInsets.symmetric(vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          isSelected
-                                              ? AppTheme.neonOrange.withOpacity(
-                                                0.15,
-                                              )
-                                              : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
+                                return Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedLanguage = language;
+                                      });
+                                      Navigator.pop(context);
+                                    },
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 12,
+                                        horizontal: 16,
+                                      ),
+                                      margin: EdgeInsets.symmetric(vertical: 4),
+                                      decoration: BoxDecoration(
                                         color:
                                             isSelected
                                                 ? AppTheme.neonOrange
-                                                    .withOpacity(0.5)
+                                                    .withOpacity(0.15)
                                                 : Colors.transparent,
-                                        width: 1,
-                                      ),
-                                      boxShadow:
-                                          isSelected
-                                              ? [
-                                                BoxShadow(
-                                                  color: AppTheme.neonOrange
-                                                      .withOpacity(0.2),
-                                                  blurRadius: 8,
-                                                  spreadRadius: 1,
-                                                ),
-                                              ]
-                                              : [],
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          padding: EdgeInsets.all(8),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                isSelected
-                                                    ? AppTheme.neonOrange
-                                                        .withOpacity(0.2)
-                                                    : AppTheme.cardColor
-                                                        .withOpacity(0.3),
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: Icon(
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color:
+                                              isSelected
+                                                  ? AppTheme.neonOrange
+                                                      .withOpacity(0.5)
+                                                  : Colors.transparent,
+                                          width: 1,
+                                        ),
+                                        boxShadow:
                                             isSelected
-                                                ? Icons.check_circle
-                                                : Icons.language,
-                                            color:
-                                                isSelected
-                                                    ? AppTheme.neonOrange
-                                                    : AppTheme
-                                                        .secondaryTextColor,
-                                            size: 20,
+                                                ? [
+                                                  BoxShadow(
+                                                    color: AppTheme.neonOrange
+                                                        .withOpacity(0.2),
+                                                    blurRadius: 8,
+                                                    spreadRadius: 1,
+                                                  ),
+                                                ]
+                                                : [],
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            padding: EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  isSelected
+                                                      ? AppTheme.neonOrange
+                                                          .withOpacity(0.2)
+                                                      : AppTheme.cardColor
+                                                          .withOpacity(0.3),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              isSelected
+                                                  ? Icons.check_circle
+                                                  : Icons.language,
+                                              color:
+                                                  isSelected
+                                                      ? AppTheme.neonOrange
+                                                      : AppTheme
+                                                          .secondaryTextColor,
+                                              size: 20,
+                                            ),
                                           ),
-                                        ),
-                                        const SizedBox(width: 16),
-                                        Text(
-                                          language,
-                                          style: TextStyle(
-                                            color:
-                                                isSelected
-                                                    ? AppTheme.neonOrange
-                                                    : AppTheme.primaryTextColor,
-                                            fontSize: 16,
-                                            fontWeight:
-                                                isSelected
-                                                    ? FontWeight.w600
-                                                    : FontWeight.normal,
+                                          const SizedBox(width: 16),
+                                          Text(
+                                            language,
+                                            style: TextStyle(
+                                              color:
+                                                  isSelected
+                                                      ? AppTheme.neonOrange
+                                                      : AppTheme
+                                                          .primaryTextColor,
+                                              fontSize: 16,
+                                              fontWeight:
+                                                  isSelected
+                                                      ? FontWeight.w600
+                                                      : FontWeight.normal,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 );
@@ -1049,39 +1204,44 @@ class _SettingsScreenState extends State<SettingsScreen>
                       const SizedBox(height: 24.0),
 
                       // 完成按钮
-                      InkWell(
-                        onTap: () => Navigator.of(context).pop(),
-                        borderRadius: BorderRadius.circular(30),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppTheme.neonOrange,
-                                AppTheme.neonYellow,
-                              ],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.of(context).pop(),
+                          borderRadius: BorderRadius.circular(30),
+                          splashColor: AppTheme.neonOrange.withOpacity(0.3),
+                          highlightColor: AppTheme.neonOrange.withOpacity(0.1),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 12,
                             ),
-                            borderRadius: BorderRadius.circular(30),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.neonOrange.withOpacity(0.4),
-                                blurRadius: 8,
-                                spreadRadius: 1,
-                                offset: const Offset(0, 2),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppTheme.neonOrange,
+                                  AppTheme.neonYellow,
+                                ],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
                               ),
-                            ],
-                          ),
-                          child: Text(
-                            '完成',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.neonOrange.withOpacity(0.4),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              '完成',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
                             ),
                           ),
                         ),
@@ -1311,36 +1471,45 @@ class _SettingsScreenState extends State<SettingsScreen>
                       const SizedBox(height: 24.0),
 
                       // 完成按钮
-                      InkWell(
-                        onTap: () => Navigator.of(context).pop(),
-                        borderRadius: BorderRadius.circular(30),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [AppTheme.neonPink, AppTheme.neonPurple],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.of(context).pop(),
+                          borderRadius: BorderRadius.circular(30),
+                          splashColor: AppTheme.neonPink.withOpacity(0.3),
+                          highlightColor: AppTheme.neonPink.withOpacity(0.1),
+                          child: Container(
+                            margin: EdgeInsets.symmetric(vertical: 8),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 16,
                             ),
-                            borderRadius: BorderRadius.circular(30),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.neonPink.withOpacity(0.4),
-                                blurRadius: 8,
-                                spreadRadius: 1,
-                                offset: const Offset(0, 2),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppTheme.neonPink,
+                                  AppTheme.neonPurple,
+                                ],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
                               ),
-                            ],
-                          ),
-                          child: Text(
-                            '完成',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.neonPink.withOpacity(0.4),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              '完成',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
                             ),
                           ),
                         ),
@@ -1443,24 +1612,29 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   // 构建社交媒体按钮
   Widget _buildSocialButton(IconData icon, Color color) {
-    return InkWell(
-      onTap: () {},
-      borderRadius: BorderRadius.circular(30),
-      child: Container(
-        width: 46,
-        height: 46,
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.15),
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.2),
-              blurRadius: 8,
-              spreadRadius: 1,
-            ),
-          ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {},
+        borderRadius: BorderRadius.circular(30),
+        splashColor: color.withOpacity(0.2),
+        highlightColor: color.withOpacity(0.1),
+        child: Container(
+          width: 46,
+          height: 46,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.15),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.2),
+                blurRadius: 8,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: Icon(icon, color: color, size: 24),
         ),
-        child: Icon(icon, color: color, size: 24),
       ),
     );
   }
@@ -1630,24 +1804,30 @@ class _SettingsScreenState extends State<SettingsScreen>
                     const SizedBox(height: 30.0),
 
                     // 关闭按钮
-                    InkWell(
-                      onTap: () => Navigator.of(context).pop(),
-                      borderRadius: BorderRadius.circular(20.0),
-                      child: Container(
-                        width: 45,
-                        height: 45,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.transparent,
-                          border: Border.all(
-                            color: AppTheme.neonTeal.withOpacity(0.4),
-                            width: 1.5,
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => Navigator.of(context).pop(),
+                        borderRadius: BorderRadius.circular(22.5),
+                        splashColor: AppTheme.neonBlue.withOpacity(0.2),
+                        highlightColor: AppTheme.neonBlue.withOpacity(0.1),
+                        child: Container(
+                          width: 45,
+                          height: 45,
+                          margin: EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.transparent,
+                            border: Border.all(
+                              color: AppTheme.neonBlue.withOpacity(0.4),
+                              width: 1.5,
+                            ),
                           ),
-                        ),
-                        child: Icon(
-                          Icons.close_rounded,
-                          color: AppTheme.neonTeal.withOpacity(0.9),
-                          size: 24,
+                          child: Icon(
+                            Icons.close_rounded,
+                            color: AppTheme.neonBlue.withOpacity(0.9),
+                            size: 24,
+                          ),
                         ),
                       ),
                     ),
@@ -1665,14 +1845,14 @@ class _SettingsScreenState extends State<SettingsScreen>
                     padding: const EdgeInsets.all(15.0),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [AppTheme.neonTeal, AppTheme.neonBlue],
+                        colors: [AppTheme.neonGreen, AppTheme.neonBlue],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.neonTeal.withOpacity(0.5),
+                          color: AppTheme.neonGreen.withOpacity(0.5),
                           blurRadius: 12,
                           spreadRadius: 3,
                         ),
@@ -1758,23 +1938,29 @@ class _SettingsScreenState extends State<SettingsScreen>
               style: TextStyle(color: AppTheme.secondaryTextColor),
             ),
             actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  '取消',
-                  style: TextStyle(color: AppTheme.secondaryTextColor),
+              Material(
+                color: Colors.transparent,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    '取消',
+                    style: TextStyle(color: AppTheme.secondaryTextColor),
+                  ),
                 ),
               ),
-              TextButton(
-                onPressed: () {
-                  // 执行退出登录操作
-                  Navigator.pop(context);
-                  // 实际的退出登录逻辑
-                  // 清除用户会话、重定向到登录页面等
-                },
-                child: Text('确定', style: TextStyle(color: AppTheme.neonBlue)),
+              Material(
+                color: Colors.transparent,
+                child: TextButton(
+                  onPressed: () {
+                    // 执行退出登录操作
+                    Navigator.pop(context);
+                    // 实际的退出登录逻辑
+                    // 清除用户会话、重定向到登录页面等
+                  },
+                  child: Text('确定', style: TextStyle(color: AppTheme.neonBlue)),
+                ),
               ),
             ],
           ),
@@ -1792,8 +1978,10 @@ class _SettingsScreenState extends State<SettingsScreen>
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      splashColor: iconColor.withOpacity(0.1),
+      highlightColor: iconColor.withOpacity(0.05),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
         child: Row(
           children: [
             Container(
@@ -1835,21 +2023,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ],
               ),
             ),
-            // 箭头图标
-            Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.arrow_forward_ios,
-                  color: iconColor.withOpacity(0.7),
-                  size: 14,
-                ),
-              ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: AppTheme.secondaryTextColor.withOpacity(0.7),
+              size: 16,
             ),
           ],
         ),
@@ -1895,36 +2072,45 @@ class _SettingsScreenState extends State<SettingsScreen>
               style: TextStyle(color: AppTheme.secondaryTextColor),
             ),
             actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  '取消',
-                  style: TextStyle(color: AppTheme.secondaryTextColor),
+              Material(
+                color: Colors.transparent,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    '取消',
+                    style: TextStyle(color: AppTheme.secondaryTextColor),
+                  ),
                 ),
               ),
-              TextButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  // 显示加载指示器
-                  _showLoadingDialog(context);
+              Material(
+                color: Colors.transparent,
+                child: TextButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    // 显示加载指示器
+                    _showLoadingDialog(context);
 
-                  // 执行实际的缓存清理
-                  try {
-                    await _clearCache();
-                    // 关闭加载指示器
-                    Navigator.pop(context);
-                    // 显示成功提示
-                    _showCacheSuccessSnackbar();
-                  } catch (e) {
-                    // 关闭加载指示器
-                    Navigator.pop(context);
-                    // 显示错误提示
-                    _showErrorSnackbar('清除缓存失败: ${e.toString()}');
-                  }
-                },
-                child: Text('确定', style: TextStyle(color: AppTheme.neonGreen)),
+                    // 执行实际的缓存清理
+                    try {
+                      await _clearCache();
+                      // 关闭加载指示器
+                      Navigator.pop(context);
+                      // 显示成功提示
+                      _showCacheSuccessSnackbar();
+                    } catch (e) {
+                      // 关闭加载指示器
+                      Navigator.pop(context);
+                      // 显示错误提示
+                      _showErrorSnackbar('清除缓存失败: ${e.toString()}');
+                    }
+                  },
+                  child: Text(
+                    '确定',
+                    style: TextStyle(color: AppTheme.neonGreen),
+                  ),
+                ),
               ),
             ],
           ),
@@ -2120,12 +2306,13 @@ class _SettingsScreenState extends State<SettingsScreen>
                     const SizedBox(height: 30.0),
 
                     // 按钮
-                    InkWell(
+                    GestureDetector(
                       onTap: () => Navigator.of(context).pop(),
-                      borderRadius: BorderRadius.circular(20.0),
+                      behavior: HitTestBehavior.opaque,
                       child: Container(
                         width: 45,
                         height: 45,
+                        margin: EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.transparent,
@@ -2352,24 +2539,30 @@ class _SettingsScreenState extends State<SettingsScreen>
                     const SizedBox(height: 30.0),
 
                     // 关闭按钮
-                    InkWell(
-                      onTap: () => Navigator.of(context).pop(),
-                      borderRadius: BorderRadius.circular(20.0),
-                      child: Container(
-                        width: 45,
-                        height: 45,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.transparent,
-                          border: Border.all(
-                            color: AppTheme.neonBlue.withOpacity(0.4),
-                            width: 1.5,
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => Navigator.of(context).pop(),
+                        borderRadius: BorderRadius.circular(22.5),
+                        splashColor: AppTheme.neonBlue.withOpacity(0.2),
+                        highlightColor: AppTheme.neonBlue.withOpacity(0.1),
+                        child: Container(
+                          width: 45,
+                          height: 45,
+                          margin: EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.transparent,
+                            border: Border.all(
+                              color: AppTheme.neonBlue.withOpacity(0.4),
+                              width: 1.5,
+                            ),
                           ),
-                        ),
-                        child: Icon(
-                          Icons.close_rounded,
-                          color: AppTheme.neonBlue.withOpacity(0.9),
-                          size: 24,
+                          child: Icon(
+                            Icons.close_rounded,
+                            color: AppTheme.neonBlue.withOpacity(0.9),
+                            size: 24,
+                          ),
                         ),
                       ),
                     ),
