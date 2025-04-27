@@ -1742,46 +1742,27 @@ class _ProfileTabState extends State<_ProfileTab>
                     const SizedBox(height: 30.0),
 
                     // 按钮
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.of(context).pop();
-                        },
-                        borderRadius: BorderRadius.circular(50),
-                        splashColor: AppTheme.neonBlue.withOpacity(0.2),
-                        child: Ink(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppTheme.neonBlue.withOpacity(0.6),
-                                AppTheme.neonPurple.withOpacity(0.6),
-                              ],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
-                            borderRadius: BorderRadius.circular(50),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.neonBlue.withOpacity(0.2),
-                                blurRadius: 8,
-                                spreadRadius: 1,
-                                offset: const Offset(0, 2),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10.0),
+                      child: Center(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => Navigator.of(context).pop(),
+                            borderRadius: BorderRadius.circular(30.0),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 30.0,
+                                vertical: 14.0,
                               ),
-                            ],
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 30.0,
-                              vertical: 14.0,
-                            ),
-                            child: Text(
-                              "关闭",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 1,
+                              child: Text(
+                                "关闭",
+                                style: TextStyle(
+                                  color: AppTheme.primaryTextColor,
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 1,
+                                ),
                               ),
                             ),
                           ),
@@ -2136,46 +2117,27 @@ class _ProfileTabState extends State<_ProfileTab>
                     const SizedBox(height: 30.0),
 
                     // 按钮
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.of(context).pop();
-                        },
-                        borderRadius: BorderRadius.circular(50),
-                        splashColor: AppTheme.neonPurple.withOpacity(0.2),
-                        child: Ink(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppTheme.neonPurple.withOpacity(0.6),
-                                AppTheme.neonBlue.withOpacity(0.6),
-                              ],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
-                            borderRadius: BorderRadius.circular(50),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.neonPurple.withOpacity(0.2),
-                                blurRadius: 8,
-                                spreadRadius: 1,
-                                offset: const Offset(0, 2),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10.0),
+                      child: Center(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => Navigator.of(context).pop(),
+                            borderRadius: BorderRadius.circular(30.0),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 30.0,
+                                vertical: 14.0,
                               ),
-                            ],
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 30.0,
-                              vertical: 14.0,
-                            ),
-                            child: Text(
-                              "关闭",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 1,
+                              child: Text(
+                                "关闭",
+                                style: TextStyle(
+                                  color: AppTheme.primaryTextColor,
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 1,
+                                ),
                               ),
                             ),
                           ),
