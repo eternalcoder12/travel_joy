@@ -1754,8 +1754,8 @@ class _ProfileTabState extends State<_ProfileTab>
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                AppTheme.neonBlue.withOpacity(0.8),
-                                AppTheme.neonPurple.withOpacity(0.8),
+                                AppTheme.neonBlue.withOpacity(0.6),
+                                AppTheme.neonPurple.withOpacity(0.6),
                               ],
                               begin: Alignment.centerLeft,
                               end: Alignment.centerRight,
@@ -1763,7 +1763,7 @@ class _ProfileTabState extends State<_ProfileTab>
                             borderRadius: BorderRadius.circular(50),
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.neonBlue.withOpacity(0.3),
+                                color: AppTheme.neonBlue.withOpacity(0.2),
                                 blurRadius: 8,
                                 spreadRadius: 1,
                                 offset: const Offset(0, 2),
@@ -2148,8 +2148,8 @@ class _ProfileTabState extends State<_ProfileTab>
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                AppTheme.neonPurple.withOpacity(0.8),
-                                AppTheme.neonBlue.withOpacity(0.8),
+                                AppTheme.neonPurple.withOpacity(0.6),
+                                AppTheme.neonBlue.withOpacity(0.6),
                               ],
                               begin: Alignment.centerLeft,
                               end: Alignment.centerRight,
@@ -2157,7 +2157,7 @@ class _ProfileTabState extends State<_ProfileTab>
                             borderRadius: BorderRadius.circular(50),
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.neonPurple.withOpacity(0.3),
+                                color: AppTheme.neonPurple.withOpacity(0.2),
                                 blurRadius: 8,
                                 spreadRadius: 1,
                                 offset: const Offset(0, 2),
