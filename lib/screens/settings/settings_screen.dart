@@ -473,217 +473,201 @@ class _SettingsScreenState extends State<SettingsScreen>
 
               _buildDivider(),
 
-              // 语言和主题选择（左右布局）
+              // 语言选择 - 上下布局
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+                padding: const EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 12,
+                  bottom: 4,
                 ),
                 child: Row(
                   children: [
-                    // 左侧：语言选择
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // 语言标题
-                          Row(
-                            children: [
-                              Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: AppTheme.neonOrange.withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Center(
-                                  child: Icon(
-                                    Icons.language,
-                                    color: AppTheme.neonOrange,
-                                    size: 20,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                '语言',
-                                style: TextStyle(
-                                  color: AppTheme.primaryTextColor,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          // 语言选项
-                          SizedBox(
-                            height: 40,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: _languageOptions.length,
-                              itemBuilder: (context, index) {
-                                final language = _languageOptions[index];
-                                final isSelected =
-                                    language == _selectedLanguage;
-
-                                return GestureDetector(
-                                  onTap: () async {
-                                    setState(() {
-                                      _selectedLanguage = language;
-                                    });
-                                    await _saveSettings();
-                                    _showStatusToast(
-                                      '语言已设置为: $_selectedLanguage',
-                                    );
-                                  },
-                                  child: Container(
-                                    margin: EdgeInsets.only(right: 8),
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          isSelected
-                                              ? AppTheme.neonOrange.withOpacity(
-                                                0.2,
-                                              )
-                                              : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color:
-                                            isSelected
-                                                ? AppTheme.neonOrange
-                                                : AppTheme.secondaryTextColor
-                                                    .withOpacity(0.3),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      language,
-                                      style: TextStyle(
-                                        color:
-                                            isSelected
-                                                ? AppTheme.neonOrange
-                                                : AppTheme.primaryTextColor,
-                                        fontSize: 14,
-                                        fontWeight:
-                                            isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppTheme.neonOrange.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.language,
+                          color: AppTheme.neonOrange,
+                          size: 20,
+                        ),
                       ),
                     ),
-
-                    SizedBox(width: 10),
-
-                    // 右侧：主题选择
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // 主题标题
-                          Row(
-                            children: [
-                              Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: AppTheme.neonPurple.withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Center(
-                                  child: Icon(
-                                    Icons.palette,
-                                    color: AppTheme.neonPurple,
-                                    size: 20,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                '主题',
-                                style: TextStyle(
-                                  color: AppTheme.primaryTextColor,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          // 主题选项
-                          SizedBox(
-                            height: 40,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: _themeOptions.length,
-                              itemBuilder: (context, index) {
-                                final theme = _themeOptions[index];
-                                final isSelected = theme == _selectedTheme;
-
-                                return GestureDetector(
-                                  onTap: () async {
-                                    setState(() {
-                                      _selectedTheme = theme;
-                                    });
-                                    await _saveSettings();
-                                    _showStatusToast('主题已设置为: $_selectedTheme');
-                                  },
-                                  child: Container(
-                                    margin: EdgeInsets.only(right: 8),
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          isSelected
-                                              ? AppTheme.neonPurple.withOpacity(
-                                                0.2,
-                                              )
-                                              : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color:
-                                            isSelected
-                                                ? AppTheme.neonPurple
-                                                : AppTheme.secondaryTextColor
-                                                    .withOpacity(0.3),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      theme,
-                                      style: TextStyle(
-                                        color:
-                                            isSelected
-                                                ? AppTheme.neonPurple
-                                                : AppTheme.primaryTextColor,
-                                        fontSize: 14,
-                                        fontWeight:
-                                            isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
+                    const SizedBox(width: 12),
+                    Text(
+                      '语言',
+                      style: TextStyle(
+                        color: AppTheme.primaryTextColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
+                ),
+              ),
+
+              // 语言选择器
+              Container(
+                height: 44,
+                padding: EdgeInsets.only(left: 16, right: 16, bottom: 4),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _languageOptions.length,
+                  itemBuilder: (context, index) {
+                    final language = _languageOptions[index];
+                    final isSelected = language == _selectedLanguage;
+
+                    return GestureDetector(
+                      onTap: () async {
+                        setState(() {
+                          _selectedLanguage = language;
+                        });
+                        await _saveSettings();
+                        _showStatusToast('语言已设置为: $_selectedLanguage');
+                      },
+                      child: Container(
+                        margin: EdgeInsets.only(right: 8),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              isSelected
+                                  ? AppTheme.neonOrange.withOpacity(0.2)
+                                  : Colors.transparent,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color:
+                                isSelected
+                                    ? AppTheme.neonOrange
+                                    : AppTheme.secondaryTextColor.withOpacity(
+                                      0.3,
+                                    ),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          language,
+                          style: TextStyle(
+                            color:
+                                isSelected
+                                    ? AppTheme.neonOrange
+                                    : AppTheme.primaryTextColor,
+                            fontSize: 14,
+                            fontWeight:
+                                isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              // 主题选择标题
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 12,
+                  bottom: 4,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppTheme.neonPurple.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.palette,
+                          color: AppTheme.neonPurple,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      '主题',
+                      style: TextStyle(
+                        color: AppTheme.primaryTextColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // 主题选择器
+              Container(
+                height: 44,
+                padding: EdgeInsets.only(left: 16, right: 16, bottom: 8),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _themeOptions.length,
+                  itemBuilder: (context, index) {
+                    final theme = _themeOptions[index];
+                    final isSelected = theme == _selectedTheme;
+
+                    return GestureDetector(
+                      onTap: () async {
+                        setState(() {
+                          _selectedTheme = theme;
+                        });
+                        await _saveSettings();
+                        _showStatusToast('主题已设置为: $_selectedTheme');
+                      },
+                      child: Container(
+                        margin: EdgeInsets.only(right: 8),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              isSelected
+                                  ? AppTheme.neonPurple.withOpacity(0.2)
+                                  : Colors.transparent,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color:
+                                isSelected
+                                    ? AppTheme.neonPurple
+                                    : AppTheme.secondaryTextColor.withOpacity(
+                                      0.3,
+                                    ),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          theme,
+                          style: TextStyle(
+                            color:
+                                isSelected
+                                    ? AppTheme.neonPurple
+                                    : AppTheme.primaryTextColor,
+                            fontSize: 14,
+                            fontWeight:
+                                isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
 
