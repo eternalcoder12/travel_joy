@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
-import '../../widgets/animated_item.dart';
 import 'dart:math' as math;
 
 class SettingsScreen extends StatefulWidget {
@@ -14,7 +13,9 @@ class _SettingsScreenState extends State<SettingsScreen>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   late AnimationController _contentAnimationController;
+  late AnimationController _backgroundAnimController;
   late Animation<double> _contentAnimation;
+  late Animation<double> _backgroundAnimation;
 
   // 设置选项
   final List<Map<String, dynamic>> _settingCategories = [
@@ -73,15 +74,29 @@ class _SettingsScreenState extends State<SettingsScreen>
       curve: Curves.easeOutCubic,
     );
 
-    // 立即启动动画，不要使用延迟
+    // 初始化背景动画控制器
+    _backgroundAnimController = AnimationController(
+      duration: const Duration(seconds: 10),
+      vsync: this,
+    );
+
+    // 初始化背景动画
+    _backgroundAnimation = CurvedAnimation(
+      parent: _backgroundAnimController,
+      curve: Curves.easeInOut,
+    );
+
+    // 启动动画
     _animationController.forward();
     _contentAnimationController.forward();
+    _backgroundAnimController.repeat(reverse: true);
   }
 
   @override
   void dispose() {
     _animationController.dispose();
     _contentAnimationController.dispose();
+    _backgroundAnimController.dispose();
     super.dispose();
   }
 
@@ -89,34 +104,109 @@ class _SettingsScreenState extends State<SettingsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // 顶部导航栏
-            _buildAppBar(),
+      body: Stack(
+        children: [
+          // 背景霓虹效果
+          _buildAnimatedBackground(),
 
-            // 滚动内容
-            Expanded(
-              child: FadeTransition(
-                opacity: _contentAnimation,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, 0.05),
-                    end: Offset.zero,
-                  ).animate(_contentAnimation),
-                  child: ListView.builder(
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: _settingCategories.length,
-                    itemBuilder: (context, index) {
-                      return _buildSettingCategory(_settingCategories[index]);
-                    },
+          // 内容
+          SafeArea(
+            child: Column(
+              children: [
+                // 顶部导航栏
+                _buildAppBar(),
+
+                // 滚动内容
+                Expanded(
+                  child: FadeTransition(
+                    opacity: _contentAnimation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, 0.05),
+                        end: Offset.zero,
+                      ).animate(_contentAnimation),
+                      child: ListView(
+                        physics: const BouncingScrollPhysics(),
+                        children: [
+                          ..._settingCategories.map(
+                            (category) => _buildSettingCategory(category),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedBackground() {
+    return AnimatedBuilder(
+      animation: _backgroundAnimation,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            // 基础背景
+            Container(
+              decoration: BoxDecoration(color: AppTheme.backgroundColor),
+            ),
+
+            // 动态光晕效果1
+            Positioned(
+              left:
+                  MediaQuery.of(context).size.width *
+                  (0.3 + 0.1 * math.sin(_backgroundAnimation.value * math.pi)),
+              top:
+                  MediaQuery.of(context).size.height *
+                  (0.2 + 0.05 * math.cos(_backgroundAnimation.value * math.pi)),
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: MediaQuery.of(context).size.width * 0.8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppTheme.neonBlue.withOpacity(0.2),
+                      AppTheme.neonBlue.withOpacity(0.05),
+                      Colors.transparent,
+                    ],
+                    stops: const [0.0, 0.5, 1.0],
+                  ),
+                ),
+              ),
+            ),
+
+            // 动态光晕效果2
+            Positioned(
+              right:
+                  MediaQuery.of(context).size.width *
+                  (0.1 + 0.1 * math.cos(_backgroundAnimation.value * math.pi)),
+              bottom:
+                  MediaQuery.of(context).size.height *
+                  (0.1 + 0.05 * math.sin(_backgroundAnimation.value * math.pi)),
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.7,
+                height: MediaQuery.of(context).size.width * 0.7,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppTheme.neonPurple.withOpacity(0.2),
+                      AppTheme.neonPurple.withOpacity(0.05),
+                      Colors.transparent,
+                    ],
+                    stops: const [0.0, 0.5, 1.0],
                   ),
                 ),
               ),
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -132,6 +222,8 @@ class _SettingsScreenState extends State<SettingsScreen>
               color: AppTheme.neonBlue,
               size: 22,
             ),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
             onPressed: () => Navigator.of(context).pop(),
           ),
 
@@ -149,7 +241,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           ),
 
           // 保持对称
-          SizedBox(width: 48),
+          SizedBox(width: 22),
         ],
       ),
     );
@@ -161,7 +253,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       children: [
         // 分类标题
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 6),
           child: Row(
             children: [
               Icon(category['icon'], color: category['color'], size: 22),
@@ -179,7 +271,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
 
         // 分割线
-        Divider(color: Colors.white.withOpacity(0.08), thickness: 0.8),
+        Divider(color: Colors.white.withOpacity(0.06), thickness: 1, height: 1),
 
         // 设置项
         ...List.generate(category['items'].length, (index) {
@@ -192,21 +284,21 @@ class _SettingsScreenState extends State<SettingsScreen>
                 0.0,
                 math.min(
                   1.0,
-                  (_contentAnimationController.value - (0.1 * index)) / 0.6,
+                  (_contentAnimationController.value - (0.05 * index)) / 0.5,
                 ),
               );
 
               return FadeTransition(
                 opacity: AlwaysStoppedAnimation(delayedProgress),
-                child: Transform.translate(
-                  offset: Offset(0, 20 * (1 - delayedProgress)),
-                  child: child,
-                ),
+                child: child,
               );
             },
             child: _buildSettingItem(category['items'][index]),
           );
         }),
+
+        // 分类底部间距
+        const SizedBox(height: 8),
       ],
     );
   }
@@ -226,7 +318,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         activeColor: Colors.white,
         activeTrackColor: AppTheme.buttonColor,
         inactiveThumbColor: Colors.white,
-        inactiveTrackColor: Colors.grey.withOpacity(0.5),
+        inactiveTrackColor: Colors.grey.withOpacity(0.3),
       );
     } else if (item['title'] == '外观') {
       trailing = Switch(
@@ -239,7 +331,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         activeColor: Colors.white,
         activeTrackColor: AppTheme.buttonColor,
         inactiveThumbColor: Colors.white,
-        inactiveTrackColor: Colors.grey.withOpacity(0.5),
+        inactiveTrackColor: Colors.grey.withOpacity(0.3),
       );
     } else if (item['title'] == '语言') {
       trailing = Text(
@@ -249,8 +341,8 @@ class _SettingsScreenState extends State<SettingsScreen>
     } else {
       trailing = Icon(
         Icons.chevron_right,
-        color: AppTheme.secondaryTextColor,
-        size: 20,
+        color: AppTheme.secondaryTextColor.withOpacity(0.7),
+        size: 18,
       );
     }
 
@@ -273,12 +365,12 @@ class _SettingsScreenState extends State<SettingsScreen>
         // 其他设置项跳转到相应页面
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         child: Row(
           children: [
             // 图标
-            Icon(item['icon'], color: AppTheme.secondaryTextColor, size: 22),
-            const SizedBox(width: 16),
+            Icon(item['icon'], color: AppTheme.secondaryTextColor, size: 20),
+            const SizedBox(width: 12),
 
             // 标题
             Expanded(
