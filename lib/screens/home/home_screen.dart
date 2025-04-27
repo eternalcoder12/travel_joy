@@ -2399,24 +2399,6 @@ class _ProfileTabState extends State<_ProfileTab>
               MaterialPageRoute(builder: (context) => const SettingsScreen()),
             ),
       },
-      {
-        'icon': Icons.help_outline_rounded,
-        'title': '帮助与反馈',
-        'color': AppTheme.neonOrange,
-        'action': () => _showHelpAndFeedbackDialog(context), // 修改为显示帮助与反馈弹窗
-      },
-      {
-        'icon': Icons.info_outline_rounded,
-        'title': '关于我们',
-        'color': AppTheme.neonGreen,
-        'action': () => _showAboutUsDialog(context), // 修改为显示关于我们弹窗
-      },
-      {
-        'icon': Icons.logout_rounded,
-        'title': '退出登录',
-        'color': AppTheme.errorColor,
-        'action': () => print('退出登录操作'),
-      },
     ];
 
     return ListView(
