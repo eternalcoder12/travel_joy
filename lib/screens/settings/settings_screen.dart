@@ -426,6 +426,15 @@ class _SettingsScreenState extends State<SettingsScreen>
             ),
             _buildDivider(),
             _buildMenuItem(
+              icon: Icons.settings,
+              iconColor: AppTheme.neonTeal,
+              title: '快速设置(优化版)',
+              onTap: () {
+                _showSettingsDialogWithStatefulBuilder();
+              },
+            ),
+            _buildDivider(),
+            _buildMenuItem(
               icon: Icons.language,
               iconColor: AppTheme.neonOrange,
               title: '语言',
@@ -2623,6 +2632,366 @@ class _SettingsScreenState extends State<SettingsScreen>
         duration: Duration(seconds: 3),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
+    );
+  }
+
+  // 添加一个使用StatefulBuilder的示例对话框方法
+  void _showSettingsDialogWithStatefulBuilder() {
+    bool tempNotificationsEnabled = _notificationsEnabled;
+    bool tempDarkModeEnabled = _darkModeEnabled;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.6),
+      builder: (BuildContext dialogContext) {
+        // 使用StatefulBuilder来管理对话框内部状态
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              insetPadding: EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 24.0,
+              ),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // 主容器
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.85,
+                    padding: const EdgeInsets.fromLTRB(24.0, 60.0, 24.0, 24.0),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppTheme.cardColor.withOpacity(0.95),
+                          AppTheme.backgroundColor.withOpacity(0.90),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(24.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.neonBlue.withOpacity(0.2),
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                      border: Border.all(
+                        color: AppTheme.neonBlue.withOpacity(0.2),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '快速设置',
+                          style: TextStyle(
+                            color: AppTheme.primaryTextColor,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Container(
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            color: AppTheme.cardColor.withOpacity(0.4),
+                            borderRadius: BorderRadius.circular(16.0),
+                            border: Border.all(
+                              color: AppTheme.neonBlue.withOpacity(0.2),
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              // 通知开关 - 使用局部setState更新UI
+                              Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      tempNotificationsEnabled =
+                                          !tempNotificationsEnabled;
+                                    });
+                                  },
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 12,
+                                      horizontal: 16,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.neonBlue
+                                                .withOpacity(0.15),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: AppTheme.neonBlue
+                                                    .withOpacity(0.2),
+                                                blurRadius: 6,
+                                                spreadRadius: 1,
+                                              ),
+                                            ],
+                                          ),
+                                          child: Center(
+                                            child: Icon(
+                                              Icons.notifications_active,
+                                              color: AppTheme.neonBlue,
+                                              size: 22,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '接收通知',
+                                                style: TextStyle(
+                                                  color:
+                                                      AppTheme.primaryTextColor,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              Text(
+                                                '开启或关闭所有通知',
+                                                style: TextStyle(
+                                                  color:
+                                                      AppTheme
+                                                          .secondaryTextColor,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Switch(
+                                          value: tempNotificationsEnabled,
+                                          onChanged: (value) {
+                                            // 使用StatefulBuilder的setState
+                                            setState(() {
+                                              tempNotificationsEnabled = value;
+                                            });
+                                          },
+                                          activeColor: AppTheme.neonBlue,
+                                          activeTrackColor: AppTheme.neonBlue
+                                              .withOpacity(0.5),
+                                          inactiveThumbColor: Colors.white,
+                                          inactiveTrackColor: Colors.grey
+                                              .withOpacity(0.3),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              Divider(
+                                color: AppTheme.secondaryTextColor.withOpacity(
+                                  0.15,
+                                ),
+                                thickness: 1,
+                                height: 24,
+                              ),
+
+                              // 深色模式开关 - 使用局部setState更新UI
+                              Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      tempDarkModeEnabled =
+                                          !tempDarkModeEnabled;
+                                    });
+                                  },
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 12,
+                                      horizontal: 16,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.neonPurple
+                                                .withOpacity(0.15),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: AppTheme.neonPurple
+                                                    .withOpacity(0.2),
+                                                blurRadius: 6,
+                                                spreadRadius: 1,
+                                              ),
+                                            ],
+                                          ),
+                                          child: Center(
+                                            child: Icon(
+                                              Icons.dark_mode,
+                                              color: AppTheme.neonPurple,
+                                              size: 22,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '深色模式',
+                                                style: TextStyle(
+                                                  color:
+                                                      AppTheme.primaryTextColor,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              Text(
+                                                '切换应用的显示模式',
+                                                style: TextStyle(
+                                                  color:
+                                                      AppTheme
+                                                          .secondaryTextColor,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Switch(
+                                          value: tempDarkModeEnabled,
+                                          onChanged: (value) {
+                                            // 使用StatefulBuilder的setState
+                                            setState(() {
+                                              tempDarkModeEnabled = value;
+                                            });
+                                          },
+                                          activeColor: AppTheme.neonPurple,
+                                          activeTrackColor: AppTheme.neonPurple
+                                              .withOpacity(0.5),
+                                          inactiveThumbColor: Colors.white,
+                                          inactiveTrackColor: Colors.grey
+                                              .withOpacity(0.3),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // 取消按钮
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: Text(
+                                '取消',
+                                style: TextStyle(
+                                  color: AppTheme.secondaryTextColor,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                            // 保存按钮
+                            ElevatedButton(
+                              onPressed: () async {
+                                // 将临时变量的值保存到实际设置
+                                this.setState(() {
+                                  _notificationsEnabled =
+                                      tempNotificationsEnabled;
+                                  _darkModeEnabled = tempDarkModeEnabled;
+                                });
+
+                                // 保存设置并应用更改
+                                await _saveSettings();
+                                _applySettings();
+
+                                // 关闭对话框
+                                Navigator.pop(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.neonBlue,
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text('保存'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // 顶部浮动图标
+                  Positioned(
+                    top: -30,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(15.0),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [AppTheme.neonBlue, AppTheme.neonPurple],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.neonBlue.withOpacity(0.5),
+                              blurRadius: 12,
+                              spreadRadius: 3,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.settings,
+                          color: Colors.white,
+                          size: 30,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
