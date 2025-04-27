@@ -15,6 +15,7 @@ import 'package:travel_joy/screens/achievement/achievement_screen.dart';
 import 'package:travel_joy/screens/activity/activity_screen.dart';
 import 'package:travel_joy/screens/collection/collection_screen.dart';
 import 'package:travel_joy/screens/profile/user_stats_screen.dart';
+import 'package:travel_joy/screens/settings/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -2392,7 +2393,11 @@ class _ProfileTabState extends State<_ProfileTab>
         'icon': Icons.settings_rounded,
         'title': '设置',
         'color': AppTheme.neonTeal,
-        'action': () => print('跳转到设置页面'),
+        'action':
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SettingsScreen()),
+            ),
       },
       {
         'icon': Icons.help_outline_rounded,
