@@ -353,103 +353,74 @@ class _SettingsScreenState extends State<SettingsScreen>
               },
             ),
             _buildDivider(),
-            GestureDetector(
-              onTap: () async {
-                setState(() {
-                  _darkModeEnabled = !_darkModeEnabled;
-                });
-                await _saveSettings();
-                _applySettings();
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: AppTheme.neonPurple.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.neonPurple.withOpacity(0.1),
-                            blurRadius: 4,
-                            spreadRadius: 0,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.dark_mode,
-                          color: AppTheme.neonPurple,
-                          size: 22,
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () async {
+                  setState(() {
+                    _darkModeEnabled = !_darkModeEnabled;
+                  });
+                  await _saveSettings();
+                  _applySettings();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: AppTheme.neonPurple.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.neonPurple.withOpacity(0.1),
+                              blurRadius: 4,
+                              spreadRadius: 0,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        '深色模式',
-                        style: TextStyle(
-                          color: AppTheme.primaryTextColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () async {
-                        setState(() {
-                          _darkModeEnabled = !_darkModeEnabled;
-                        });
-                        await _saveSettings();
-                        _applySettings();
-                      },
-                      child: Material(
-                        color: Colors.transparent,
-                        child: Container(
-                          width: 50,
-                          height: 30,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
-                            color:
-                                _darkModeEnabled
-                                    ? AppTheme.neonPurple.withOpacity(0.7)
-                                    : Colors.grey.withOpacity(0.3),
-                          ),
-                          child: Stack(
-                            children: [
-                              AnimatedPositioned(
-                                duration: Duration(milliseconds: 200),
-                                curve: Curves.easeInOut,
-                                left: _darkModeEnabled ? 20 : 0,
-                                child: Container(
-                                  width: 30,
-                                  height: 30,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.1),
-                                        blurRadius: 4,
-                                        spreadRadius: 0.5,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
+                        child: Center(
+                          child: Icon(
+                            Icons.dark_mode,
+                            color: AppTheme.neonPurple,
+                            size: 22,
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          '深色模式',
+                          style: TextStyle(
+                            color: AppTheme.primaryTextColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      // 使用标准Switch组件
+                      Switch(
+                        value: _darkModeEnabled,
+                        onChanged: (value) async {
+                          setState(() {
+                            _darkModeEnabled = value;
+                          });
+                          await _saveSettings();
+                          _applySettings();
+                        },
+                        activeColor: AppTheme.neonPurple,
+                        activeTrackColor: AppTheme.neonPurple.withOpacity(0.5),
+                        inactiveThumbColor: Colors.white,
+                        inactiveTrackColor: Colors.grey.withOpacity(0.3),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -906,98 +877,70 @@ class _SettingsScreenState extends State<SettingsScreen>
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    return GestureDetector(
-      onTap: () {
-        onChanged(!value); // 点击整行时切换开关
-      },
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: iconColor.withOpacity(0.2),
-                    blurRadius: 6,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: Center(child: Icon(icon, color: iconColor, size: 22)),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: AppTheme.primaryTextColor,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          onChanged(!value); // 点击整行时切换开关
+        },
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          child: Row(
+            children: [
+              // 图标容器
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: iconColor.withOpacity(0.2),
+                      blurRadius: 6,
+                      spreadRadius: 1,
                     ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: AppTheme.secondaryTextColor,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
+                child: Center(child: Icon(icon, color: iconColor, size: 22)),
               ),
-            ),
-            // 使用Material包裹的自定义开关按钮
-            GestureDetector(
-              onTap: () {
-                onChanged(!value); // 直接点击开关时切换
-              },
-              child: Material(
-                color: Colors.transparent,
-                child: Container(
-                  width: 50,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    color:
-                        value
-                            ? iconColor.withOpacity(0.7)
-                            : Colors.grey.withOpacity(0.3),
-                  ),
-                  child: Stack(
-                    children: [
-                      AnimatedPositioned(
-                        duration: Duration(milliseconds: 200),
-                        curve: Curves.easeInOut,
-                        left: value ? 20 : 0,
-                        child: Container(
-                          width: 30,
-                          height: 30,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 4,
-                                spreadRadius: 0.5,
-                              ),
-                            ],
-                          ),
-                        ),
+              const SizedBox(width: 16),
+
+              // 文本区域
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: AppTheme.primaryTextColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
                       ),
-                    ],
-                  ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: AppTheme.secondaryTextColor,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
+
+              // 使用Flutter标准Switch组件
+              Switch(
+                value: value,
+                onChanged: onChanged,
+                activeColor: iconColor,
+                activeTrackColor: iconColor.withOpacity(0.5),
+                inactiveThumbColor: Colors.white,
+                inactiveTrackColor: Colors.grey.withOpacity(0.3),
+              ),
+            ],
+          ),
         ),
       ),
     );
