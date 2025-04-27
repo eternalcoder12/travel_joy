@@ -2635,301 +2635,181 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  // 替换之前的_showSettingsDialogWithStatefulBuilder方法
+  // 将原来的_showSettingsDialogWithStatefulBuilder方法替换为更简单的实现
   void _showSettingsDialogWithStatefulBuilder() {
+    // 创建本地变量来跟踪状态
+    bool localNotificationsEnabled = _notificationsEnabled;
+    bool localDarkModeEnabled = _darkModeEnabled;
+
     showDialog(
       context: context,
       barrierDismissible: true,
       barrierColor: Colors.black.withOpacity(0.6),
       builder: (BuildContext context) {
-        // 使用完全独立的StatefulWidget管理对话框状态
-        return SettingsDialogWidget(
-          initialNotificationsEnabled: _notificationsEnabled,
-          initialDarkModeEnabled: _darkModeEnabled,
-          onSave: (notificationsEnabled, darkModeEnabled) async {
-            setState(() {
-              _notificationsEnabled = notificationsEnabled;
-              _darkModeEnabled = darkModeEnabled;
-            });
-            await _saveSettings();
-            _applySettings();
-          },
+        return AlertDialog(
+          backgroundColor: AppTheme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            '快速设置',
+            style: TextStyle(
+              color: AppTheme.primaryTextColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return Container(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 通知开关
+                    ListTile(
+                      leading: Icon(
+                        Icons.notifications_active,
+                        color: AppTheme.neonBlue,
+                      ),
+                      title: Text(
+                        '接收通知',
+                        style: TextStyle(color: AppTheme.primaryTextColor),
+                      ),
+                      trailing: CustomSwitch(
+                        value: localNotificationsEnabled,
+                        onChanged: (value) {
+                          setState(() {
+                            localNotificationsEnabled = value;
+                          });
+                        },
+                        activeColor: AppTheme.neonBlue,
+                      ),
+                      onTap: () {
+                        setState(() {
+                          localNotificationsEnabled =
+                              !localNotificationsEnabled;
+                        });
+                      },
+                    ),
+
+                    Divider(),
+
+                    // 深色模式开关
+                    ListTile(
+                      leading: Icon(
+                        Icons.dark_mode,
+                        color: AppTheme.neonPurple,
+                      ),
+                      title: Text(
+                        '深色模式',
+                        style: TextStyle(color: AppTheme.primaryTextColor),
+                      ),
+                      trailing: CustomSwitch(
+                        value: localDarkModeEnabled,
+                        onChanged: (value) {
+                          setState(() {
+                            localDarkModeEnabled = value;
+                          });
+                        },
+                        activeColor: AppTheme.neonPurple,
+                      ),
+                      onTap: () {
+                        setState(() {
+                          localDarkModeEnabled = !localDarkModeEnabled;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                '取消',
+                style: TextStyle(color: AppTheme.secondaryTextColor),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                // 把本地变量的值保存到实际设置
+                setState(() {
+                  _notificationsEnabled = localNotificationsEnabled;
+                  _darkModeEnabled = localDarkModeEnabled;
+                });
+                await _saveSettings();
+                _applySettings();
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.neonBlue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text('保存'),
+            ),
+          ],
         );
       },
     );
   }
 }
 
-// 添加一个新的独立StatefulWidget类来管理对话框
-class SettingsDialogWidget extends StatefulWidget {
-  final bool initialNotificationsEnabled;
-  final bool initialDarkModeEnabled;
-  final Function(bool notificationsEnabled, bool darkModeEnabled) onSave;
+// 在文件末尾添加自定义开关组件
+class CustomSwitch extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  final Color activeColor;
 
-  const SettingsDialogWidget({
+  const CustomSwitch({
     Key? key,
-    required this.initialNotificationsEnabled,
-    required this.initialDarkModeEnabled,
-    required this.onSave,
+    required this.value,
+    required this.onChanged,
+    required this.activeColor,
   }) : super(key: key);
 
   @override
-  _SettingsDialogWidgetState createState() => _SettingsDialogWidgetState();
-}
-
-class _SettingsDialogWidgetState extends State<SettingsDialogWidget> {
-  late bool notificationsEnabled;
-  late bool darkModeEnabled;
-
-  @override
-  void initState() {
-    super.initState();
-    // 初始化本地状态变量
-    notificationsEnabled = widget.initialNotificationsEnabled;
-    darkModeEnabled = widget.initialDarkModeEnabled;
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      insetPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // 主容器
-          Container(
-            width: MediaQuery.of(context).size.width * 0.85,
-            padding: const EdgeInsets.fromLTRB(24.0, 60.0, 24.0, 24.0),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppTheme.cardColor.withOpacity(0.95),
-                  AppTheme.backgroundColor.withOpacity(0.90),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(24.0),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.neonBlue.withOpacity(0.2),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-              border: Border.all(
-                color: AppTheme.neonBlue.withOpacity(0.2),
-                width: 1.5,
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '快速设置',
-                  style: TextStyle(
-                    color: AppTheme.primaryTextColor,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: AppTheme.cardColor.withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(16.0),
-                    border: Border.all(
-                      color: AppTheme.neonBlue.withOpacity(0.2),
-                      width: 1,
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      // 通知开关
-                      _buildSwitchItem(
-                        icon: Icons.notifications_active,
-                        iconColor: AppTheme.neonBlue,
-                        title: '接收通知',
-                        subtitle: '开启或关闭所有通知',
-                        value: notificationsEnabled,
-                        onChanged: (value) {
-                          setState(() {
-                            notificationsEnabled = value;
-                          });
-                        },
-                      ),
-
-                      Divider(
-                        color: AppTheme.secondaryTextColor.withOpacity(0.15),
-                        thickness: 1,
-                        height: 24,
-                      ),
-
-                      // 深色模式开关
-                      _buildSwitchItem(
-                        icon: Icons.dark_mode,
-                        iconColor: AppTheme.neonPurple,
-                        title: '深色模式',
-                        subtitle: '切换应用的显示模式',
-                        value: darkModeEnabled,
-                        onChanged: (value) {
-                          setState(() {
-                            darkModeEnabled = value;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // 取消按钮
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: Text(
-                        '取消',
-                        style: TextStyle(
-                          color: AppTheme.secondaryTextColor,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                    // 保存按钮
-                    ElevatedButton(
-                      onPressed: () {
-                        // 调用回调将最终值传递回父组件
-                        widget.onSave(notificationsEnabled, darkModeEnabled);
-                        // 关闭对话框
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.neonBlue,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text('保存'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // 顶部浮动图标
-          Positioned(
-            top: -30,
-            left: 0,
-            right: 0,
-            child: Center(
+    return GestureDetector(
+      onTap: () {
+        onChanged(!value);
+      },
+      child: Container(
+        width: 50,
+        height: 30,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          color: value ? activeColor : Colors.grey.shade300,
+        ),
+        child: Stack(
+          children: [
+            AnimatedPositioned(
+              duration: Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              left: value ? 22 : 2,
+              right: value ? 2 : 22,
+              top: 2,
+              bottom: 2,
               child: Container(
-                padding: const EdgeInsets.all(15.0),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppTheme.neonBlue, AppTheme.neonPurple],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
                   shape: BoxShape.circle,
+                  color: Colors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.neonBlue.withOpacity(0.5),
-                      blurRadius: 12,
-                      spreadRadius: 3,
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 2,
+                      spreadRadius: 0.5,
                     ),
                   ],
                 ),
-                child: Icon(Icons.settings, color: Colors.white, size: 30),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 构建开关项
-  Widget _buildSwitchItem({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          onChanged(!value);
-        },
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: iconColor.withOpacity(0.2),
-                      blurRadius: 6,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-                child: Center(child: Icon(icon, color: iconColor, size: 22)),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        color: AppTheme.primaryTextColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        color: AppTheme.secondaryTextColor,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Switch(
-                value: value,
-                onChanged: onChanged,
-                activeColor: iconColor,
-                activeTrackColor: iconColor.withOpacity(0.5),
-                inactiveThumbColor: Colors.white,
-                inactiveTrackColor: Colors.grey.withOpacity(0.3),
-              ),
-            ],
-          ),
+          ],
         ),
       ),
     );
