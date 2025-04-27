@@ -1743,27 +1743,26 @@ class _ProfileTabState extends State<_ProfileTab>
 
                     // 按钮
                     Padding(
-                      padding: const EdgeInsets.only(top: 10.0),
+                      padding: const EdgeInsets.only(top: 20.0),
                       child: Center(
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () => Navigator.of(context).pop(),
-                            borderRadius: BorderRadius.circular(30.0),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 30.0,
-                                vertical: 14.0,
+                        child: InkWell(
+                          onTap: () => Navigator.of(context).pop(),
+                          borderRadius: BorderRadius.circular(20.0),
+                          child: Container(
+                            width: 45,
+                            height: 45,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.transparent,
+                              border: Border.all(
+                                color: AppTheme.neonBlue.withOpacity(0.4),
+                                width: 1.5,
                               ),
-                              child: Text(
-                                "关闭",
-                                style: TextStyle(
-                                  color: AppTheme.primaryTextColor,
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 1,
-                                ),
-                              ),
+                            ),
+                            child: Icon(
+                              Icons.close_rounded,
+                              color: AppTheme.neonBlue.withOpacity(0.9),
+                              size: 24,
                             ),
                           ),
                         ),
@@ -2118,27 +2117,26 @@ class _ProfileTabState extends State<_ProfileTab>
 
                     // 按钮
                     Padding(
-                      padding: const EdgeInsets.only(top: 10.0),
+                      padding: const EdgeInsets.only(top: 20.0),
                       child: Center(
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () => Navigator.of(context).pop(),
-                            borderRadius: BorderRadius.circular(30.0),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 30.0,
-                                vertical: 14.0,
+                        child: InkWell(
+                          onTap: () => Navigator.of(context).pop(),
+                          borderRadius: BorderRadius.circular(20.0),
+                          child: Container(
+                            width: 45,
+                            height: 45,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.transparent,
+                              border: Border.all(
+                                color: AppTheme.neonPurple.withOpacity(0.4),
+                                width: 1.5,
                               ),
-                              child: Text(
-                                "关闭",
-                                style: TextStyle(
-                                  color: AppTheme.primaryTextColor,
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 1,
-                                ),
-                              ),
+                            ),
+                            child: Icon(
+                              Icons.close_rounded,
+                              color: AppTheme.neonPurple.withOpacity(0.9),
+                              size: 24,
                             ),
                           ),
                         ),
