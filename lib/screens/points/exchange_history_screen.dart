@@ -424,28 +424,6 @@ class _ExchangeHistoryScreenState extends State<ExchangeHistoryScreen>
   }
 
   Widget _buildHistoryItem(ExchangeRecord record) {
-    Color statusColor;
-    String statusText;
-
-    switch (record.status) {
-      case ExchangeStatus.success:
-        statusColor = Colors.green;
-        statusText = '兑换成功';
-        break;
-      case ExchangeStatus.pending:
-        statusColor = Colors.orange;
-        statusText = '处理中';
-        break;
-      case ExchangeStatus.used:
-        statusColor = Colors.blue;
-        statusText = '已使用';
-        break;
-      case ExchangeStatus.expired:
-        statusColor = Colors.grey;
-        statusText = '已过期';
-        break;
-    }
-
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -458,6 +436,10 @@ class _ExchangeHistoryScreenState extends State<ExchangeHistoryScreen>
             offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(
+          color: record.status.color.withOpacity(0.2),
+          width: 0.5,
+        ),
       ),
       child: Material(
         color: Colors.transparent,
@@ -493,32 +475,26 @@ class _ExchangeHistoryScreenState extends State<ExchangeHistoryScreen>
                           Text(
                             record.itemName,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: AppTheme.primaryTextColor,
+                              fontSize: 15,
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.monetization_on,
-                                color: AppTheme.neonBlue,
-                                size: 14,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${record.pointsSpent}积分',
-                                style: TextStyle(
-                                  color: AppTheme.neonBlue,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
+                          Text(
+                            '${record.pointsSpent} 积分',
+                            style: const TextStyle(
+                              color: AppTheme.neonBlue,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(width: 12),
                     // 状态标签
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -526,13 +502,13 @@ class _ExchangeHistoryScreenState extends State<ExchangeHistoryScreen>
                         vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.2),
+                        color: record.status.color.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        statusText,
+                        record.status.value,
                         style: TextStyle(
-                          color: statusColor,
+                          color: record.status.color,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -561,10 +537,18 @@ class _ExchangeHistoryScreenState extends State<ExchangeHistoryScreen>
                         fontSize: 13,
                       ),
                     ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      color: Colors.white.withOpacity(0.3),
-                      size: 14,
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.05),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.white.withOpacity(0.3),
+                        size: 14,
+                      ),
                     ),
                   ],
                 ),
@@ -679,75 +663,114 @@ class _ExchangeHistoryScreenState extends State<ExchangeHistoryScreen>
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppTheme.neonBlue.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(12),
+                      Card(
+                        margin: EdgeInsets.zero,
+                        color: AppTheme.cardColor,
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  '兑换码',
-                                  style: TextStyle(
-                                    color: AppTheme.secondaryTextColor,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    Clipboard.setData(
-                                      ClipboardData(text: record.exchangeCode),
-                                    );
-                                    showToast('兑换码已复制');
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.neonBlue.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.copy_rounded,
-                                          color: AppTheme.neonBlue,
-                                          size: 14,
-                                        ),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          '复制',
-                                          style: TextStyle(
-                                            color: AppTheme.neonBlue,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                AppTheme.neonBlue.withOpacity(0.05),
+                                AppTheme.neonPurple.withOpacity(0.05),
                               ],
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              record.exchangeCode,
-                              style: const TextStyle(
-                                color: AppTheme.primaryTextColor,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
-                              ),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: AppTheme.neonBlue.withOpacity(0.1),
+                              width: 1,
                             ),
-                          ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    '兑换码',
+                                    style: TextStyle(
+                                      color: AppTheme.secondaryTextColor,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Clipboard.setData(
+                                        ClipboardData(
+                                          text: record.exchangeCode,
+                                        ),
+                                      );
+                                      showToast('兑换码已复制');
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.neonBlue.withOpacity(
+                                          0.1,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.copy_rounded,
+                                            color: AppTheme.neonBlue,
+                                            size: 14,
+                                          ),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            '复制',
+                                            style: TextStyle(
+                                              color: AppTheme.neonBlue,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                  horizontal: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: AppTheme.neonBlue.withOpacity(0.2),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  record.exchangeCode,
+                                  style: const TextStyle(
+                                    color: AppTheme.primaryTextColor,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1.5,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
 
@@ -792,9 +815,9 @@ class _ExchangeHistoryScreenState extends State<ExchangeHistoryScreen>
                           backgroundColor: AppTheme.cardColor,
                           foregroundColor: AppTheme.neonBlue,
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 18),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(24),
                             side: BorderSide(
                               color: AppTheme.neonBlue.withOpacity(0.5),
                             ),
@@ -813,7 +836,7 @@ class _ExchangeHistoryScreenState extends State<ExchangeHistoryScreen>
                     Expanded(
                       child: ElevatedButton(
                         onPressed:
-                            record.status != 'expired'
+                            record.status != ExchangeStatus.expired
                                 ? () {
                                   Navigator.pop(context);
                                   // 实际使用逻辑
@@ -822,14 +845,16 @@ class _ExchangeHistoryScreenState extends State<ExchangeHistoryScreen>
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.buttonColor,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 18),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(24),
                           ),
                           disabledBackgroundColor: Colors.grey.withOpacity(0.3),
                         ),
                         child: Text(
-                          record.status != 'expired' ? '立即使用' : '已过期',
+                          record.status != ExchangeStatus.expired
+                              ? '立即使用'
+                              : '已过期',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -848,38 +873,16 @@ class _ExchangeHistoryScreenState extends State<ExchangeHistoryScreen>
   }
 
   Widget _buildStatusTag(ExchangeStatus status) {
-    Color color;
-    String text;
-
-    switch (status) {
-      case ExchangeStatus.success:
-        color = Colors.green;
-        text = '兑换成功';
-        break;
-      case ExchangeStatus.pending:
-        color = Colors.orange;
-        text = '处理中';
-        break;
-      case ExchangeStatus.used:
-        color = Colors.blue;
-        text = '已使用';
-        break;
-      case ExchangeStatus.expired:
-        color = Colors.grey;
-        text = '已过期';
-        break;
-    }
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: status.color.withOpacity(0.2),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        text,
+        status.value,
         style: TextStyle(
-          color: color,
+          color: status.color,
           fontSize: 13,
           fontWeight: FontWeight.bold,
         ),

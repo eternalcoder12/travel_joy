@@ -1142,6 +1142,7 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                     ),
                   ],
                 ),
+                width: double.infinity,
                 child: ElevatedButton(
                   onPressed:
                       canExchange
@@ -1160,11 +1161,12 @@ class _PointsExchangeScreenState extends State<PointsExchangeScreen>
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
+                    minimumSize: const Size(double.infinity, 56),
                   ),
                   child: Text(
                     canExchange ? '立即兑换' : '积分不足',
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
