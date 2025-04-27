@@ -73,11 +73,9 @@ class _SettingsScreenState extends State<SettingsScreen>
       curve: Curves.easeOutCubic,
     );
 
-    // 启动动画
+    // 立即启动动画，不要使用延迟
     _animationController.forward();
-    Future.delayed(const Duration(milliseconds: 100), () {
-      _contentAnimationController.forward();
-    });
+    _contentAnimationController.forward();
   }
 
   @override
