@@ -18,37 +18,19 @@ class _SettingsScreenState extends State<SettingsScreen>
   late Animation<double> _backgroundAnimation;
 
   // 设置选项
-  final List<Map<String, dynamic>> _settingCategories = [
+  final List<Map<String, dynamic>> _menuItems = [
+    {'title': '我的信息', 'icon': Icons.person, 'color': AppTheme.neonTeal},
+    {'title': '旅行足迹', 'icon': Icons.map_outlined, 'color': AppTheme.neonPurple},
+    {'title': '我的收藏', 'icon': Icons.bookmark, 'color': AppTheme.neonBlue},
+    {'title': '我的成就', 'icon': Icons.emoji_events, 'color': AppTheme.neonYellow},
     {
-      'title': '账号设置',
-      'icon': Icons.person_outline,
-      'color': AppTheme.neonBlue,
-      'items': [
-        {'title': '个人信息', 'icon': Icons.person},
-        {'title': '账号安全', 'icon': Icons.security},
-        {'title': '隐私设置', 'icon': Icons.privacy_tip_outlined},
-      ],
-    },
-    {
-      'title': '应用设置',
-      'icon': Icons.settings_outlined,
+      'title': '积分兑换',
+      'icon': Icons.card_giftcard,
       'color': AppTheme.neonPurple,
-      'items': [
-        {'title': '通知', 'icon': Icons.notifications_none},
-        {'title': '外观', 'icon': Icons.palette_outlined},
-        {'title': '语言', 'icon': Icons.language},
-      ],
     },
-    {
-      'title': '其他',
-      'icon': Icons.more_horiz,
-      'color': AppTheme.neonGreen,
-      'items': [
-        {'title': '清除缓存', 'icon': Icons.cleaning_services_outlined},
-        {'title': '关于我们', 'icon': Icons.info_outline},
-        {'title': '反馈问题', 'icon': Icons.feedback_outlined},
-      ],
-    },
+    {'title': '活动中心', 'icon': Icons.celebration, 'color': AppTheme.neonPink},
+    {'title': '设置', 'icon': Icons.settings, 'color': AppTheme.neonTeal},
+    {'title': '帮助与反馈', 'icon': Icons.help, 'color': AppTheme.neonOrange},
   ];
 
   bool _notificationsEnabled = true;
@@ -125,13 +107,36 @@ class _SettingsScreenState extends State<SettingsScreen>
                         begin: const Offset(0, 0.05),
                         end: Offset.zero,
                       ).animate(_contentAnimation),
-                      child: ListView(
+                      child: ListView.builder(
                         physics: const BouncingScrollPhysics(),
-                        children: [
-                          ..._settingCategories.map(
-                            (category) => _buildSettingCategory(category),
-                          ),
-                        ],
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        itemCount: _menuItems.length,
+                        itemBuilder: (context, index) {
+                          // 使用交错动画效果
+                          return AnimatedBuilder(
+                            animation: _contentAnimationController,
+                            builder: (context, child) {
+                              // 根据索引计算延迟动画
+                              final double delayedProgress = math.max(
+                                0.0,
+                                math.min(
+                                  1.0,
+                                  (_contentAnimationController.value -
+                                          (0.05 * index)) /
+                                      0.5,
+                                ),
+                              );
+
+                              return FadeTransition(
+                                opacity: AlwaysStoppedAnimation(
+                                  delayedProgress,
+                                ),
+                                child: child,
+                              );
+                            },
+                            child: _buildMenuItem(_menuItems[index]),
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -247,146 +252,191 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  Widget _buildSettingCategory(Map<String, dynamic> category) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 分类标题
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 6),
+  Widget _buildMenuItem(Map<String, dynamic> item) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: InkWell(
+        onTap: () {
+          // 处理点击事件
+          if (item['title'] == '设置') {
+            _showSettingsDialog();
+          } else {
+            // 导航到对应页面
+          }
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: AppTheme.cardColor.withOpacity(0.6),
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Row(
             children: [
-              Icon(category['icon'], color: category['color'], size: 22),
-              const SizedBox(width: 8),
-              Text(
-                category['title'],
-                style: TextStyle(
-                  color: category['color'],
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+              // 左侧图标容器
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: item['color'].withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                child: Center(
+                  child: Icon(item['icon'], color: item['color'], size: 22),
+                ),
+              ),
+
+              const SizedBox(width: 16),
+
+              // 标题
+              Expanded(
+                child: Text(
+                  item['title'],
+                  style: TextStyle(
+                    color: AppTheme.primaryTextColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+
+              // 右侧箭头
+              Icon(
+                Icons.chevron_right,
+                color: AppTheme.secondaryTextColor.withOpacity(0.7),
+                size: 22,
               ),
             ],
           ),
         ),
-
-        // 分割线
-        Divider(color: Colors.white.withOpacity(0.06), thickness: 1, height: 1),
-
-        // 设置项
-        ...List.generate(category['items'].length, (index) {
-          // 使用交错动画效果
-          return AnimatedBuilder(
-            animation: _contentAnimationController,
-            builder: (context, child) {
-              // 根据索引计算延迟动画
-              final double delayedProgress = math.max(
-                0.0,
-                math.min(
-                  1.0,
-                  (_contentAnimationController.value - (0.05 * index)) / 0.5,
-                ),
-              );
-
-              return FadeTransition(
-                opacity: AlwaysStoppedAnimation(delayedProgress),
-                child: child,
-              );
-            },
-            child: _buildSettingItem(category['items'][index]),
-          );
-        }),
-
-        // 分类底部间距
-        const SizedBox(height: 8),
-      ],
+      ),
     );
   }
 
-  Widget _buildSettingItem(Map<String, dynamic> item) {
-    Widget? trailing;
-
-    // 为特定项目定制尾部控件
-    if (item['title'] == '通知') {
-      trailing = Switch(
-        value: _notificationsEnabled,
-        onChanged: (value) {
-          setState(() {
-            _notificationsEnabled = value;
-          });
-        },
-        activeColor: Colors.white,
-        activeTrackColor: AppTheme.buttonColor,
-        inactiveThumbColor: Colors.white,
-        inactiveTrackColor: Colors.grey.withOpacity(0.3),
-      );
-    } else if (item['title'] == '外观') {
-      trailing = Switch(
-        value: _darkModeEnabled,
-        onChanged: (value) {
-          setState(() {
-            _darkModeEnabled = value;
-          });
-        },
-        activeColor: Colors.white,
-        activeTrackColor: AppTheme.buttonColor,
-        inactiveThumbColor: Colors.white,
-        inactiveTrackColor: Colors.grey.withOpacity(0.3),
-      );
-    } else if (item['title'] == '语言') {
-      trailing = Text(
-        _selectedLanguage,
-        style: TextStyle(color: AppTheme.secondaryTextColor, fontSize: 14),
-      );
-    } else {
-      trailing = Icon(
-        Icons.chevron_right,
-        color: AppTheme.secondaryTextColor.withOpacity(0.7),
-        size: 18,
-      );
-    }
-
-    return InkWell(
-      onTap: () {
-        // 根据设置项的不同，执行不同操作
-        if (item['title'] == '通知') {
-          setState(() {
-            _notificationsEnabled = !_notificationsEnabled;
-          });
-        } else if (item['title'] == '外观') {
-          setState(() {
-            _darkModeEnabled = !_darkModeEnabled;
-          });
-        } else if (item['title'] == '语言') {
-          _showLanguageDialog();
-        } else if (item['title'] == '清除缓存') {
-          _showClearCacheDialog();
-        }
-        // 其他设置项跳转到相应页面
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        child: Row(
-          children: [
-            // 图标
-            Icon(item['icon'], color: AppTheme.secondaryTextColor, size: 20),
-            const SizedBox(width: 12),
-
-            // 标题
-            Expanded(
-              child: Text(
-                item['title'],
-                style: TextStyle(
-                  color: AppTheme.primaryTextColor,
-                  fontSize: 15,
-                ),
+  void _showSettingsDialog() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: AppTheme.cardColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Text(
+              '设置选项',
+              style: TextStyle(
+                color: AppTheme.primaryTextColor,
+                fontWeight: FontWeight.bold,
               ),
             ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 通知设置
+                _buildSettingSwitch('通知', _notificationsEnabled, (value) {
+                  setState(() {
+                    _notificationsEnabled = value;
+                  });
+                  Navigator.pop(context);
+                }),
 
-            // 尾部控件
-            trailing,
-          ],
-        ),
+                // 外观设置
+                _buildSettingSwitch('深色模式', _darkModeEnabled, (value) {
+                  setState(() {
+                    _darkModeEnabled = value;
+                  });
+                  Navigator.pop(context);
+                }),
+
+                // 语言设置
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showLanguageDialog();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '语言',
+                          style: TextStyle(
+                            color: AppTheme.primaryTextColor,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Text(
+                          _selectedLanguage,
+                          style: TextStyle(
+                            color: AppTheme.secondaryTextColor,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // 清除缓存选项
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showClearCacheDialog();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      children: [
+                        Text(
+                          '清除缓存',
+                          style: TextStyle(
+                            color: AppTheme.primaryTextColor,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('关闭', style: TextStyle(color: AppTheme.neonBlue)),
+              ),
+            ],
+          ),
+    );
+  }
+
+  Widget _buildSettingSwitch(
+    String title,
+    bool value,
+    Function(bool) onChanged,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: TextStyle(color: AppTheme.primaryTextColor, fontSize: 16),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: Colors.white,
+            activeTrackColor: AppTheme.buttonColor,
+            inactiveThumbColor: Colors.white,
+            inactiveTrackColor: Colors.grey.withOpacity(0.3),
+          ),
+        ],
       ),
     );
   }
