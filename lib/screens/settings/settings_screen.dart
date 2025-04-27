@@ -2635,7 +2635,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  // 将原来的_showSettingsDialogWithStatefulBuilder方法替换为更简单的实现
+  // 将_showSettingsDialogWithStatefulBuilder方法替换为使用按钮组的实现
   void _showSettingsDialogWithStatefulBuilder() {
     // 创建本地变量来跟踪状态
     bool localNotificationsEnabled = _notificationsEnabled;
@@ -2646,172 +2646,274 @@ class _SettingsScreenState extends State<SettingsScreen>
       barrierDismissible: true,
       barrierColor: Colors.black.withOpacity(0.6),
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: AppTheme.cardColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            '快速设置',
-            style: TextStyle(
-              color: AppTheme.primaryTextColor,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              return Container(
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return AlertDialog(
+              backgroundColor: AppTheme.cardColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text(
+                '快速设置',
+                style: TextStyle(
+                  color: AppTheme.primaryTextColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: Container(
                 width: double.maxFinite,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // 通知开关
-                    ListTile(
-                      leading: Icon(
-                        Icons.notifications_active,
-                        color: AppTheme.neonBlue,
-                      ),
-                      title: Text(
-                        '接收通知',
-                        style: TextStyle(color: AppTheme.primaryTextColor),
-                      ),
-                      trailing: CustomSwitch(
-                        value: localNotificationsEnabled,
-                        onChanged: (value) {
-                          setState(() {
-                            localNotificationsEnabled = value;
-                          });
-                        },
-                        activeColor: AppTheme.neonBlue,
-                      ),
-                      onTap: () {
-                        setState(() {
-                          localNotificationsEnabled =
-                              !localNotificationsEnabled;
-                        });
-                      },
+                    // 通知设置
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.notifications_active,
+                          color: AppTheme.neonBlue,
+                        ),
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: Text(
+                            '接收通知',
+                            style: TextStyle(color: AppTheme.primaryTextColor),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    // 通知按钮组
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setDialogState(() {
+                                localNotificationsEnabled = true;
+                              });
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color:
+                                    localNotificationsEnabled
+                                        ? AppTheme.neonBlue.withOpacity(0.2)
+                                        : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color:
+                                      localNotificationsEnabled
+                                          ? AppTheme.neonBlue
+                                          : Colors.grey.withOpacity(0.5),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '开启',
+                                  style: TextStyle(
+                                    color:
+                                        localNotificationsEnabled
+                                            ? AppTheme.neonBlue
+                                            : AppTheme.secondaryTextColor,
+                                    fontWeight:
+                                        localNotificationsEnabled
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setDialogState(() {
+                                localNotificationsEnabled = false;
+                              });
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color:
+                                    !localNotificationsEnabled
+                                        ? Colors.grey.withOpacity(0.2)
+                                        : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color:
+                                      !localNotificationsEnabled
+                                          ? Colors.grey
+                                          : Colors.grey.withOpacity(0.5),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '关闭',
+                                  style: TextStyle(
+                                    color:
+                                        !localNotificationsEnabled
+                                            ? AppTheme.primaryTextColor
+                                            : AppTheme.secondaryTextColor,
+                                    fontWeight:
+                                        !localNotificationsEnabled
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
 
-                    Divider(),
+                    SizedBox(height: 24),
+                    Divider(height: 1),
+                    SizedBox(height: 16),
 
-                    // 深色模式开关
-                    ListTile(
-                      leading: Icon(
-                        Icons.dark_mode,
-                        color: AppTheme.neonPurple,
-                      ),
-                      title: Text(
-                        '深色模式',
-                        style: TextStyle(color: AppTheme.primaryTextColor),
-                      ),
-                      trailing: CustomSwitch(
-                        value: localDarkModeEnabled,
-                        onChanged: (value) {
-                          setState(() {
-                            localDarkModeEnabled = value;
-                          });
-                        },
-                        activeColor: AppTheme.neonPurple,
-                      ),
-                      onTap: () {
-                        setState(() {
-                          localDarkModeEnabled = !localDarkModeEnabled;
-                        });
-                      },
+                    // 深色模式设置
+                    Row(
+                      children: [
+                        Icon(Icons.dark_mode, color: AppTheme.neonPurple),
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: Text(
+                            '深色模式',
+                            style: TextStyle(color: AppTheme.primaryTextColor),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    // 深色模式按钮组
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setDialogState(() {
+                                localDarkModeEnabled = true;
+                              });
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color:
+                                    localDarkModeEnabled
+                                        ? AppTheme.neonPurple.withOpacity(0.2)
+                                        : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color:
+                                      localDarkModeEnabled
+                                          ? AppTheme.neonPurple
+                                          : Colors.grey.withOpacity(0.5),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '开启',
+                                  style: TextStyle(
+                                    color:
+                                        localDarkModeEnabled
+                                            ? AppTheme.neonPurple
+                                            : AppTheme.secondaryTextColor,
+                                    fontWeight:
+                                        localDarkModeEnabled
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setDialogState(() {
+                                localDarkModeEnabled = false;
+                              });
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color:
+                                    !localDarkModeEnabled
+                                        ? Colors.grey.withOpacity(0.2)
+                                        : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color:
+                                      !localDarkModeEnabled
+                                          ? Colors.grey
+                                          : Colors.grey.withOpacity(0.5),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '关闭',
+                                  style: TextStyle(
+                                    color:
+                                        !localDarkModeEnabled
+                                            ? AppTheme.primaryTextColor
+                                            : AppTheme.secondaryTextColor,
+                                    fontWeight:
+                                        !localDarkModeEnabled
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text(
-                '取消',
-                style: TextStyle(color: AppTheme.secondaryTextColor),
               ),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                // 把本地变量的值保存到实际设置
-                setState(() {
-                  _notificationsEnabled = localNotificationsEnabled;
-                  _darkModeEnabled = localDarkModeEnabled;
-                });
-                await _saveSettings();
-                _applySettings();
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.neonBlue,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    '取消',
+                    style: TextStyle(color: AppTheme.secondaryTextColor),
+                  ),
                 ),
-              ),
-              child: Text('保存'),
-            ),
-          ],
+                ElevatedButton(
+                  onPressed: () async {
+                    // 把本地变量的值保存到实际设置
+                    setState(() {
+                      _notificationsEnabled = localNotificationsEnabled;
+                      _darkModeEnabled = localDarkModeEnabled;
+                    });
+                    await _saveSettings();
+                    _applySettings();
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.neonBlue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text('保存'),
+                ),
+              ],
+            );
+          },
         );
       },
-    );
-  }
-}
-
-// 在文件末尾添加自定义开关组件
-class CustomSwitch extends StatelessWidget {
-  final bool value;
-  final ValueChanged<bool> onChanged;
-  final Color activeColor;
-
-  const CustomSwitch({
-    Key? key,
-    required this.value,
-    required this.onChanged,
-    required this.activeColor,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        onChanged(!value);
-      },
-      child: Container(
-        width: 50,
-        height: 30,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          color: value ? activeColor : Colors.grey.shade300,
-        ),
-        child: Stack(
-          children: [
-            AnimatedPositioned(
-              duration: Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              left: value ? 22 : 2,
-              right: value ? 2 : 22,
-              top: 2,
-              bottom: 2,
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 2,
-                      spreadRadius: 0.5,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
