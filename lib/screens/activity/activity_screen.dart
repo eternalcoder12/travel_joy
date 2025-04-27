@@ -407,6 +407,16 @@ class _ActivityScreenState extends State<ActivityScreen>
 
     // 加载活动数据
     _loadActivities();
+
+    // 增强滚动监听，更新返回顶部按钮的显示状态
+    _scrollController.addListener(() {
+      final showButton = _scrollController.offset > 200;
+      if (showButton != _showBackToTopButton) {
+        setState(() {
+          _showBackToTopButton = showButton;
+        });
+      }
+    });
   }
 
   void _loadActivities() {
@@ -441,6 +451,65 @@ class _ActivityScreenState extends State<ActivityScreen>
         children: [
           // 背景动画
           _buildAnimatedBackground(),
+
+          // 霓虹灯效果
+          Positioned(
+            top: -100,
+            right: -100,
+            child: AnimatedBuilder(
+              animation: _backgroundAnimation,
+              builder: (context, child) {
+                return Container(
+                  width: 300,
+                  height: 300,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        AppTheme.neonPurple.withOpacity(
+                          0.2 * _backgroundAnimation.value,
+                        ),
+                        AppTheme.neonBlue.withOpacity(
+                          0.1 * _backgroundAnimation.value,
+                        ),
+                        Colors.transparent,
+                      ],
+                      stops: const [0.0, 0.5, 1.0],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          Positioned(
+            bottom: -150,
+            left: -100,
+            child: AnimatedBuilder(
+              animation: _backgroundAnimation,
+              builder: (context, child) {
+                return Container(
+                  width: 350,
+                  height: 350,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        AppTheme.neonGreen.withOpacity(
+                          0.15 * _backgroundAnimation.value,
+                        ),
+                        AppTheme.neonTeal.withOpacity(
+                          0.1 * _backgroundAnimation.value,
+                        ),
+                        Colors.transparent,
+                      ],
+                      stops: const [0.0, 0.5, 1.0],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
 
           // 主内容
           SafeArea(
@@ -1148,8 +1217,8 @@ class _ActivityScreenState extends State<ActivityScreen>
   void _scrollToTop() {
     _scrollController.animateTo(
       0,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOutCubic,
     );
   }
 
