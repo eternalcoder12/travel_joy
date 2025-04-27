@@ -348,7 +348,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           ),
         ),
 
-        // 快速设置卡片
+        // 连续列表容器
         Container(
           decoration: BoxDecoration(
             color: AppTheme.cardColor.withOpacity(0.5),
@@ -475,54 +475,222 @@ class _SettingsScreenState extends State<SettingsScreen>
                   );
                 },
               ),
-            ],
-          ),
-        ),
 
-        const SizedBox(height: 24),
+              _buildDivider(),
 
-        // 语言选择卡片
-        Container(
-          decoration: BoxDecoration(
-            color: AppTheme.cardColor.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppTheme.cardColor.withOpacity(0.8),
-              width: 1,
-            ),
-          ),
-          child: _buildLanguageSelector(),
-        ),
+              // 语言选择标题
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppTheme.neonOrange.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.neonOrange.withOpacity(0.1),
+                            blurRadius: 4,
+                            spreadRadius: 0,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.language,
+                          color: AppTheme.neonOrange,
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Text(
+                      '语言',
+                      style: TextStyle(
+                        color: AppTheme.primaryTextColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
-        const SizedBox(height: 24),
+              // 语言选项列表
+              Container(
+                height: 60,
+                padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _languageOptions.length,
+                  itemBuilder: (context, index) {
+                    final language = _languageOptions[index];
+                    final isSelected = language == _selectedLanguage;
 
-        // 主题选择卡片
-        Container(
-          decoration: BoxDecoration(
-            color: AppTheme.cardColor.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppTheme.cardColor.withOpacity(0.8),
-              width: 1,
-            ),
-          ),
-          child: _buildThemeSelector(),
-        ),
+                    return GestureDetector(
+                      onTap: () async {
+                        setState(() {
+                          _selectedLanguage = language;
+                        });
+                        await _saveSettings();
+                        _showStatusToast('语言已设置为: $_selectedLanguage');
+                      },
+                      child: Container(
+                        margin: EdgeInsets.only(right: 12),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              isSelected
+                                  ? AppTheme.neonOrange.withOpacity(0.2)
+                                  : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color:
+                                isSelected
+                                    ? AppTheme.neonOrange
+                                    : AppTheme.secondaryTextColor.withOpacity(
+                                      0.3,
+                                    ),
+                            width: 1,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            language,
+                            style: TextStyle(
+                              color:
+                                  isSelected
+                                      ? AppTheme.neonOrange
+                                      : AppTheme.primaryTextColor,
+                              fontSize: 14,
+                              fontWeight:
+                                  isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
 
-        const SizedBox(height: 24),
+              _buildDivider(),
 
-        // 其他选项卡片
-        Container(
-          decoration: BoxDecoration(
-            color: AppTheme.cardColor.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppTheme.cardColor.withOpacity(0.8),
-              width: 1,
-            ),
-          ),
-          child: Column(
-            children: [
+              // 主题选择标题
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppTheme.neonPurple.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.neonPurple.withOpacity(0.1),
+                            blurRadius: 4,
+                            spreadRadius: 0,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.palette,
+                          color: AppTheme.neonPurple,
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Text(
+                      '主题',
+                      style: TextStyle(
+                        color: AppTheme.primaryTextColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // 主题选项列表
+              Container(
+                height: 60,
+                padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _themeOptions.length,
+                  itemBuilder: (context, index) {
+                    final theme = _themeOptions[index];
+                    final isSelected = theme == _selectedTheme;
+
+                    return GestureDetector(
+                      onTap: () async {
+                        setState(() {
+                          _selectedTheme = theme;
+                        });
+                        await _saveSettings();
+                        _showStatusToast('主题已设置为: $_selectedTheme');
+                      },
+                      child: Container(
+                        margin: EdgeInsets.only(right: 12),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              isSelected
+                                  ? AppTheme.neonPurple.withOpacity(0.2)
+                                  : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color:
+                                isSelected
+                                    ? AppTheme.neonPurple
+                                    : AppTheme.secondaryTextColor.withOpacity(
+                                      0.3,
+                                    ),
+                            width: 1,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            theme,
+                            style: TextStyle(
+                              color:
+                                  isSelected
+                                      ? AppTheme.neonPurple
+                                      : AppTheme.primaryTextColor,
+                              fontSize: 14,
+                              fontWeight:
+                                  isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              _buildDivider(),
+
+              // 字体大小选择
               _buildSelectorItem(
                 icon: Icons.text_fields,
                 iconColor: AppTheme.neonOrange,
@@ -533,6 +701,7 @@ class _SettingsScreenState extends State<SettingsScreen>
 
               _buildDivider(),
 
+              // 清除缓存
               _buildMenuItem(
                 icon: Icons.cleaning_services,
                 iconColor: AppTheme.neonGreen,
@@ -544,6 +713,7 @@ class _SettingsScreenState extends State<SettingsScreen>
 
               _buildDivider(),
 
+              // 帮助中心
               _buildMenuItem(
                 icon: Icons.help_center,
                 iconColor: AppTheme.neonTeal,
@@ -555,6 +725,7 @@ class _SettingsScreenState extends State<SettingsScreen>
 
               _buildDivider(),
 
+              // 联系我们
               _buildMenuItem(
                 icon: Icons.contact_support,
                 iconColor: AppTheme.neonYellow,
@@ -566,6 +737,7 @@ class _SettingsScreenState extends State<SettingsScreen>
 
               _buildDivider(),
 
+              // 关于
               _buildMenuItem(
                 icon: Icons.info,
                 iconColor: AppTheme.neonBlue,
@@ -578,6 +750,8 @@ class _SettingsScreenState extends State<SettingsScreen>
             ],
           ),
         ),
+
+        const SizedBox(height: 24),
       ],
     );
   }
