@@ -381,7 +381,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             iconColor: AppTheme.neonPink,
             title: '隐私与安全',
             onTap: () {
-              // 显示隐私与安全设置
+              _showPrivacySecurityDialog();
             },
           ),
           _buildDivider(),
@@ -740,15 +740,899 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   void _showHelpCenterDialog() {
-    // Help center dialog implementation
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.6),
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          insetPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // 主容器
+              Container(
+                width: MediaQuery.of(context).size.width * 0.85,
+                padding: const EdgeInsets.fromLTRB(24.0, 60.0, 24.0, 24.0),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppTheme.cardColor.withOpacity(0.95),
+                      AppTheme.backgroundColor.withOpacity(0.90),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(24.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.neonGreen.withOpacity(0.2),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                  border: Border.all(
+                    color: AppTheme.neonGreen.withOpacity(0.2),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 标题
+                    Text(
+                      "帮助中心",
+                      style: TextStyle(
+                        color: AppTheme.primaryTextColor,
+                        fontSize: 26.0,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        shadows: [
+                          Shadow(
+                            color: AppTheme.neonGreen.withOpacity(0.3),
+                            blurRadius: 5,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+
+                    // 分隔线
+                    Container(
+                      height: 3,
+                      width: 60,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppTheme.neonGreen.withOpacity(0.5),
+                            AppTheme.neonBlue.withOpacity(0.5),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(3),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.neonGreen.withOpacity(0.3),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24.0),
+
+                    // 帮助项目列表
+                    Container(
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: AppTheme.cardColor.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(16.0),
+                        border: Border.all(
+                          color: AppTheme.neonGreen.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildHelpItem(
+                            "如何编辑个人资料？",
+                            "进入"我的信息"页面，点击右上角的编辑按钮即可修改您的个人信息。",
+                            Icons.person,
+                            AppTheme.neonTeal,
+                          ),
+                          
+                          Divider(
+                            color: AppTheme.secondaryTextColor.withOpacity(0.15),
+                            thickness: 1,
+                            height: 30,
+                          ),
+                          
+                          _buildHelpItem(
+                            "如何查看我的旅行足迹？",
+                            "在"我的"页面点击"旅行足迹"，您可以查看所有已记录的旅行历史。",
+                            Icons.map,
+                            AppTheme.neonPurple,
+                          ),
+                          
+                          Divider(
+                            color: AppTheme.secondaryTextColor.withOpacity(0.15),
+                            thickness: 1,
+                            height: 30,
+                          ),
+                          
+                          _buildHelpItem(
+                            "如何兑换积分？",
+                            "在"积分兑换"页面，您可以查看所有可兑换的物品并使用积分进行兑换。",
+                            Icons.card_giftcard,
+                            AppTheme.neonBlue,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 30.0),
+
+                    // 按钮
+                    InkWell(
+                      onTap: () => Navigator.of(context).pop(),
+                      borderRadius: BorderRadius.circular(20.0),
+                      child: Container(
+                        width: 45,
+                        height: 45,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.transparent,
+                          border: Border.all(
+                            color: AppTheme.neonGreen.withOpacity(0.4),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.close_rounded,
+                          color: AppTheme.neonGreen.withOpacity(0.9),
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // 顶部图标
+              Positioned(
+                top: -30,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(15.0),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppTheme.neonGreen, AppTheme.neonBlue],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.neonGreen.withOpacity(0.5),
+                          blurRadius: 12,
+                          spreadRadius: 3,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.help_center,
+                      color: Colors.white,
+                      size: 40.0,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // 构建帮助项目
+  Widget _buildHelpItem(String question, String answer, IconData icon, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 18.0),
+            ),
+            const SizedBox(width: 12.0),
+            Expanded(
+              child: Text(
+                question,
+                style: TextStyle(
+                  color: AppTheme.primaryTextColor,
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 38.0, top: 8.0),
+          child: Text(
+            answer,
+            style: TextStyle(
+              color: AppTheme.secondaryTextColor,
+              fontSize: 14.0,
+              height: 1.5,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   void _showContactUsDialog() {
-    // Contact us dialog implementation
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.6),
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          insetPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // 主容器
+              Container(
+                width: MediaQuery.of(context).size.width * 0.85,
+                padding: const EdgeInsets.fromLTRB(24.0, 60.0, 24.0, 24.0),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppTheme.cardColor.withOpacity(0.95),
+                      AppTheme.backgroundColor.withOpacity(0.90),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(24.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.neonBlue.withOpacity(0.2),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                  border: Border.all(
+                    color: AppTheme.neonBlue.withOpacity(0.2),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 标题
+                    Text(
+                      "联系我们",
+                      style: TextStyle(
+                        color: AppTheme.primaryTextColor,
+                        fontSize: 26.0,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        shadows: [
+                          Shadow(
+                            color: AppTheme.neonBlue.withOpacity(0.3),
+                            blurRadius: 5,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+
+                    // 分隔线
+                    Container(
+                      height: 3,
+                      width: 60,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppTheme.neonBlue.withOpacity(0.5),
+                            AppTheme.neonPurple.withOpacity(0.5),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(3),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.neonBlue.withOpacity(0.3),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24.0),
+
+                    // 说明文本
+                    Text(
+                      "如果您在使用过程中遇到任何问题，或者有任何建议，欢迎随时与我们联系。",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppTheme.primaryTextColor,
+                        fontSize: 16.0,
+                        height: 1.5,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 30.0),
+
+                    // 联系方式卡片
+                    Container(
+                      padding: const EdgeInsets.all(20.0),
+                      decoration: BoxDecoration(
+                        color: AppTheme.cardColor.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(20.0),
+                        border: Border.all(
+                          color: AppTheme.neonBlue.withOpacity(0.2),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 15,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 邮箱信息
+                          _buildContactItem(
+                            icon: Icons.email_outlined,
+                            title: "联系邮箱",
+                            value: "support@traveljoy.com",
+                            color: AppTheme.neonBlue,
+                          ),
+
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            child: Divider(
+                              color: AppTheme.secondaryTextColor.withOpacity(0.15),
+                              thickness: 1,
+                            ),
+                          ),
+
+                          // 电话信息
+                          _buildContactItem(
+                            icon: Icons.phone_outlined,
+                            title: "客服热线",
+                            value: "400-888-8888",
+                            color: AppTheme.neonPurple,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 30.0),
+
+                    // 社交媒体按钮
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildSocialButton(Icons.public, AppTheme.neonBlue),
+                        const SizedBox(width: 20),
+                        _buildSocialButton(Icons.chat_bubble, AppTheme.neonGreen),
+                        const SizedBox(width: 20),
+                        _buildSocialButton(Icons.share, AppTheme.neonPurple),
+                      ],
+                    ),
+
+                    const SizedBox(height: 30.0),
+
+                    // 关闭按钮
+                    InkWell(
+                      onTap: () => Navigator.of(context).pop(),
+                      borderRadius: BorderRadius.circular(20.0),
+                      child: Container(
+                        width: 45,
+                        height: 45,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.transparent,
+                          border: Border.all(
+                            color: AppTheme.neonBlue.withOpacity(0.4),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.close_rounded,
+                          color: AppTheme.neonBlue.withOpacity(0.9),
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // 顶部图标
+              Positioned(
+                top: -30,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(15.0),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppTheme.neonBlue, AppTheme.neonPurple],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.neonBlue.withOpacity(0.5),
+                          blurRadius: 12,
+                          spreadRadius: 3,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.contact_support,
+                      color: Colors.white,
+                      size: 40.0,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // 构建联系信息项
+  Widget _buildContactItem({
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10.0),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.15),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.2),
+                blurRadius: 8,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: Icon(icon, color: color, size: 22.0),
+        ),
+        const SizedBox(width: 16.0),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  color: AppTheme.secondaryTextColor,
+                  fontSize: 14.0,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 6.0),
+              Text(
+                value,
+                style: TextStyle(
+                  color: AppTheme.primaryTextColor,
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 构建社交媒体按钮
+  Widget _buildSocialButton(IconData icon, Color color) {
+    return InkWell(
+      onTap: () {},
+      borderRadius: BorderRadius.circular(30),
+      child: Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.15),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.2),
+              blurRadius: 8,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        child: Icon(
+          icon,
+          color: color,
+          size: 24,
+        ),
+      ),
+    );
   }
 
   void _showAboutDialog() {
-    // About dialog implementation
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.6),
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          insetPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // 主容器
+              Container(
+                width: MediaQuery.of(context).size.width * 0.85,
+                padding: const EdgeInsets.fromLTRB(24.0, 60.0, 24.0, 24.0),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppTheme.cardColor.withOpacity(0.95),
+                      AppTheme.backgroundColor.withOpacity(0.90),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(24.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.neonTeal.withOpacity(0.2),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                  border: Border.all(
+                    color: AppTheme.neonTeal.withOpacity(0.2),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 标题
+                    Text(
+                      "关于 Travel Joy",
+                      style: TextStyle(
+                        color: AppTheme.primaryTextColor,
+                        fontSize: 26.0,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        shadows: [
+                          Shadow(
+                            color: AppTheme.neonTeal.withOpacity(0.3),
+                            blurRadius: 5,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+
+                    // 分隔线
+                    Container(
+                      height: 3,
+                      width: 60,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppTheme.neonTeal.withOpacity(0.5),
+                            AppTheme.neonBlue.withOpacity(0.5),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(3),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.neonTeal.withOpacity(0.3),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 30.0),
+
+                    // 应用Logo
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [AppTheme.neonBlue, AppTheme.neonPurple],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.neonTeal.withOpacity(0.3),
+                            blurRadius: 15,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.travel_explore,
+                          color: Colors.white,
+                          size: 40,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24.0),
+
+                    // 版本信息
+                    Text(
+                      "版本 1.0.0",
+                      style: TextStyle(
+                        color: AppTheme.primaryTextColor,
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 8.0),
+                    
+                    Text(
+                      "构建号: 20230515001",
+                      style: TextStyle(
+                        color: AppTheme.secondaryTextColor,
+                        fontSize: 14.0,
+                      ),
+                    ),
+
+                    const SizedBox(height: 24.0),
+
+                    // 应用介绍
+                    Text(
+                      "Travel Joy是您的旅行管家，帮助您记录精彩旅程，探索世界奇迹，结交各地好友。无论是城市探索还是乡村漫步，我们都将为您提供最佳旅行体验。",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppTheme.secondaryTextColor,
+                        fontSize: 14.0,
+                        height: 1.5,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+
+                    const SizedBox(height: 24.0),
+
+                    // 版权信息
+                    Text(
+                      "© 2023 Travel Joy团队 版权所有",
+                      style: TextStyle(
+                        color: AppTheme.secondaryTextColor,
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+
+                    const SizedBox(height: 30.0),
+
+                    // 关闭按钮
+                    InkWell(
+                      onTap: () => Navigator.of(context).pop(),
+                      borderRadius: BorderRadius.circular(20.0),
+                      child: Container(
+                        width: 45,
+                        height: 45,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.transparent,
+                          border: Border.all(
+                            color: AppTheme.neonTeal.withOpacity(0.4),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.close_rounded,
+                          color: AppTheme.neonTeal.withOpacity(0.9),
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // 顶部图标
+              Positioned(
+                top: -30,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(15.0),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppTheme.neonTeal, AppTheme.neonBlue],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.neonTeal.withOpacity(0.5),
+                          blurRadius: 12,
+                          spreadRadius: 3,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.info,
+                      color: Colors.white,
+                      size: 40.0,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  
+  void _showPrivacySecurityDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.cardColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: AppTheme.neonPink.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.security, color: AppTheme.neonPink, size: 24.0),
+            ),
+            const SizedBox(width: 12.0),
+            Text(
+              '隐私与安全',
+              style: TextStyle(
+                color: AppTheme.primaryTextColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SwitchListTile(
+              title: Text(
+                '隐私模式',
+                style: TextStyle(color: AppTheme.primaryTextColor),
+              ),
+              subtitle: Text(
+                '开启后，您的个人资料对其他用户不可见',
+                style: TextStyle(color: AppTheme.secondaryTextColor, fontSize: 12),
+              ),
+              value: _privacyModeEnabled,
+              onChanged: (value) {
+                Navigator.pop(context);
+                setState(() {
+                  _privacyModeEnabled = value;
+                });
+              },
+              activeColor: AppTheme.neonPink,
+            ),
+            Divider(),
+            SwitchListTile(
+              title: Text(
+                '位置追踪',
+                style: TextStyle(color: AppTheme.primaryTextColor),
+              ),
+              subtitle: Text(
+                '允许应用获取您的位置信息',
+                style: TextStyle(color: AppTheme.secondaryTextColor, fontSize: 12),
+              ),
+              value: _locationTrackingEnabled,
+              onChanged: (value) {
+                Navigator.pop(context);
+                setState(() {
+                  _locationTrackingEnabled = value;
+                });
+              },
+              activeColor: AppTheme.neonPink,
+            ),
+            Divider(),
+            ListTile(
+              title: Text(
+                '密码与安全',
+                style: TextStyle(color: AppTheme.primaryTextColor),
+              ),
+              trailing: Icon(
+                Icons.arrow_forward_ios,
+                color: AppTheme.secondaryTextColor,
+                size: 16,
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                // 导航到密码与安全设置页面
+              },
+            ),
+            Divider(),
+            ListTile(
+              title: Text(
+                '隐私政策',
+                style: TextStyle(color: AppTheme.primaryTextColor),
+              ),
+              trailing: Icon(
+                Icons.arrow_forward_ios,
+                color: AppTheme.secondaryTextColor,
+                size: 16,
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                // 显示隐私政策
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text('关闭', style: TextStyle(color: AppTheme.neonPink)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showCacheSuccessSnackbar() {
