@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
 import 'dart:math' as math;
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import '../../widgets/circle_button.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -108,14 +112,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                         physics: const BouncingScrollPhysics(),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
-                          vertical: 8,
+                          vertical: 16,
                         ),
                         children: [
-                          // 头像和用户名
-                          _buildProfileHeader(),
-
-                          const SizedBox(height: 24),
-
                           // 设置项
                           _buildMenuSection(),
 
@@ -206,123 +205,31 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   Widget _buildAppBar() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // 返回按钮
-          IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios,
-              color: AppTheme.neonBlue,
-              size: 22,
-            ),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
+          CircleButton(
+            icon: Icons.arrow_back_ios_rounded,
             onPressed: () => Navigator.of(context).pop(),
+            size: 38,
+            iconSize: 16,
           ),
 
-          Expanded(
-            child: Center(
-              child: Text(
-                '设置',
-                style: TextStyle(
-                  color: AppTheme.primaryTextColor,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+          // 标题
+          Text(
+            '设置',
+            style: TextStyle(
+              color: AppTheme.primaryTextColor,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1,
             ),
           ),
 
-          // 保持对称
-          SizedBox(width: 22),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfileHeader() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppTheme.cardColor.withOpacity(0.8),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          // 头像
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [AppTheme.neonBlue, AppTheme.neonPurple],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.neonBlue.withOpacity(0.3),
-                  blurRadius: 10,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-            child: Center(
-              child: Icon(Icons.person, color: Colors.white, size: 32),
-            ),
-          ),
-
-          const SizedBox(width: 16),
-
-          // 用户信息
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '用户名',
-                style: TextStyle(
-                  color: AppTheme.primaryTextColor,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              const SizedBox(height: 4),
-
-              Text(
-                'user@example.com',
-                style: TextStyle(
-                  color: AppTheme.secondaryTextColor,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-
-          const Spacer(),
-
-          // 编辑按钮
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppTheme.neonTeal.withOpacity(0.15),
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: Icon(Icons.edit, color: AppTheme.neonTeal, size: 18),
-              padding: EdgeInsets.zero,
-              onPressed: () {
-                // 跳转到个人资料编辑页面
-              },
-            ),
-          ),
+          // 保持对称，空的占位，确保标题居中
+          const SizedBox(width: 38),
         ],
       ),
     );
@@ -532,124 +439,950 @@ class _SettingsScreenState extends State<SettingsScreen>
   void _showNotificationsDialog() {
     showDialog(
       context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.6),
       builder:
-          (context) => AlertDialog(
-            backgroundColor: AppTheme.cardColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+          (context) => Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            insetPadding: EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 24.0,
             ),
-            title: Text(
-              '通知设置',
-              style: TextStyle(
-                color: AppTheme.primaryTextColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
+            child: Stack(
+              clipBehavior: Clip.none,
               children: [
-                SwitchListTile(
-                  title: Text(
-                    '接收通知',
-                    style: TextStyle(color: AppTheme.primaryTextColor),
-                  ),
-                  subtitle: Text(
-                    '开启或关闭所有通知',
-                    style: TextStyle(
-                      color: AppTheme.secondaryTextColor,
-                      fontSize: 12,
+                // 主容器
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.85,
+                  padding: const EdgeInsets.fromLTRB(24.0, 60.0, 24.0, 24.0),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppTheme.cardColor.withOpacity(0.95),
+                        AppTheme.backgroundColor.withOpacity(0.90),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(24.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.neonBlue.withOpacity(0.2),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: AppTheme.neonBlue.withOpacity(0.2),
+                      width: 1.5,
                     ),
                   ),
-                  value: _notificationsEnabled,
-                  onChanged: (value) {
-                    Navigator.pop(context);
-                    setState(() {
-                      _notificationsEnabled = value;
-                    });
-                  },
-                  activeColor: AppTheme.neonBlue,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // 标题
+                      Text(
+                        "通知设置",
+                        style: TextStyle(
+                          color: AppTheme.primaryTextColor,
+                          fontSize: 24.0,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                          shadows: [
+                            Shadow(
+                              color: AppTheme.neonBlue.withOpacity(0.3),
+                              blurRadius: 5,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16.0),
+
+                      // 分隔线
+                      Container(
+                        height: 3,
+                        width: 60,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppTheme.neonBlue.withOpacity(0.5),
+                              AppTheme.neonPurple.withOpacity(0.5),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.neonBlue.withOpacity(0.3),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24.0),
+
+                      // 通知设置列表
+                      Container(
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          color: AppTheme.cardColor.withOpacity(0.4),
+                          borderRadius: BorderRadius.circular(16.0),
+                          border: Border.all(
+                            color: AppTheme.neonBlue.withOpacity(0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            // 全部通知开关
+                            _buildNeonSwitchItem(
+                              icon: Icons.notifications_active,
+                              iconColor: AppTheme.neonBlue,
+                              title: '接收通知',
+                              subtitle: '开启或关闭所有通知',
+                              value: _notificationsEnabled,
+                              onChanged: (value) {
+                                setState(() {
+                                  _notificationsEnabled = value;
+                                  if (!value) {
+                                    _messageNotificationsEnabled = false;
+                                    _activityNotificationsEnabled = false;
+                                  }
+                                });
+                                Navigator.pop(context);
+                                _showNotificationsDialog(); // 重新打开对话框以刷新状态
+                              },
+                            ),
+
+                            if (_notificationsEnabled) ...[
+                              Divider(
+                                color: AppTheme.secondaryTextColor.withOpacity(
+                                  0.15,
+                                ),
+                                thickness: 1,
+                                height: 24,
+                              ),
+
+                              // 消息通知
+                              _buildNeonSwitchItem(
+                                icon: Icons.message,
+                                iconColor: AppTheme.neonGreen,
+                                title: '消息通知',
+                                subtitle: '接收新消息提醒',
+                                value: _messageNotificationsEnabled,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _messageNotificationsEnabled = value;
+                                  });
+                                },
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // 活动通知
+                              _buildNeonSwitchItem(
+                                icon: Icons.event_note,
+                                iconColor: AppTheme.neonOrange,
+                                title: '活动通知',
+                                subtitle: '接收活动和行程相关提醒',
+                                value: _activityNotificationsEnabled,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _activityNotificationsEnabled = value;
+                                  });
+                                },
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24.0),
+
+                      // 完成按钮
+                      InkWell(
+                        onTap: () => Navigator.of(context).pop(),
+                        borderRadius: BorderRadius.circular(30),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [AppTheme.neonBlue, AppTheme.neonPurple],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.neonBlue.withOpacity(0.4),
+                                blurRadius: 8,
+                                spreadRadius: 1,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            '完成',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                Divider(),
-                ListTile(
-                  title: Text(
-                    '更多通知设置',
-                    style: TextStyle(color: AppTheme.primaryTextColor),
+
+                // 顶部图标
+                Positioned(
+                  top: -30,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(15.0),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [AppTheme.neonBlue, AppTheme.neonPurple],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.neonBlue.withOpacity(0.5),
+                            blurRadius: 12,
+                            spreadRadius: 3,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.notifications_active,
+                        color: Colors.white,
+                        size: 30.0,
+                      ),
+                    ),
                   ),
-                  trailing: Icon(
-                    Icons.arrow_forward_ios,
-                    color: AppTheme.secondaryTextColor,
-                    size: 16,
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    // 导航到更多通知设置
-                  },
                 ),
               ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text('关闭', style: TextStyle(color: AppTheme.neonBlue)),
+          ),
+    );
+  }
+
+  // 创建霓虹风格的开关项
+  Widget _buildNeonSwitchItem({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: iconColor.withOpacity(0.2),
+                blurRadius: 6,
+                spreadRadius: 1,
               ),
             ],
           ),
+          child: Center(child: Icon(icon, color: iconColor, size: 22)),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  color: AppTheme.primaryTextColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  color: AppTheme.secondaryTextColor,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // 自定义开关
+        GestureDetector(
+          onTap: () => onChanged(!value),
+          child: Container(
+            width: 50,
+            height: 28,
+            padding: EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color:
+                  value
+                      ? iconColor.withOpacity(0.7)
+                      : AppTheme.cardColor.withOpacity(0.5),
+              boxShadow: [
+                if (value)
+                  BoxShadow(
+                    color: iconColor.withOpacity(0.3),
+                    blurRadius: 6,
+                    spreadRadius: 1,
+                  ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                AnimatedAlign(
+                  duration: Duration(milliseconds: 200),
+                  alignment:
+                      value ? Alignment.centerRight : Alignment.centerLeft,
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 2,
+                          spreadRadius: 0.5,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   void _showLanguageDialog() {
     showDialog(
       context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.6),
       builder:
-          (context) => AlertDialog(
-            backgroundColor: AppTheme.cardColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+          (context) => Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            insetPadding: EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 24.0,
             ),
-            title: Text(
-              '选择语言',
-              style: TextStyle(
-                color: AppTheme.primaryTextColor,
-                fontWeight: FontWeight.bold,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // 主容器
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.85,
+                  padding: const EdgeInsets.fromLTRB(24.0, 60.0, 24.0, 24.0),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppTheme.cardColor.withOpacity(0.95),
+                        AppTheme.backgroundColor.withOpacity(0.90),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(24.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.neonOrange.withOpacity(0.2),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: AppTheme.neonOrange.withOpacity(0.2),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // 标题
+                      Text(
+                        "选择语言",
+                        style: TextStyle(
+                          color: AppTheme.primaryTextColor,
+                          fontSize: 24.0,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                          shadows: [
+                            Shadow(
+                              color: AppTheme.neonOrange.withOpacity(0.3),
+                              blurRadius: 5,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16.0),
+
+                      // 分隔线
+                      Container(
+                        height: 3,
+                        width: 60,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppTheme.neonOrange.withOpacity(0.5),
+                              AppTheme.neonYellow.withOpacity(0.5),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.neonOrange.withOpacity(0.3),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24.0),
+
+                      // 语言选择列表
+                      Container(
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          color: AppTheme.cardColor.withOpacity(0.4),
+                          borderRadius: BorderRadius.circular(16.0),
+                          border: Border.all(
+                            color: AppTheme.neonOrange.withOpacity(0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          children:
+                              _languageOptions.map((language) {
+                                final isSelected =
+                                    language == _selectedLanguage;
+                                return InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedLanguage = language;
+                                    });
+                                    Navigator.pop(context);
+                                  },
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 12,
+                                      horizontal: 16,
+                                    ),
+                                    margin: EdgeInsets.symmetric(vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          isSelected
+                                              ? AppTheme.neonOrange.withOpacity(
+                                                0.15,
+                                              )
+                                              : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color:
+                                            isSelected
+                                                ? AppTheme.neonOrange
+                                                    .withOpacity(0.5)
+                                                : Colors.transparent,
+                                        width: 1,
+                                      ),
+                                      boxShadow:
+                                          isSelected
+                                              ? [
+                                                BoxShadow(
+                                                  color: AppTheme.neonOrange
+                                                      .withOpacity(0.2),
+                                                  blurRadius: 8,
+                                                  spreadRadius: 1,
+                                                ),
+                                              ]
+                                              : [],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                isSelected
+                                                    ? AppTheme.neonOrange
+                                                        .withOpacity(0.2)
+                                                    : AppTheme.cardColor
+                                                        .withOpacity(0.3),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            isSelected
+                                                ? Icons.check_circle
+                                                : Icons.language,
+                                            color:
+                                                isSelected
+                                                    ? AppTheme.neonOrange
+                                                    : AppTheme
+                                                        .secondaryTextColor,
+                                            size: 20,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Text(
+                                          language,
+                                          style: TextStyle(
+                                            color:
+                                                isSelected
+                                                    ? AppTheme.neonOrange
+                                                    : AppTheme.primaryTextColor,
+                                            fontSize: 16,
+                                            fontWeight:
+                                                isSelected
+                                                    ? FontWeight.w600
+                                                    : FontWeight.normal,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                        ),
+                      ),
+
+                      const SizedBox(height: 24.0),
+
+                      // 完成按钮
+                      InkWell(
+                        onTap: () => Navigator.of(context).pop(),
+                        borderRadius: BorderRadius.circular(30),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppTheme.neonOrange,
+                                AppTheme.neonYellow,
+                              ],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.neonOrange.withOpacity(0.4),
+                                blurRadius: 8,
+                                spreadRadius: 1,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            '完成',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // 顶部图标
+                Positioned(
+                  top: -30,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(15.0),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [AppTheme.neonOrange, AppTheme.neonYellow],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.neonOrange.withOpacity(0.5),
+                            blurRadius: 12,
+                            spreadRadius: 3,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.language,
+                        color: Colors.white,
+                        size: 30.0,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+    );
+  }
+
+  void _showPrivacySecurityDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.6),
+      builder:
+          (context) => Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            insetPadding: EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 24.0,
+            ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // 主容器
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.85,
+                  padding: const EdgeInsets.fromLTRB(24.0, 60.0, 24.0, 24.0),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppTheme.cardColor.withOpacity(0.95),
+                        AppTheme.backgroundColor.withOpacity(0.90),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(24.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.neonPink.withOpacity(0.2),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: AppTheme.neonPink.withOpacity(0.2),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // 标题
+                      Text(
+                        "隐私与安全",
+                        style: TextStyle(
+                          color: AppTheme.primaryTextColor,
+                          fontSize: 24.0,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                          shadows: [
+                            Shadow(
+                              color: AppTheme.neonPink.withOpacity(0.3),
+                              blurRadius: 5,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16.0),
+
+                      // 分隔线
+                      Container(
+                        height: 3,
+                        width: 60,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppTheme.neonPink.withOpacity(0.5),
+                              AppTheme.neonPurple.withOpacity(0.5),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.neonPink.withOpacity(0.3),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24.0),
+
+                      // 隐私设置列表
+                      Container(
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          color: AppTheme.cardColor.withOpacity(0.4),
+                          borderRadius: BorderRadius.circular(16.0),
+                          border: Border.all(
+                            color: AppTheme.neonPink.withOpacity(0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            // 隐私模式
+                            _buildNeonSwitchItem(
+                              icon: Icons.visibility_off,
+                              iconColor: AppTheme.neonPink,
+                              title: '隐私模式',
+                              subtitle: '开启后，您的个人资料对其他用户不可见',
+                              value: _privacyModeEnabled,
+                              onChanged: (value) {
+                                setState(() {
+                                  _privacyModeEnabled = value;
+                                });
+                              },
+                            ),
+
+                            Divider(
+                              color: AppTheme.secondaryTextColor.withOpacity(
+                                0.15,
+                              ),
+                              thickness: 1,
+                              height: 24,
+                            ),
+
+                            // 位置追踪
+                            _buildNeonSwitchItem(
+                              icon: Icons.location_on,
+                              iconColor: AppTheme.neonBlue,
+                              title: '位置追踪',
+                              subtitle: '允许应用获取您的位置信息',
+                              value: _locationTrackingEnabled,
+                              onChanged: (value) {
+                                setState(() {
+                                  _locationTrackingEnabled = value;
+                                });
+                              },
+                            ),
+
+                            Divider(
+                              color: AppTheme.secondaryTextColor.withOpacity(
+                                0.15,
+                              ),
+                              thickness: 1,
+                              height: 24,
+                            ),
+
+                            // 密码与安全
+                            _buildNeonOptionItem(
+                              icon: Icons.lock,
+                              iconColor: AppTheme.neonPurple,
+                              title: '密码与安全',
+                              subtitle: '更改密码和安全设置',
+                              onTap: () {
+                                Navigator.pop(context);
+                                // 导航到密码与安全设置页面
+                              },
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // 隐私政策
+                            _buildNeonOptionItem(
+                              icon: Icons.policy,
+                              iconColor: AppTheme.neonTeal,
+                              title: '隐私政策',
+                              subtitle: '查看我们的隐私政策',
+                              onTap: () {
+                                Navigator.pop(context);
+                                // 显示隐私政策
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24.0),
+
+                      // 完成按钮
+                      InkWell(
+                        onTap: () => Navigator.of(context).pop(),
+                        borderRadius: BorderRadius.circular(30),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [AppTheme.neonPink, AppTheme.neonPurple],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.neonPink.withOpacity(0.4),
+                                blurRadius: 8,
+                                spreadRadius: 1,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            '完成',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // 顶部图标
+                Positioned(
+                  top: -30,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(15.0),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [AppTheme.neonPink, AppTheme.neonPurple],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.neonPink.withOpacity(0.5),
+                            blurRadius: 12,
+                            spreadRadius: 3,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.security,
+                        color: Colors.white,
+                        size: 30.0,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+    );
+  }
+
+  // 创建霓虹风格的选项项
+  Widget _buildNeonOptionItem({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: iconColor.withOpacity(0.2),
+                    blurRadius: 6,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: Center(child: Icon(icon, color: iconColor, size: 22)),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: AppTheme.primaryTextColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: AppTheme.secondaryTextColor,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ),
             ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children:
-                  _languageOptions.map((language) {
-                    return RadioListTile<String>(
-                      title: Text(
-                        language,
-                        style: TextStyle(color: AppTheme.primaryTextColor),
-                      ),
-                      value: language,
-                      groupValue: _selectedLanguage,
-                      onChanged: (value) {
-                        Navigator.pop(context);
-                        if (value != null) {
-                          setState(() {
-                            _selectedLanguage = value;
-                          });
-                        }
-                      },
-                      activeColor: AppTheme.neonOrange,
-                    );
-                  }).toList(),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  '取消',
-                  style: TextStyle(color: AppTheme.secondaryTextColor),
+            // 箭头图标
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.arrow_forward_ios,
+                  color: iconColor.withOpacity(0.7),
+                  size: 14,
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -662,12 +1395,29 @@ class _SettingsScreenState extends State<SettingsScreen>
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
-            title: Text(
-              '清除缓存',
-              style: TextStyle(
-                color: AppTheme.primaryTextColor,
-                fontWeight: FontWeight.bold,
-              ),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: AppTheme.neonGreen.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.cleaning_services,
+                    color: AppTheme.neonGreen,
+                    size: 24.0,
+                  ),
+                ),
+                const SizedBox(width: 12.0),
+                Text(
+                  '清除缓存',
+                  style: TextStyle(
+                    color: AppTheme.primaryTextColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
             content: Text(
               '确定要清除所有缓存数据吗？这将删除临时文件，但不会影响您的个人数据。',
@@ -684,58 +1434,151 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
               ),
               TextButton(
-                onPressed: () {
-                  // 执行清理缓存操作
+                onPressed: () async {
                   Navigator.pop(context);
-                  _showCacheSuccessSnackbar();
+                  // 显示加载指示器
+                  _showLoadingDialog(context);
+
+                  // 执行实际的缓存清理
+                  try {
+                    await _clearCache();
+                    // 关闭加载指示器
+                    Navigator.pop(context);
+                    // 显示成功提示
+                    _showCacheSuccessSnackbar();
+                  } catch (e) {
+                    // 关闭加载指示器
+                    Navigator.pop(context);
+                    // 显示错误提示
+                    _showErrorSnackbar('清除缓存失败: ${e.toString()}');
+                  }
                 },
-                child: Text('确定', style: TextStyle(color: AppTheme.neonBlue)),
+                child: Text('确定', style: TextStyle(color: AppTheme.neonGreen)),
               ),
             ],
           ),
     );
   }
 
-  void _showLogoutDialog() {
+  void _showLoadingDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: AppTheme.cardColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: Text(
-              '退出登录',
-              style: TextStyle(
-                color: AppTheme.primaryTextColor,
-                fontWeight: FontWeight.bold,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Center(
+            child: Container(
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppTheme.cardColor.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppTheme.neonGreen,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    '正在清除缓存...',
+                    style: TextStyle(
+                      color: AppTheme.primaryTextColor,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
               ),
             ),
-            content: Text(
-              '确定要退出登录吗？',
-              style: TextStyle(color: AppTheme.secondaryTextColor),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  '取消',
-                  style: TextStyle(color: AppTheme.secondaryTextColor),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  // 执行退出登录操作
-                  Navigator.pop(context);
-                  // 退出登录逻辑
-                },
-                child: Text('确定', style: TextStyle(color: AppTheme.neonBlue)),
-              ),
-            ],
           ),
+        );
+      },
+    );
+  }
+
+  // 实际清除缓存的函数
+  Future<void> _clearCache() async {
+    try {
+      int clearedFiles = 0;
+
+      // 清理临时文件
+      final cacheDir = await getTemporaryDirectory();
+      if (cacheDir.existsSync()) {
+        final entities = cacheDir.listSync();
+        for (var entity in entities) {
+          if (entity is File) {
+            try {
+              await entity.delete();
+              clearedFiles++;
+            } catch (e) {
+              print('删除文件失败: ${e.toString()}');
+            }
+          } else if (entity is Directory) {
+            try {
+              await entity.delete(recursive: true);
+              clearedFiles++;
+            } catch (e) {
+              print('删除目录失败: ${e.toString()}');
+            }
+          }
+        }
+      }
+
+      // 清理图片缓存
+      await DefaultCacheManager().emptyCache();
+
+      // 获取清理前后的缓存大小
+      print('共清理了 $clearedFiles 个文件/目录');
+    } catch (e) {
+      print('清除缓存时出错: ${e.toString()}');
+      rethrow;
+    }
+  }
+
+  void _showCacheSuccessSnackbar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white),
+            SizedBox(width: 10),
+            Text('缓存已成功清除'),
+          ],
+        ),
+        backgroundColor: AppTheme.neonGreen,
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
+  void _showErrorSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.white),
+            SizedBox(width: 10),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: AppTheme.errorColor,
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 3),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
     );
   }
 
@@ -839,34 +1682,38 @@ class _SettingsScreenState extends State<SettingsScreen>
                       child: Column(
                         children: [
                           _buildHelpItem(
-                            "如何编辑个人资料？",
-                            "进入"我的信息"页面，点击右上角的编辑按钮即可修改您的个人信息。",
+                            '如何编辑个人资料？',
+                            '进入\'我的信息\'页面，点击右上角的编辑按钮即可修改您的个人信息。',
                             Icons.person,
                             AppTheme.neonTeal,
                           ),
-                          
+
                           Divider(
-                            color: AppTheme.secondaryTextColor.withOpacity(0.15),
+                            color: AppTheme.secondaryTextColor.withOpacity(
+                              0.15,
+                            ),
                             thickness: 1,
                             height: 30,
                           ),
-                          
+
                           _buildHelpItem(
-                            "如何查看我的旅行足迹？",
-                            "在"我的"页面点击"旅行足迹"，您可以查看所有已记录的旅行历史。",
+                            '如何查看我的旅行足迹？',
+                            '在\'我的\'页面点击\'旅行足迹\'，您可以查看所有已记录的旅行历史。',
                             Icons.map,
                             AppTheme.neonPurple,
                           ),
-                          
+
                           Divider(
-                            color: AppTheme.secondaryTextColor.withOpacity(0.15),
+                            color: AppTheme.secondaryTextColor.withOpacity(
+                              0.15,
+                            ),
                             thickness: 1,
                             height: 30,
                           ),
-                          
+
                           _buildHelpItem(
-                            "如何兑换积分？",
-                            "在"积分兑换"页面，您可以查看所有可兑换的物品并使用积分进行兑换。",
+                            '如何兑换积分？',
+                            '在\'积分兑换\'页面，您可以查看所有可兑换的物品并使用积分进行兑换。',
                             Icons.card_giftcard,
                             AppTheme.neonBlue,
                           ),
@@ -937,49 +1784,6 @@ class _SettingsScreenState extends State<SettingsScreen>
           ),
         );
       },
-    );
-  }
-
-  // 构建帮助项目
-  Widget _buildHelpItem(String question, String answer, IconData icon, Color color) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 18.0),
-            ),
-            const SizedBox(width: 12.0),
-            Expanded(
-              child: Text(
-                question,
-                style: TextStyle(
-                  color: AppTheme.primaryTextColor,
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: 38.0, top: 8.0),
-          child: Text(
-            answer,
-            style: TextStyle(
-              color: AppTheme.secondaryTextColor,
-              fontSize: 14.0,
-              height: 1.5,
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -1114,7 +1918,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 16.0),
                             child: Divider(
-                              color: AppTheme.secondaryTextColor.withOpacity(0.15),
+                              color: AppTheme.secondaryTextColor.withOpacity(
+                                0.15,
+                              ),
                               thickness: 1,
                             ),
                           ),
@@ -1138,7 +1944,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                       children: [
                         _buildSocialButton(Icons.public, AppTheme.neonBlue),
                         const SizedBox(width: 20),
-                        _buildSocialButton(Icons.chat_bubble, AppTheme.neonGreen),
+                        _buildSocialButton(
+                          Icons.chat_bubble,
+                          AppTheme.neonGreen,
+                        ),
                         const SizedBox(width: 20),
                         _buildSocialButton(Icons.share, AppTheme.neonPurple),
                       ],
@@ -1284,11 +2093,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             ),
           ],
         ),
-        child: Icon(
-          icon,
-          color: color,
-          size: 24,
-        ),
+        child: Icon(icon, color: color, size: 24),
       ),
     );
   }
@@ -1418,9 +2223,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    
+
                     const SizedBox(height: 8.0),
-                    
+
                     Text(
                       "构建号: 20230515001",
                       style: TextStyle(
@@ -1506,11 +2311,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         ),
                       ],
                     ),
-                    child: Icon(
-                      Icons.info,
-                      color: Colors.white,
-                      size: 40.0,
-                    ),
+                    child: Icon(Icons.info, color: Colors.white, size: 40.0),
                   ),
                 ),
               ),
@@ -1520,129 +2321,95 @@ class _SettingsScreenState extends State<SettingsScreen>
       },
     );
   }
-  
-  void _showPrivacySecurityDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.cardColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Row(
+
+  // 构建帮助项目
+  Widget _buildHelpItem(
+    String question,
+    String answer,
+    IconData icon,
+    Color color,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8.0),
               decoration: BoxDecoration(
-                color: AppTheme.neonPink.withOpacity(0.15),
+                color: color.withOpacity(0.15),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.security, color: AppTheme.neonPink, size: 24.0),
+              child: Icon(icon, color: color, size: 18.0),
             ),
             const SizedBox(width: 12.0),
-            Text(
-              '隐私与安全',
+            Expanded(
+              child: Text(
+                question,
+                style: TextStyle(
+                  color: AppTheme.primaryTextColor,
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 38.0, top: 8.0),
+          child: Text(
+            answer,
+            style: TextStyle(
+              color: AppTheme.secondaryTextColor,
+              fontSize: 14.0,
+              height: 1.5,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: AppTheme.cardColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Text(
+              '退出登录',
               style: TextStyle(
                 color: AppTheme.primaryTextColor,
                 fontWeight: FontWeight.bold,
               ),
             ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SwitchListTile(
-              title: Text(
-                '隐私模式',
-                style: TextStyle(color: AppTheme.primaryTextColor),
-              ),
-              subtitle: Text(
-                '开启后，您的个人资料对其他用户不可见',
-                style: TextStyle(color: AppTheme.secondaryTextColor, fontSize: 12),
-              ),
-              value: _privacyModeEnabled,
-              onChanged: (value) {
-                Navigator.pop(context);
-                setState(() {
-                  _privacyModeEnabled = value;
-                });
-              },
-              activeColor: AppTheme.neonPink,
+            content: Text(
+              '确定要退出登录吗？',
+              style: TextStyle(color: AppTheme.secondaryTextColor),
             ),
-            Divider(),
-            SwitchListTile(
-              title: Text(
-                '位置追踪',
-                style: TextStyle(color: AppTheme.primaryTextColor),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  '取消',
+                  style: TextStyle(color: AppTheme.secondaryTextColor),
+                ),
               ),
-              subtitle: Text(
-                '允许应用获取您的位置信息',
-                style: TextStyle(color: AppTheme.secondaryTextColor, fontSize: 12),
+              TextButton(
+                onPressed: () {
+                  // 执行退出登录操作
+                  Navigator.pop(context);
+                  // 退出登录逻辑
+                },
+                child: Text('确定', style: TextStyle(color: AppTheme.neonBlue)),
               ),
-              value: _locationTrackingEnabled,
-              onChanged: (value) {
-                Navigator.pop(context);
-                setState(() {
-                  _locationTrackingEnabled = value;
-                });
-              },
-              activeColor: AppTheme.neonPink,
-            ),
-            Divider(),
-            ListTile(
-              title: Text(
-                '密码与安全',
-                style: TextStyle(color: AppTheme.primaryTextColor),
-              ),
-              trailing: Icon(
-                Icons.arrow_forward_ios,
-                color: AppTheme.secondaryTextColor,
-                size: 16,
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                // 导航到密码与安全设置页面
-              },
-            ),
-            Divider(),
-            ListTile(
-              title: Text(
-                '隐私政策',
-                style: TextStyle(color: AppTheme.primaryTextColor),
-              ),
-              trailing: Icon(
-                Icons.arrow_forward_ios,
-                color: AppTheme.secondaryTextColor,
-                size: 16,
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                // 显示隐私政策
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text('关闭', style: TextStyle(color: AppTheme.neonPink)),
+            ],
           ),
-        ],
-      ),
-    );
-  }
-
-  void _showCacheSuccessSnackbar() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('缓存已成功清除'),
-        backgroundColor: AppTheme.neonGreen,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
     );
   }
 }
