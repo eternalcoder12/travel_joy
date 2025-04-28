@@ -837,145 +837,399 @@ class _SettingsScreenState extends State<SettingsScreen>
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      elevation: 20,
+      barrierColor: Colors.black.withOpacity(0.65),
       builder: (BuildContext context) {
-        return Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF2D2B40).withOpacity(0.97),
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(top: 12, bottom: 8),
-                decoration: BoxDecoration(
-                  color: Colors.grey[600],
-                  borderRadius: BorderRadius.circular(2),
-                ),
+        return FractionallySizedBox(
+          heightFactor: 0.65,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  const Color(0xFF2A2640).withOpacity(0.98),
+                  const Color(0xFF1E1B30).withOpacity(0.98),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  '选择$title',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(28),
+                topRight: Radius.circular(28),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.4),
+                  blurRadius: 20,
+                  spreadRadius: 5,
+                  offset: const Offset(0, -3),
+                ),
+                BoxShadow(
+                  color: iconColor.withOpacity(0.15),
+                  blurRadius: 20,
+                  spreadRadius: 1,
+                  offset: const Offset(0, -3),
+                ),
+              ],
+              border: Border.all(
+                color: Colors.white.withOpacity(0.1),
+                width: 0.5,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 顶部拖动条和标题区域
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        title == '语言'
+                            ? AppTheme.neonOrange.withOpacity(0.2)
+                            : AppTheme.neonPurple.withOpacity(0.2),
+                        Colors.transparent,
+                        Colors.transparent,
+                        title == '语言'
+                            ? AppTheme.neonOrange.withOpacity(0.2)
+                            : AppTheme.neonPurple.withOpacity(0.2),
+                      ],
+                    ),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(28),
+                      topRight: Radius.circular(28),
+                    ),
+                  ),
+                  padding: const EdgeInsets.only(top: 16, bottom: 12),
+                  child: Column(
+                    children: [
+                      // 拖动条
+                      Container(
+                        width: 60,
+                        height: 5,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+
+                      // 标题
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 4),
+                        child: Text(
+                          '选择$title',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                            shadows: [
+                              Shadow(
+                                color:
+                                    title == '语言'
+                                        ? AppTheme.neonOrange.withOpacity(0.5)
+                                        : AppTheme.neonPurple.withOpacity(0.5),
+                                blurRadius: 10,
+                                offset: const Offset(0, 0),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // 分隔线
+                      Container(
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 90,
+                        ),
+                        height: 2,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.transparent,
+                              title == '语言'
+                                  ? AppTheme.neonOrange.withOpacity(0.6)
+                                  : AppTheme.neonPurple.withOpacity(0.6),
+                              title == '语言'
+                                  ? AppTheme.neonOrange.withOpacity(0.6)
+                                  : AppTheme.neonPurple.withOpacity(0.6),
+                              Colors.transparent,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              Divider(color: Colors.grey[800], height: 1),
-              Flexible(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children:
-                        options.map((option) {
-                          bool isSelected = option == selectedValue;
-                          bool isLanguage = title == '语言';
-                          Color optionColor =
-                              isLanguage
-                                  ? AppTheme.neonOrange
-                                  : AppTheme.neonPurple;
 
-                          IconData optionIcon;
-                          if (isLanguage) {
-                            if (option == '简体中文') {
-                              optionIcon = Icons.language;
-                            } else if (option == 'English') {
-                              optionIcon = Icons.emoji_flags;
-                            } else if (option == '日本語') {
-                              optionIcon = Icons.map;
-                            } else {
-                              optionIcon = Icons.translate;
-                            }
+                // 选项列表
+                Expanded(
+                  child: ShaderMask(
+                    shaderCallback: (Rect rect) {
+                      return LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.white,
+                          Colors.white,
+                          Colors.white,
+                          Colors.white.withOpacity(0.7),
+                        ],
+                        stops: const [0.0, 0.1, 0.9, 1.0],
+                      ).createShader(rect);
+                    },
+                    blendMode: BlendMode.dstIn,
+                    child: ListView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemCount: options.length,
+                      itemBuilder: (context, index) {
+                        final option = options[index];
+                        final bool isSelected = option == selectedValue;
+                        final bool isLanguage = title == '语言';
+                        final Color optionColor =
+                            isLanguage
+                                ? AppTheme.neonOrange
+                                : AppTheme.neonPurple;
+
+                        // 为每个选项确定图标
+                        IconData optionIcon;
+                        if (isLanguage) {
+                          if (option == '简体中文') {
+                            optionIcon = Icons.language;
+                          } else if (option == 'English') {
+                            optionIcon = Icons.emoji_flags;
+                          } else if (option == '日本語') {
+                            optionIcon = Icons.map;
                           } else {
-                            if (option == '深色') {
-                              optionIcon = Icons.dark_mode;
-                            } else if (option == '浅色') {
-                              optionIcon = Icons.light_mode;
-                            } else {
-                              optionIcon = Icons.settings_system_daydream;
-                            }
+                            optionIcon = Icons.translate;
                           }
+                        } else {
+                          if (option == '深色') {
+                            optionIcon = Icons.dark_mode;
+                          } else if (option == '浅色') {
+                            optionIcon = Icons.light_mode;
+                          } else {
+                            optionIcon = Icons.settings_system_daydream;
+                          }
+                        }
 
-                          return InkWell(
-                            onTap: () {
-                              Navigator.pop(context);
-                              if (onSelected != null) {
-                                onSelected(option);
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 14,
-                                horizontal: 20,
-                              ),
-                              decoration: BoxDecoration(
-                                color:
-                                    isSelected
-                                        ? optionColor.withOpacity(0.1)
-                                        : Colors.transparent,
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color:
-                                          isSelected
-                                              ? optionColor.withOpacity(0.2)
-                                              : Colors.grey.withOpacity(0.15),
-                                    ),
-                                    child: Icon(
-                                      optionIcon,
-                                      color:
-                                          isSelected
-                                              ? optionColor
-                                              : Colors.grey,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Text(
-                                      option,
-                                      style: TextStyle(
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          margin: const EdgeInsets.symmetric(
+                            vertical: 6,
+                            horizontal: 16,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                isSelected
+                                    ? optionColor.withOpacity(0.15)
+                                    : Colors.black.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow:
+                                isSelected
+                                    ? [
+                                      BoxShadow(
+                                        color: optionColor.withOpacity(0.2),
+                                        blurRadius: 8,
+                                        spreadRadius: 0,
+                                      ),
+                                    ]
+                                    : null,
+                            border: Border.all(
+                              color:
+                                  isSelected
+                                      ? optionColor.withOpacity(0.5)
+                                      : Colors.white.withOpacity(0.05),
+                              width: isSelected ? 1.5 : 0.5,
+                            ),
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.pop(context);
+                                if (onSelected != null) {
+                                  onSelected(option);
+                                }
+                              },
+                              borderRadius: BorderRadius.circular(16),
+                              splashColor: optionColor.withOpacity(0.1),
+                              highlightColor: optionColor.withOpacity(0.05),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                  horizontal: 20,
+                                ),
+                                child: Row(
+                                  children: [
+                                    // 选项图标
+                                    Container(
+                                      width: 48,
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient:
+                                            isSelected
+                                                ? LinearGradient(
+                                                  colors: [
+                                                    optionColor.withOpacity(
+                                                      0.7,
+                                                    ),
+                                                    optionColor.withOpacity(
+                                                      0.4,
+                                                    ),
+                                                  ],
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                )
+                                                : null,
                                         color:
                                             isSelected
-                                                ? optionColor
-                                                : Colors.white,
-                                        fontSize: 16,
-                                        fontWeight:
+                                                ? null
+                                                : Colors.grey.withOpacity(0.1),
+                                        boxShadow:
                                             isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
+                                                ? [
+                                                  BoxShadow(
+                                                    color: optionColor
+                                                        .withOpacity(0.5),
+                                                    blurRadius: 12,
+                                                    spreadRadius: 1,
+                                                  ),
+                                                ]
+                                                : null,
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          optionIcon,
+                                          color:
+                                              isSelected
+                                                  ? Colors.white
+                                                  : Colors.grey.withOpacity(
+                                                    0.8,
+                                                  ),
+                                          size: 24,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  if (isSelected)
-                                    Icon(
-                                      Icons.check_circle,
-                                      color: optionColor,
-                                      size: 24,
+                                    const SizedBox(width: 20),
+
+                                    // 选项文本
+                                    Expanded(
+                                      child: Text(
+                                        option,
+                                        style: TextStyle(
+                                          color:
+                                              isSelected
+                                                  ? Colors.white
+                                                  : Colors.grey[300],
+                                          fontSize: 17,
+                                          fontWeight:
+                                              isSelected
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                          letterSpacing: 0.3,
+                                        ),
+                                      ),
                                     ),
-                                ],
+
+                                    // 选中标记
+                                    if (isSelected)
+                                      Container(
+                                        margin: const EdgeInsets.only(left: 8),
+                                        child: Icon(
+                                          Icons.check_circle_rounded,
+                                          color: optionColor,
+                                          size: 28,
+                                          shadows: [
+                                            Shadow(
+                                              color: optionColor.withOpacity(
+                                                0.7,
+                                              ),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 0),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                ),
                               ),
                             ),
-                          );
-                        }).toList(),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
-            ],
+
+                // 底部确认按钮
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => Navigator.pop(context),
+                      borderRadius: BorderRadius.circular(16),
+                      splashColor:
+                          title == '语言'
+                              ? AppTheme.neonOrange.withOpacity(0.2)
+                              : AppTheme.neonPurple.withOpacity(0.2),
+                      highlightColor:
+                          title == '语言'
+                              ? AppTheme.neonOrange.withOpacity(0.1)
+                              : AppTheme.neonPurple.withOpacity(0.1),
+                      child: Ink(
+                        height: 55,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              title == '语言'
+                                  ? AppTheme.neonOrange.withOpacity(0.7)
+                                  : AppTheme.neonPurple.withOpacity(0.7),
+                              title == '语言'
+                                  ? AppTheme.neonOrange.withOpacity(0.5)
+                                  : AppTheme.neonPurple.withOpacity(0.5),
+                            ],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                                  title == '语言'
+                                      ? AppTheme.neonOrange.withOpacity(0.4)
+                                      : AppTheme.neonPurple.withOpacity(0.4),
+                              blurRadius: 12,
+                              spreadRadius: 2,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            '确认',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
