@@ -2204,7 +2204,7 @@ class _ProfileTabState extends State<_ProfileTab>
             builder: (context, child) {
               return Stack(
                 children: [
-                  // 动态光晕效果1
+                  // 动态光晕效果
                   Positioned(
                     left:
                         MediaQuery.of(context).size.width *
