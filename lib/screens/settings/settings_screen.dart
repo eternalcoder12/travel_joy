@@ -2912,112 +2912,104 @@ class _SettingsScreenState extends State<SettingsScreen>
   void _showLanguageSelectionDialog() {
     showDialog(
       context: context,
-      builder:
-          (context) => Dialog(
-            backgroundColor: Colors.transparent,
-            insetPadding: EdgeInsets.symmetric(horizontal: 24),
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.fromLTRB(20, 30, 20, 20),
-              decoration: BoxDecoration(
-                color: AppTheme.backgroundColor.withOpacity(0.95),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.black.withOpacity(0.8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const Padding(
+                  padding: EdgeInsets.only(top: 12.0, bottom: 20.0),
+                  child: Text(
                     '选择语言',
                     style: TextStyle(
-                      color: AppTheme.primaryTextColor,
-                      fontSize: 20,
+                      color: Colors.white,
+                      fontSize: 18.0,
                       fontWeight: FontWeight.bold,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 30),
-                  ...List.generate(_languageOptions.length, (index) {
-                    final language = _languageOptions[index];
-                    final isSelected = language == _selectedLanguage;
-                    return GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () async {
-                        setState(() {
-                          _selectedLanguage = language;
-                        });
-                        await _saveSettings();
-                        _showStatusToast('语言已设置为: $_selectedLanguage');
-                        Navigator.pop(context);
-                      },
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color:
-                                    isSelected
-                                        ? AppTheme.neonOrange
-                                        : Colors.transparent,
-                                border:
-                                    isSelected
-                                        ? null
-                                        : Border.all(
-                                          color: AppTheme.secondaryTextColor
-                                              .withOpacity(0.6),
-                                          width: 2,
-                                        ),
+                ),
+                ..._languageOptions.map((lang) {
+                  bool isSelected = lang == _selectedLanguage;
+                  Color itemColor =
+                      lang == 'English' ? Colors.orange : Colors.blue;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedLanguage = lang;
+                        _saveSettings();
+                      });
+                      Navigator.of(context).pop();
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10.0),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isSelected ? itemColor : Colors.grey,
+                                width: 2,
                               ),
-                              child:
-                                  isSelected
-                                      ? Icon(
-                                        Icons.check,
-                                        color: Colors.white,
-                                        size: 16,
-                                      )
-                                      : null,
+                              color:
+                                  isSelected ? itemColor : Colors.transparent,
                             ),
-                            SizedBox(width: 20),
-                            Text(
-                              language,
-                              style: TextStyle(
-                                color:
-                                    isSelected
-                                        ? AppTheme.neonOrange
-                                        : AppTheme.primaryTextColor,
-                                fontSize: 16,
-                                fontWeight:
-                                    isSelected
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                              ),
+                            child:
+                                isSelected
+                                    ? const Icon(
+                                      Icons.check,
+                                      size: 16,
+                                      color: Colors.white,
+                                    )
+                                    : null,
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            lang,
+                            style: TextStyle(
+                              color: isSelected ? itemColor : Colors.white,
+                              fontSize: 16,
                             ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
-                  SizedBox(height: 30),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      alignment: Alignment.center,
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      child: Text(
-                        '取消',
-                        style: TextStyle(
-                          color: AppTheme.secondaryTextColor,
-                          fontSize: 16,
-                        ),
+                          ),
+                        ],
                       ),
                     ),
+                  );
+                }).toList(),
+                const SizedBox(height: 20),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8.0,
+                      horizontal: 16.0,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.grey),
+                    ),
+                    child: const Text(
+                      '取消',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
+        );
+      },
     );
   }
 
@@ -3025,112 +3017,104 @@ class _SettingsScreenState extends State<SettingsScreen>
   void _showThemeSelectionDialog() {
     showDialog(
       context: context,
-      builder:
-          (context) => Dialog(
-            backgroundColor: Colors.transparent,
-            insetPadding: EdgeInsets.symmetric(horizontal: 24),
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.fromLTRB(20, 30, 20, 20),
-              decoration: BoxDecoration(
-                color: AppTheme.backgroundColor.withOpacity(0.95),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.black.withOpacity(0.8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const Padding(
+                  padding: EdgeInsets.only(top: 12.0, bottom: 20.0),
+                  child: Text(
                     '选择主题',
                     style: TextStyle(
-                      color: AppTheme.primaryTextColor,
-                      fontSize: 20,
+                      color: Colors.white,
+                      fontSize: 18.0,
                       fontWeight: FontWeight.bold,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 30),
-                  ...List.generate(_themeOptions.length, (index) {
-                    final theme = _themeOptions[index];
-                    final isSelected = theme == _selectedTheme;
-                    return GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () async {
-                        setState(() {
-                          _selectedTheme = theme;
-                        });
-                        await _saveSettings();
-                        _showStatusToast('主题已设置为: $_selectedTheme');
-                        Navigator.pop(context);
-                      },
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color:
-                                    isSelected
-                                        ? AppTheme.neonPurple
-                                        : Colors.transparent,
-                                border:
-                                    isSelected
-                                        ? null
-                                        : Border.all(
-                                          color: AppTheme.secondaryTextColor
-                                              .withOpacity(0.6),
-                                          width: 2,
-                                        ),
+                ),
+                ..._themeOptions.map((theme) {
+                  bool isSelected = theme == _selectedTheme;
+                  Color itemColor =
+                      theme == '深紫色' ? Colors.purple : Colors.teal;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedTheme = theme;
+                        _saveSettings();
+                      });
+                      Navigator.of(context).pop();
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10.0),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isSelected ? itemColor : Colors.grey,
+                                width: 2,
                               ),
-                              child:
-                                  isSelected
-                                      ? Icon(
-                                        Icons.check,
-                                        color: Colors.white,
-                                        size: 16,
-                                      )
-                                      : null,
+                              color:
+                                  isSelected ? itemColor : Colors.transparent,
                             ),
-                            SizedBox(width: 20),
-                            Text(
-                              theme,
-                              style: TextStyle(
-                                color:
-                                    isSelected
-                                        ? AppTheme.neonPurple
-                                        : AppTheme.primaryTextColor,
-                                fontSize: 16,
-                                fontWeight:
-                                    isSelected
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                              ),
+                            child:
+                                isSelected
+                                    ? const Icon(
+                                      Icons.check,
+                                      size: 16,
+                                      color: Colors.white,
+                                    )
+                                    : null,
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            theme,
+                            style: TextStyle(
+                              color: isSelected ? itemColor : Colors.white,
+                              fontSize: 16,
                             ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
-                  SizedBox(height: 30),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      alignment: Alignment.center,
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      child: Text(
-                        '取消',
-                        style: TextStyle(
-                          color: AppTheme.secondaryTextColor,
-                          fontSize: 16,
-                        ),
+                          ),
+                        ],
                       ),
                     ),
+                  );
+                }).toList(),
+                const SizedBox(height: 20),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8.0,
+                      horizontal: 16.0,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.grey),
+                    ),
+                    child: const Text(
+                      '取消',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
+        );
+      },
     );
   }
 }
