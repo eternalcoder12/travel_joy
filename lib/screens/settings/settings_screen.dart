@@ -330,19 +330,6 @@ class _SettingsScreenState extends State<SettingsScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 设置标题
-        Padding(
-          padding: const EdgeInsets.only(left: 20, bottom: 10, top: 5),
-          child: Text(
-            '设置选项',
-            style: TextStyle(
-              color: AppTheme.secondaryTextColor,
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-
         // 连续列表容器
         Container(
           decoration: BoxDecoration(
@@ -845,375 +832,368 @@ class _SettingsScreenState extends State<SettingsScreen>
     required Color iconColor,
     required IconData icon,
   }) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      barrierDismissible: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
       barrierColor: Colors.black.withOpacity(0.7),
       builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          insetPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // 主容器
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOutCubic,
-                width: MediaQuery.of(context).size.width * 0.85,
-                padding: const EdgeInsets.fromLTRB(20.0, 60.0, 20.0, 24.0),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return FractionallySizedBox(
+              heightFactor: 0.6,
+              child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                     colors: [
                       AppTheme.cardColor.withOpacity(0.95),
-                      AppTheme.backgroundColor.withOpacity(0.90),
+                      AppTheme.backgroundColor.withOpacity(0.97),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(24.0),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: iconColor.withOpacity(0.3),
                       blurRadius: 20,
                       spreadRadius: 2,
-                      offset: const Offset(0, 4),
                     ),
                   ],
                   border: Border.all(
-                    color: iconColor.withOpacity(0.3),
+                    color: iconColor.withOpacity(0.2),
                     width: 1.5,
                   ),
                 ),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // 标题
-                    Text(
-                      "选择$title",
-                      style: TextStyle(
-                        color: AppTheme.primaryTextColor,
-                        fontSize: 24.0,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                        shadows: [
-                          Shadow(
-                            color: iconColor.withOpacity(0.3),
-                            blurRadius: 5,
-                            offset: const Offset(0, 1),
+                    // 滑动指示条
+                    Container(
+                      margin: EdgeInsets.only(top: 10),
+                      width: 50,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+
+                    // 标题区域
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+                      child: Row(
+                        children: [
+                          // 图标
+                          Container(
+                            padding: EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  iconColor,
+                                  title == '语言'
+                                      ? AppTheme.neonYellow
+                                      : AppTheme.neonBlue,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: iconColor.withOpacity(0.4),
+                                  blurRadius: 8,
+                                  spreadRadius: 0,
+                                ),
+                              ],
+                            ),
+                            child: Icon(icon, color: Colors.white, size: 22),
+                          ),
+                          SizedBox(width: 16),
+
+                          // 标题文字
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "选择$title",
+                                  style: TextStyle(
+                                    color: AppTheme.primaryTextColor,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                Text(
+                                  "当前选择: ${selectedValue ?? '无'}",
+                                  style: TextStyle(
+                                    color: AppTheme.secondaryTextColor,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // 关闭按钮
+                          Material(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(30),
+                            child: InkWell(
+                              onTap: () => Navigator.pop(context),
+                              borderRadius: BorderRadius.circular(30),
+                              child: Container(
+                                padding: EdgeInsets.all(8),
+                                child: Icon(
+                                  Icons.close,
+                                  color: AppTheme.secondaryTextColor,
+                                  size: 24,
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16.0),
 
                     // 分隔线
                     Container(
-                      height: 3,
-                      width: 60,
+                      height: 1,
+                      margin: EdgeInsets.symmetric(horizontal: 24),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            iconColor.withOpacity(0.5),
-                            title == '语言'
-                                ? AppTheme.neonYellow.withOpacity(0.5)
-                                : AppTheme.neonBlue.withOpacity(0.5),
+                            Colors.transparent,
+                            iconColor.withOpacity(0.3),
+                            Colors.transparent,
                           ],
                         ),
-                        borderRadius: BorderRadius.circular(3),
-                        boxShadow: [
-                          BoxShadow(
-                            color: iconColor.withOpacity(0.3),
-                            blurRadius: 8,
-                            spreadRadius: 1,
-                          ),
-                        ],
                       ),
                     ),
 
-                    const SizedBox(height: 24.0),
-
-                    // 选项列表容器
-                    Container(
-                      constraints: BoxConstraints(
-                        maxHeight: MediaQuery.of(context).size.height * 0.4,
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0,
-                        vertical: 4.0,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.cardColor.withOpacity(0.4),
-                        borderRadius: BorderRadius.circular(16.0),
-                        border: Border.all(
-                          color: iconColor.withOpacity(0.2),
-                          width: 1,
-                        ),
-                      ),
-                      child: SingleChildScrollView(
+                    // 选项列表
+                    Expanded(
+                      child: ListView.builder(
                         physics: BouncingScrollPhysics(),
-                        child: Column(
-                          children:
-                              options.map((option) {
-                                final bool isSelected = option == selectedValue;
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        itemCount: options.length,
+                        itemBuilder: (context, index) {
+                          final option = options[index];
+                          final bool isSelected = option == selectedValue;
 
-                                // 为每个选项确定图标
-                                IconData optionIcon;
-                                if (title == '语言') {
-                                  if (option == '简体中文') {
-                                    optionIcon = Icons.language;
-                                  } else if (option == 'English') {
-                                    optionIcon = Icons.emoji_flags;
-                                  } else if (option == '日本語') {
-                                    optionIcon = Icons.map;
-                                  } else {
-                                    optionIcon = Icons.translate;
-                                  }
-                                } else {
-                                  if (option == '深色') {
-                                    optionIcon = Icons.dark_mode;
-                                  } else if (option == '浅色') {
-                                    optionIcon = Icons.light_mode;
-                                  } else {
-                                    optionIcon = Icons.settings_system_daydream;
-                                  }
-                                }
+                          // 为每个选项确定图标
+                          IconData optionIcon;
+                          if (title == '语言') {
+                            if (option == '简体中文') {
+                              optionIcon = Icons.language;
+                            } else if (option == 'English') {
+                              optionIcon = Icons.emoji_flags;
+                            } else if (option == '日本語') {
+                              optionIcon = Icons.map;
+                            } else {
+                              optionIcon = Icons.translate;
+                            }
+                          } else {
+                            if (option == '深色') {
+                              optionIcon = Icons.dark_mode;
+                            } else if (option == '浅色') {
+                              optionIcon = Icons.light_mode;
+                            } else {
+                              optionIcon = Icons.settings_system_daydream;
+                            }
+                          }
 
-                                return TweenAnimationBuilder<double>(
-                                  tween: Tween<double>(begin: 0.0, end: 1.0),
-                                  duration: Duration(
-                                    milliseconds:
-                                        300 + options.indexOf(option) * 50,
+                          return AnimatedContainer(
+                            duration: Duration(milliseconds: 300),
+                            margin: EdgeInsets.only(bottom: 12),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () {
+                                  if (onSelected != null) {
+                                    onSelected(option);
+                                  }
+                                  Navigator.pop(context);
+                                },
+                                borderRadius: BorderRadius.circular(16),
+                                child: AnimatedContainer(
+                                  duration: Duration(milliseconds: 300),
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: 16,
+                                    horizontal: 20,
                                   ),
-                                  curve: Curves.easeOutCubic,
-                                  builder: (context, value, child) {
-                                    return Opacity(
-                                      opacity: value,
-                                      child: Transform.translate(
-                                        offset: Offset(0, 20 * (1 - value)),
-                                        child: child,
-                                      ),
-                                    );
-                                  },
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
-                                      onTap: () {
-                                        Navigator.pop(context);
-                                        if (onSelected != null) {
-                                          onSelected(option);
-                                        }
-                                      },
-                                      borderRadius: BorderRadius.circular(12),
-                                      splashColor: iconColor.withOpacity(0.1),
-                                      highlightColor: iconColor.withOpacity(
-                                        0.05,
-                                      ),
-                                      child: Container(
-                                        padding: EdgeInsets.symmetric(
-                                          vertical: 12,
-                                          horizontal: 16,
-                                        ),
-                                        margin: EdgeInsets.symmetric(
-                                          vertical: 4,
-                                        ),
+                                  decoration: BoxDecoration(
+                                    gradient:
+                                        isSelected
+                                            ? LinearGradient(
+                                              colors: [
+                                                iconColor.withOpacity(0.2),
+                                                (title == '语言'
+                                                        ? AppTheme.neonYellow
+                                                        : AppTheme.neonBlue)
+                                                    .withOpacity(0.1),
+                                              ],
+                                              begin: Alignment.centerLeft,
+                                              end: Alignment.centerRight,
+                                            )
+                                            : null,
+                                    color:
+                                        isSelected
+                                            ? null
+                                            : Colors.black.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color:
+                                          isSelected
+                                              ? iconColor.withOpacity(0.3)
+                                              : Colors.transparent,
+                                      width: 1.5,
+                                    ),
+                                    boxShadow:
+                                        isSelected
+                                            ? [
+                                              BoxShadow(
+                                                color: iconColor.withOpacity(
+                                                  0.15,
+                                                ),
+                                                blurRadius: 8,
+                                                spreadRadius: 0,
+                                                offset: Offset(0, 2),
+                                              ),
+                                            ]
+                                            : null,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      // 选项图标
+                                      Container(
+                                        width: 44,
+                                        height: 44,
                                         decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
                                           color:
                                               isSelected
                                                   ? iconColor.withOpacity(0.2)
-                                                  : Colors.black.withOpacity(
-                                                    0.2,
+                                                  : Colors.grey.withOpacity(
+                                                    0.1,
                                                   ),
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                          border: Border.all(
+                                          boxShadow:
+                                              isSelected
+                                                  ? [
+                                                    BoxShadow(
+                                                      color: iconColor
+                                                          .withOpacity(0.3),
+                                                      blurRadius: 8,
+                                                      spreadRadius: 0,
+                                                    ),
+                                                  ]
+                                                  : null,
+                                        ),
+                                        child: Center(
+                                          child: Icon(
+                                            optionIcon,
                                             color:
                                                 isSelected
-                                                    ? iconColor.withOpacity(0.3)
-                                                    : Colors.transparent,
-                                            width: 1.5,
+                                                    ? iconColor
+                                                    : Colors.grey,
+                                            size: 22,
                                           ),
                                         ),
-                                        child: Row(
-                                          children: [
-                                            // 选项图标容器
-                                            AnimatedContainer(
-                                              duration: const Duration(
-                                                milliseconds: 200,
-                                              ),
-                                              width: 40,
-                                              height: 40,
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color:
-                                                    isSelected
-                                                        ? iconColor.withOpacity(
-                                                          0.2,
-                                                        )
-                                                        : Colors.grey
-                                                            .withOpacity(0.15),
-                                                boxShadow:
-                                                    isSelected
-                                                        ? [
-                                                          BoxShadow(
-                                                            color: iconColor
-                                                                .withOpacity(
-                                                                  0.3,
-                                                                ),
-                                                            blurRadius: 8,
-                                                            spreadRadius: 1,
-                                                          ),
-                                                        ]
-                                                        : null,
-                                              ),
-                                              child: Center(
-                                                child: AnimatedSwitcher(
-                                                  duration: const Duration(
-                                                    milliseconds: 200,
-                                                  ),
-                                                  transitionBuilder: (
-                                                    Widget child,
-                                                    Animation<double> animation,
-                                                  ) {
-                                                    return ScaleTransition(
-                                                      scale: animation,
-                                                      child: FadeTransition(
-                                                        opacity: animation,
-                                                        child: child,
-                                                      ),
-                                                    );
-                                                  },
-                                                  child: Icon(
-                                                    optionIcon,
-                                                    key: ValueKey<bool>(
-                                                      isSelected,
-                                                    ),
-                                                    color:
-                                                        isSelected
-                                                            ? iconColor
-                                                            : Colors.grey,
-                                                    size: 20,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 16),
+                                      ),
+                                      SizedBox(width: 16),
 
-                                            // 选项文本
-                                            Expanded(
-                                              child: AnimatedDefaultTextStyle(
-                                                duration: const Duration(
-                                                  milliseconds: 200,
-                                                ),
-                                                style: TextStyle(
-                                                  color:
-                                                      isSelected
-                                                          ? AppTheme
-                                                              .primaryTextColor
-                                                          : Colors.grey[300],
-                                                  fontSize:
-                                                      isSelected ? 17 : 16,
-                                                  fontWeight:
-                                                      isSelected
-                                                          ? FontWeight.bold
-                                                          : FontWeight.normal,
-                                                  letterSpacing: 0.3,
-                                                ),
-                                                child: Text(option),
-                                              ),
-                                            ),
-
-                                            // 选中标记
-                                            AnimatedSwitcher(
-                                              duration: const Duration(
-                                                milliseconds: 200,
-                                              ),
-                                              transitionBuilder: (
-                                                Widget child,
-                                                Animation<double> animation,
-                                              ) {
-                                                return ScaleTransition(
-                                                  scale: CurvedAnimation(
-                                                    parent: animation,
-                                                    curve: Curves.elasticOut,
-                                                  ),
-                                                  child: FadeTransition(
-                                                    opacity: animation,
-                                                    child: child,
-                                                  ),
-                                                );
-                                              },
-                                              child:
-                                                  isSelected
-                                                      ? Icon(
-                                                        Icons.check_circle,
-                                                        key: const ValueKey<
-                                                          bool
-                                                        >(true),
-                                                        color: iconColor,
-                                                        size: 24,
-                                                      )
-                                                      : SizedBox(
-                                                        key: const ValueKey<
-                                                          bool
-                                                        >(false),
-                                                        width: 24,
-                                                      ),
-                                            ),
-                                          ],
+                                      // 选项文本
+                                      Expanded(
+                                        child: Text(
+                                          option,
+                                          style: TextStyle(
+                                            color:
+                                                isSelected
+                                                    ? AppTheme.primaryTextColor
+                                                    : Colors.grey[300],
+                                            fontSize: isSelected ? 17 : 16,
+                                            fontWeight:
+                                                isSelected
+                                                    ? FontWeight.bold
+                                                    : FontWeight.normal,
+                                          ),
                                         ),
                                       ),
-                                    ),
+
+                                      // 选中标记
+                                      if (isSelected)
+                                        Container(
+                                          padding: EdgeInsets.all(4),
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: iconColor.withOpacity(0.2),
+                                          ),
+                                          child: Icon(
+                                            Icons.check,
+                                            color: iconColor,
+                                            size: 20,
+                                          ),
+                                        ),
+                                    ],
                                   ),
-                                );
-                              }).toList(),
-                        ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
 
-                    const SizedBox(height: 24.0),
-
-                    // 底部关闭按钮
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => Navigator.of(context).pop(),
-                        borderRadius: BorderRadius.circular(22.5),
-                        splashColor: iconColor.withOpacity(0.2),
-                        highlightColor: iconColor.withOpacity(0.1),
-                        child: Ink(
-                          height: 45,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                iconColor.withOpacity(0.7),
-                                title == '语言'
-                                    ? AppTheme.neonYellow.withOpacity(0.5)
-                                    : AppTheme.neonBlue.withOpacity(0.5),
-                              ],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
-                            borderRadius: BorderRadius.circular(22.5),
-                            boxShadow: [
-                              BoxShadow(
-                                color: iconColor.withOpacity(0.3),
-                                blurRadius: 10,
-                                spreadRadius: 1,
-                                offset: const Offset(0, 2),
+                    // 底部确认按钮
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 20,
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.pop(context),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            height: 54,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  iconColor,
+                                  title == '语言'
+                                      ? AppTheme.neonYellow
+                                      : AppTheme.neonBlue,
+                                ],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
                               ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              '确认',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: iconColor.withOpacity(0.3),
+                                  blurRadius: 10,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Text(
+                                '确认选择',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.2,
+                                ),
                               ),
                             ),
                           ),
@@ -1223,41 +1203,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ],
                 ),
               ),
-
-              // 顶部图标
-              Positioned(
-                top: -30,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(15.0),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          iconColor,
-                          title == '语言'
-                              ? AppTheme.neonYellow
-                              : AppTheme.neonBlue,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: iconColor.withOpacity(0.5),
-                          blurRadius: 12,
-                          spreadRadius: 3,
-                        ),
-                      ],
-                    ),
-                    child: Icon(icon, color: Colors.white, size: 30.0),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
