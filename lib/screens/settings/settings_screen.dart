@@ -771,54 +771,46 @@ class _SettingsScreenState extends State<SettingsScreen>
 
             // 下拉框或箭头
             if (dropdownOptions != null)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: selectedValue,
-                    isDense: true,
-                    icon: Icon(Icons.arrow_drop_down, color: iconColor),
-                    dropdownColor: const Color(0xFF2D2B40),
-                    items:
-                        dropdownOptions.map((String value) {
-                          bool isSelected = value == selectedValue;
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  value,
-                                  style: TextStyle(
-                                    color:
-                                        isSelected
-                                            ? iconColor
-                                            : AppTheme.primaryTextColor,
-                                    fontWeight:
-                                        isSelected
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
-                                  ),
-                                ),
-                                if (isSelected)
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 4),
-                                    child: Icon(
-                                      Icons.check,
-                                      color: iconColor,
-                                      size: 16,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                    onChanged: onChanged,
-                  ),
+              InkWell(
+                onTap: () {
+                  _showInlineSelectionSheet(
+                    context: context,
+                    title: title,
+                    options: dropdownOptions,
+                    selectedValue: selectedValue,
+                    onSelected: onChanged,
+                    iconColor: iconColor,
+                  );
+                },
+                child: Row(
+                  children: [
+                    Text(
+                      selectedValue ?? '',
+                      style: TextStyle(
+                        color:
+                            title == '语言'
+                                ? AppTheme.neonOrange
+                                : AppTheme.neonPurple,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.check,
+                      color:
+                          title == '语言'
+                              ? AppTheme.neonOrange
+                              : AppTheme.neonPurple,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.arrow_drop_down,
+                      color: AppTheme.secondaryTextColor,
+                      size: 18,
+                    ),
+                  ],
                 ),
               )
             else if (trailingIcon != null)
@@ -830,6 +822,163 @@ class _SettingsScreenState extends State<SettingsScreen>
           ],
         ),
       ),
+    );
+  }
+
+  // 添加自定义底部弹出选择器
+  void _showInlineSelectionSheet({
+    required BuildContext context,
+    required String title,
+    required List<String> options,
+    required String? selectedValue,
+    required Function(String?)? onSelected,
+    required Color iconColor,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF2D2B40).withOpacity(0.97),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                decoration: BoxDecoration(
+                  color: Colors.grey[600],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  '选择$title',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Divider(color: Colors.grey[800], height: 1),
+              Flexible(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children:
+                        options.map((option) {
+                          bool isSelected = option == selectedValue;
+                          bool isLanguage = title == '语言';
+                          Color optionColor =
+                              isLanguage
+                                  ? AppTheme.neonOrange
+                                  : AppTheme.neonPurple;
+
+                          IconData optionIcon;
+                          if (isLanguage) {
+                            if (option == '简体中文') {
+                              optionIcon = Icons.language;
+                            } else if (option == 'English') {
+                              optionIcon = Icons.emoji_flags;
+                            } else if (option == '日本語') {
+                              optionIcon = Icons.map;
+                            } else {
+                              optionIcon = Icons.translate;
+                            }
+                          } else {
+                            if (option == '深色') {
+                              optionIcon = Icons.dark_mode;
+                            } else if (option == '浅色') {
+                              optionIcon = Icons.light_mode;
+                            } else {
+                              optionIcon = Icons.settings_system_daydream;
+                            }
+                          }
+
+                          return InkWell(
+                            onTap: () {
+                              Navigator.pop(context);
+                              if (onSelected != null) {
+                                onSelected(option);
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 14,
+                                horizontal: 20,
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    isSelected
+                                        ? optionColor.withOpacity(0.1)
+                                        : Colors.transparent,
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color:
+                                          isSelected
+                                              ? optionColor.withOpacity(0.2)
+                                              : Colors.grey.withOpacity(0.15),
+                                    ),
+                                    child: Icon(
+                                      optionIcon,
+                                      color:
+                                          isSelected
+                                              ? optionColor
+                                              : Colors.grey,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Text(
+                                      option,
+                                      style: TextStyle(
+                                        color:
+                                            isSelected
+                                                ? optionColor
+                                                : Colors.white,
+                                        fontSize: 16,
+                                        fontWeight:
+                                            isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                      ),
+                                    ),
+                                  ),
+                                  if (isSelected)
+                                    Icon(
+                                      Icons.check_circle,
+                                      color: optionColor,
+                                      size: 24,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
