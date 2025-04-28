@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import '../../widgets/circle_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -98,16 +99,28 @@ class _SettingsScreenState extends State<SettingsScreen>
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
 
+    // 读取各项设置，如果没有保存过则使用默认值
+    bool notificationsEnabled =
+        prefs.getBool(KEY_NOTIFICATIONS_ENABLED) ?? true;
+    bool locationTrackingEnabled = prefs.getBool(KEY_LOCATION_TRACKING) ?? true;
+
+    // 检查权限状态与存储的设置是否一致
+    bool hasNotificationPermission = await _checkNotificationPermission();
+    bool hasLocationPermission = await _checkLocationPermission();
+
     setState(() {
-      // 读取各项设置，如果没有保存过则使用默认值
-      _notificationsEnabled = prefs.getBool(KEY_NOTIFICATIONS_ENABLED) ?? true;
+      // 存储的设置必须与实际权限状态一致
+      _notificationsEnabled = notificationsEnabled && hasNotificationPermission;
+      _locationTrackingEnabled =
+          locationTrackingEnabled && hasLocationPermission;
+
+      // 其他设置不需要权限检查
       _messageNotificationsEnabled =
           prefs.getBool(KEY_MESSAGE_NOTIFICATIONS) ?? true;
       _activityNotificationsEnabled =
           prefs.getBool(KEY_ACTIVITY_NOTIFICATIONS) ?? true;
       _darkModeEnabled = prefs.getBool(KEY_DARK_MODE) ?? true;
       _autoPlayVideos = prefs.getBool(KEY_AUTO_PLAY_VIDEOS) ?? false;
-      _locationTrackingEnabled = prefs.getBool(KEY_LOCATION_TRACKING) ?? true;
       _privacyModeEnabled = prefs.getBool(KEY_PRIVACY_MODE) ?? false;
       _highQualityImages = prefs.getBool(KEY_HIGH_QUALITY_IMAGES) ?? true;
       _selectedLanguage = prefs.getString(KEY_SELECTED_LANGUAGE) ?? '简体中文';
@@ -145,7 +158,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     await prefs.setString(KEY_SELECTED_THEME, _selectedTheme);
   }
 
-  // 应用设置到实际功能
+  // 修改应用设置到实际功能
   void _applySettings() {
     // 应用主题模式
     final brightness = _darkModeEnabled ? Brightness.dark : Brightness.light;
@@ -350,12 +363,26 @@ class _SettingsScreenState extends State<SettingsScreen>
                 subtitle: '开启或关闭所有通知',
                 value: _notificationsEnabled,
                 onTap: () async {
-                  setState(() {
-                    _notificationsEnabled = !_notificationsEnabled;
-                  });
-                  await _saveSettings();
-                  _applySettings();
-                  _showStatusToast(_notificationsEnabled ? '通知已开启' : '通知已关闭');
+                  if (_notificationsEnabled) {
+                    // 如果当前为开启状态，直接关闭
+                    setState(() {
+                      _notificationsEnabled = false;
+                    });
+                    await _saveSettings();
+                    _showStatusToast('通知已关闭');
+                  } else {
+                    // 如果当前为关闭状态，请求权限
+                    bool hasPermission = await _requestNotificationPermission();
+                    setState(() {
+                      _notificationsEnabled = hasPermission;
+                    });
+                    await _saveSettings();
+                    if (hasPermission) {
+                      _showStatusToast('通知已开启');
+                    } else {
+                      _showStatusToast('未能获取通知权限');
+                    }
+                  }
                 },
               ),
 
@@ -407,14 +434,26 @@ class _SettingsScreenState extends State<SettingsScreen>
                 subtitle: '允许应用获取您的位置',
                 value: _locationTrackingEnabled,
                 onTap: () async {
-                  setState(() {
-                    _locationTrackingEnabled = !_locationTrackingEnabled;
-                  });
-                  await _saveSettings();
-                  _applySettings();
-                  _showStatusToast(
-                    _locationTrackingEnabled ? '位置追踪已开启' : '位置追踪已关闭',
-                  );
+                  if (_locationTrackingEnabled) {
+                    // 如果当前为开启状态，直接关闭
+                    setState(() {
+                      _locationTrackingEnabled = false;
+                    });
+                    await _saveSettings();
+                    _showStatusToast('位置追踪已关闭');
+                  } else {
+                    // 如果当前为关闭状态，请求权限
+                    bool hasPermission = await _requestLocationPermission();
+                    setState(() {
+                      _locationTrackingEnabled = hasPermission;
+                    });
+                    await _saveSettings();
+                    if (hasPermission) {
+                      _showStatusToast('位置追踪已开启');
+                    } else {
+                      _showStatusToast('未能获取位置权限');
+                    }
+                  }
                 },
               ),
 
@@ -3322,5 +3361,27 @@ class _SettingsScreenState extends State<SettingsScreen>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
+  }
+
+  // 请求通知权限
+  Future<bool> _requestNotificationPermission() async {
+    final status = await Permission.notification.request();
+    return status.isGranted;
+  }
+
+  // 请求位置权限
+  Future<bool> _requestLocationPermission() async {
+    final status = await Permission.location.request();
+    return status.isGranted;
+  }
+
+  // 检查通知权限状态
+  Future<bool> _checkNotificationPermission() async {
+    return await Permission.notification.isGranted;
+  }
+
+  // 检查位置权限状态
+  Future<bool> _checkLocationPermission() async {
+    return await Permission.location.isGranted;
   }
 }
