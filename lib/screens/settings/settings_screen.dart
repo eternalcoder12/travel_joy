@@ -1142,13 +1142,6 @@ class _SettingsScreenState extends State<SettingsScreen>
                                     child: InkWell(
                                       onTap: () {
                                         // 添加点击涟漪效果
-                                        final RenderBox box =
-                                            context.findRenderObject()
-                                                as RenderBox;
-                                        final Offset position = box
-                                            .localToGlobal(Offset.zero);
-                                        final double radius = box.size.width;
-
                                         Navigator.of(context).pop();
                                         if (onSelected != null) {
                                           onSelected(option);
