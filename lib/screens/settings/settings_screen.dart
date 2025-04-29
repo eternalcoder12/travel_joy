@@ -3821,12 +3821,6 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   // 切换位置追踪设置
-  Future<void> _toggleLocationTracking() async {
-    // 位置功能已禁用
-    _showErrorSnackbar('位置追踪功能已禁用');
-    return;
-  }
-
   // 切换隐私模式设置
   Future<void> _togglePrivacyMode() async {
     setState(() {
@@ -3951,60 +3945,10 @@ class _SettingsScreenState extends State<SettingsScreen>
     return granted;
   }
   
-  // 自动播放视频设置相关处理
-  Future<void> _toggleAutoPlayVideos() async {
-    // 根据网络状态修改自动播放状态
-    // 如果开启自动播放，可能需要检查网络状态
-    if (!_autoPlayVideos) { // 将要开启自动播放
-      // 检查当前网络状态，提醒用户可能消耗流量
-      bool confirm = await _showPermissionConfirmDialog(
-        title: '开启自动播放',
-        content: '自动播放视频可能会消耗较多流量，非Wi-Fi环境下是否继续？',
-        confirmText: '开启',
-      );
-      
-      if (!confirm) {
-        return;
-      }
-    }
-    
-    setState(() {
-      _autoPlayVideos = !_autoPlayVideos;
-    });
-    await _saveSettings();
-    _applyVideoSettings();
-    
-    // 显示成功提示
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_autoPlayVideos ? '已开启视频自动播放' : '已关闭视频自动播放'),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
-  
   // 应用视频播放设置
   void _applyVideoSettings() {
     // 实际应用中可以设置全局视频播放控制器
     print('已应用视频播放设置: ${_autoPlayVideos ? "自动播放" : "手动播放"}');
-  }
-  
-  // 修改暗黑模式设置
-  Future<void> _toggleDarkMode() async {
-    // 无需权限，直接切换
-    setState(() {
-      _darkModeEnabled = !_darkModeEnabled;
-    });
-    await _saveSettings();
-    _applyDarkModeSettings();
-    
-    // 显示成功提示
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_darkModeEnabled ? '已切换到深色模式' : '已切换到浅色模式'),
-        duration: Duration(seconds: 2),
-      ),
-    );
   }
   
   // 应用暗黑模式设置
@@ -4021,23 +3965,6 @@ class _SettingsScreenState extends State<SettingsScreen>
     
     // 通知主题更新
     print('已应用${_darkModeEnabled ? "深色" : "浅色"}主题');
-  }
-  
-  // 切换隐私模式设置
-  Future<void> _togglePrivacyMode() async {
-    setState(() {
-      _privacyModeEnabled = !_privacyModeEnabled;
-    });
-    await _saveSettings();
-    _applyPrivacyModeSettings();
-    
-    // 显示成功提示
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_privacyModeEnabled ? '已开启隐私模式' : '已关闭隐私模式'),
-        duration: Duration(seconds: 2),
-      ),
-    );
   }
   
   // 应用隐私模式设置
