@@ -41,6 +41,10 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   // 顶部滚动位置监听
   final ScrollController _scrollController = ScrollController();
   double _scrollOffset = 0.0;
+  
+  // 图片加载状态
+  bool _imagesLoading = true;
+  Map<int, bool> _imageLoadStatus = {};
 
   // 模拟评论数据
   final List<Map<String, dynamic>> _reviews = [
@@ -72,6 +76,9 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
 
   // 新增拖拽距离变量
   double _dragExtent = 0.0;
+  
+  // 添加刷新状态控制
+  bool _isRefreshing = false;
 
   @override
   void initState() {
@@ -109,6 +116,23 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
       'https://source.unsplash.com/1600x900/?${spotName},view',
       'https://source.unsplash.com/1600x900/?${spotName},landscape',
     ];
+    
+    // 初始化图片加载状态
+    for (int i = 0; i < _imageGallery.length; i++) {
+      _imageLoadStatus[i] = false;
+    }
+    
+    // 模拟图片加载完成
+    Future.delayed(Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          _imagesLoading = false;
+          for (int i = 0; i < _imageGallery.length; i++) {
+            _imageLoadStatus[i] = true;
+          }
+        });
+      }
+    });
 
     // 监听滚动事件
     _scrollController.addListener(_onScroll);
@@ -171,6 +195,31 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     // 启动正向动画
     _drawerAnimController.forward();
   }
+  
+  // 模拟刷新数据
+  Future<void> _refreshData() async {
+    if (_isRefreshing) return;
+    
+    setState(() {
+      _isRefreshing = true;
+    });
+    
+    // 模拟网络请求延迟
+    await Future.delayed(Duration(seconds: 2));
+    
+    if (mounted) {
+      setState(() {
+        _isRefreshing = false;
+        // 可以在这里更新数据，这里只是简单地随机切换收藏状态作为示例
+        _isFavorite = !_isFavorite;
+      });
+      
+      // 显示刷新成功提示
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('数据已更新'))
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -191,594 +240,71 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
       body: Stack(
         children: [
           // 主内容
-          CustomScrollView(
-            controller: _scrollController,
-            slivers: [
-              // 图片画廊和顶部应用栏
-              _buildImageGallerySliverAppBar(),
+          RefreshIndicator(
+            onRefresh: _refreshData,
+            color: AppTheme.buttonColor,
+            backgroundColor: Colors.white,
+            strokeWidth: 3,
+            child: CustomScrollView(
+              controller: _scrollController,
+              physics: BouncingScrollPhysics(),
+              slivers: [
+                // 图片画廊和顶部应用栏
+                _buildImageGallerySliverAppBar(),
 
-              // 景点信息
-              SliverToBoxAdapter(
-                child: AnimatedBuilder(
-                  animation: _pageAnimController,
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset: Offset(0, 50 * (1 - _pageAnimController.value)),
-                      child: Opacity(
-                        opacity: _pageAnimController.value,
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppTheme.backgroundColor,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(30),
-                        topRight: Radius.circular(30),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 景点名称和收藏按钮
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                widget.spotData['name'],
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.primaryTextColor,
-                                ),
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _isFavorite = !_isFavorite;
-                                });
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      _isFavorite ? '已添加到收藏' : '已从收藏中移除',
-                                    ),
-                                    behavior: SnackBarBehavior.floating,
-                                    duration: const Duration(seconds: 1),
-                                  ),
-                                );
-                              },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color:
-                                      _isFavorite
-                                          ? Colors.red.withOpacity(0.1)
-                                          : AppTheme.cardColor.withOpacity(0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  _isFavorite
-                                      ? Icons.favorite
-                                      : Icons.favorite_border,
-                                  color:
-                                      _isFavorite
-                                          ? Colors.red
-                                          : AppTheme.secondaryTextColor,
-                                  size: 26,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // 位置和评分
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.location_on,
-                              color: AppTheme.secondaryTextColor,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              widget.spotData['location'],
-                              style: TextStyle(
-                                color: AppTheme.secondaryTextColor,
-                                fontSize: 16,
-                              ),
-                            ),
-                            const SizedBox(width: 20),
-                            Icon(Icons.star, color: Colors.amber, size: 18),
-                            const SizedBox(width: 4),
-                            Text(
-                              widget.spotData['rating'].toString(),
-                              style: TextStyle(
-                                color: AppTheme.primaryTextColor,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              '/5.0',
-                              style: TextStyle(
-                                color: AppTheme.secondaryTextColor,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // 标签
-                        Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          children:
-                              (widget.spotData['tags'] as List<String>).map((
-                                tag,
-                              ) {
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.cardColor.withOpacity(0.3),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    tag,
-                                    style: TextStyle(
-                                      color: AppTheme.primaryTextColor,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // 关于部分
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '关于',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.primaryTextColor,
-                              ),
-                            ),
-
-                            // 查看地图按钮
-                            GestureDetector(
-                              onTap: () {
-                                NavigationUtils.scaleNavigateTo(
-                                  context: context,
-                                  page: MapViewScreen(
-                                    spots: [widget.spotData],
-                                    initialSpotIndex: 0,
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.buttonColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.map,
-                                      color: AppTheme.buttonColor,
-                                      size: 16,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '查看地图',
-                                      style: TextStyle(
-                                        color: AppTheme.buttonColor,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        Text(
-                          widget.spotData['description'] ??
-                              '这个神奇的地方拥有壮观的自然景观和丰富的文化历史。无论是徒步爱好者、摄影师还是历史爱好者，这里都能满足您的需求。清新的空气、美丽的风景和友好的当地人将为您的旅行增添难忘的回忆。',
-                          style: TextStyle(
-                            color: AppTheme.secondaryTextColor,
-                            fontSize: 16,
-                            height: 1.5,
-                          ),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // 设施信息
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 0,
-                          ), // 去掉水平内边距
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '设施与服务',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.primaryTextColor,
-                                ),
-                              ),
-
-                              const SizedBox(height: 16),
-
-                              // 使用GridView替代Wrap，确保每行4个并对齐
-                              GridView.count(
-                                crossAxisCount: 4,
-                                shrinkWrap: true,
-                                physics: NeverScrollableScrollPhysics(),
-                                padding: EdgeInsets.zero,
-                                mainAxisSpacing: 16,
-                                children: _getFacilityItems(),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // 评论部分
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '用户评论',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.primaryTextColor,
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                // TODO: 导航到所有评论页面
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('查看全部评论'),
-                                    behavior: SnackBarBehavior.floating,
-                                    duration: Duration(seconds: 1),
-                                  ),
-                                );
-                              },
-                              child: Text(
-                                '查看全部',
-                                style: TextStyle(
-                                  color: AppTheme.buttonColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // 评论列表
-                        ..._reviews.map((review) => _buildReviewItem(review)),
-                      ],
-                    ),
-                  ),
+                // 景点信息
+                SliverToBoxAdapter(
+                  child: _buildSpotInfo(),
                 ),
-              ),
-            ],
-          ),
 
-          // 半透明玻璃效果顶部导航栏
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: statusBarHeight + 56,
-              child: ClipRRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-                  child: Container(
-                    padding: EdgeInsets.only(top: statusBarHeight),
-                    color: Colors.black.withOpacity(
-                      _scrollOffset > 140 ? 0.6 : 0.2,
-                    ),
-                    child: Row(
-                      children: [
-                        // 返回按钮 - 优化样式
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Material(
-                            color: Colors.black.withOpacity(0.4),
-                            borderRadius: BorderRadius.circular(30),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(30),
-                              onTap: () {
-                                // 使用普通的pop，因为这是返回操作
-                                Navigator.pop(context);
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(8.0),
-                                child: const Icon(
-                                  Icons.arrow_back,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // 添加景点类型标题
-                        Expanded(
-                          child: Text(
-                            _scrollOffset > 140
-                                ? widget.spotData['name']
-                                : "景点详情",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-
-                        // 添加一个空白占位，保持对称
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: SizedBox(width: 40),
-                        ),
-                      ],
-                    ),
-                  ),
+                // 景点描述
+                SliverToBoxAdapter(
+                  child: _buildSpotDescription(),
                 ),
-              ),
-            ),
-          ),
 
-          // 底部抽屉 - 使用ModalBarrier模式
-          if (_isBottomDrawerVisible)
-            Positioned.fill(
-              child: Stack(
-                children: [
-                  // 背景遮罩
-                  Positioned.fill(
-                    child: AnimatedBuilder(
-                      animation: _drawerAnimController,
-                      builder: (context, _) {
-                        return GestureDetector(
-                          onTap: _closeBottomDrawer,
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(
-                              sigmaX: 5.0 * _drawerAnimation.value,
-                              sigmaY: 5.0 * _drawerAnimation.value,
-                            ),
-                            child: Container(
-                              color: AppTheme.backgroundColor.withOpacity(
-                                0.5 * _drawerAnimation.value,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  // 抽屉内容
-                  _buildBottomDrawer(),
-                ],
-              ),
-            ),
-        ],
-      ),
-
-      // 底部操作栏
-      bottomNavigationBar:
-          _isBottomDrawerVisible
-              ? null
-              : AnimatedBuilder(
-                animation: _pageAnimController,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(0, 100 * (1 - _pageAnimController.value)),
-                    child: Opacity(
-                      opacity: _pageAnimController.value,
-                      child: child,
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2A2B3D), // 使用更深的背景色以增加对比度
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, -5),
-                      ),
-                    ],
-                  ),
-                  child: SafeArea(
-                    top: false,
-                    child: Row(
-                      // 确保垂直居中
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // 价格信息
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center, // 垂直居中
-                            children: [
-                              Text(
-                                '价格',
-                                style: TextStyle(
-                                  color: AppTheme.secondaryTextColor,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '¥${widget.spotData['price'] ?? '88'}/人',
-                                style: const TextStyle(
-                                  color: Colors.white, // 更鲜明的颜色对比
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // 外部应用预订按钮
-                        ElevatedButton.icon(
-                          onPressed: _showBottomDrawer,
-                          icon: const Icon(Icons.shopping_cart, size: 16),
-                          label: const Text('前往预订'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.buttonColor,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            elevation: 0,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                // 评论和评分
+                SliverToBoxAdapter(
+                  child: _buildReviews(),
                 ),
-              ),
-    );
-  }
 
-  // 构建抽屉选项
-  Widget _buildDrawerOption({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-    bool showDivider = true,
-  }) {
-    return Column(
-      children: [
-        InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24.0,
-              vertical: 16.0,
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: AppTheme.buttonColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: AppTheme.buttonColor, size: 24),
-                ),
-                SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryTextColor,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.secondaryTextColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  color: AppTheme.secondaryTextColor,
-                  size: 16,
+                // 底部填充，确保内容不被底部按钮遮挡
+                SliverToBoxAdapter(
+                  child: SizedBox(height: 80 + bottomPadding),
                 ),
               ],
             ),
           ),
-        ),
-        if (showDivider)
-          Padding(
-            padding: const EdgeInsets.only(left: 88.0),
-            child: Divider(
-              height: 1,
-              color: AppTheme.cardColor.withOpacity(0.2),
-            ),
+
+          // 顶部应用栏 - 随着滚动变得不透明
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: _buildAnimatedAppBar(statusBarHeight),
           ),
-      ],
+
+          // 底部固定按钮
+          _buildBottomButtons(bottomPadding),
+
+          // 底部抽屉
+          if (_isBottomDrawerVisible)
+            _buildBottomDrawer(context, bottomPadding),
+        ],
+      ),
     );
   }
 
-  // 构建顶部图片画廊App Bar
+  // 构建图片画廊和顶部应用栏
   Widget _buildImageGallerySliverAppBar() {
     return SliverAppBar(
-      expandedHeight: 300,
+      expandedHeight: 300.0,
+      pinned: true,
       backgroundColor: Colors.transparent,
-      automaticallyImplyLeading: false,
+      elevation: 0,
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
           children: [
-            // 图片页面指示器
+            // 图片画廊
             PageView.builder(
               controller: _pageController,
               itemCount: _imageGallery.length,
@@ -790,89 +316,389 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
               itemBuilder: (context, index) {
                 return Stack(
                   children: [
-                    // 图片
-                    Positioned.fill(
-                      child: Image.network(
-                        _imageGallery[index],
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
-                            color: AppTheme.cardColor,
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                color: AppTheme.buttonColor,
-                                value:
-                                    loadingProgress.expectedTotalBytes != null
-                                        ? loadingProgress
-                                                .cumulativeBytesLoaded /
-                                            loadingProgress.expectedTotalBytes!
-                                        : null,
-                              ),
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: AppTheme.cardColor,
-                            child: Center(
-                              child: Icon(
-                                Icons.error,
-                                color: AppTheme.primaryTextColor,
-                                size: 40,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                    // 图片底色（加载中或加载失败时显示）
+                    Container(
+                      color: Colors.grey[300],
+                      width: double.infinity,
+                      height: double.infinity,
                     ),
-
-                    // 图片底部渐变阴影
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      height: 100,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                            colors: [
-                              Colors.black.withOpacity(0.6),
-                              Colors.transparent,
-                            ],
+                    
+                    // 主图片
+                    _imagesLoading || !(_imageLoadStatus[index] ?? false)
+                        ? Center(
+                            child: _buildImageLoadingIndicator(),
+                          )
+                        : Image.network(
+                            _imageGallery[index],
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.error_outline,
+                                      color: Colors.red[300],
+                                      size: 50,
+                                    ),
+                                    SizedBox(height: 16),
+                                    Text(
+                                      '图片加载失败',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
-                        ),
-                      ),
-                    ),
                   ],
                 );
               },
             ),
 
+            // 底部渐变遮罩
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: 100,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.5),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
             // 图片指示器
             Positioned(
-              bottom: 20,
+              bottom: 16,
               left: 0,
               right: 0,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(_imageGallery.length, (index) {
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                children: List.generate(
+                  _imageGallery.length,
+                  (index) => Container(
+                    width: 8,
                     height: 8,
-                    width: _currentImageIndex == index ? 24 : 8,
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
                     decoration: BoxDecoration(
-                      color:
-                          _currentImageIndex == index
-                              ? AppTheme.buttonColor
-                              : Colors.white.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(4),
+                      shape: BoxShape.circle,
+                      color: _currentImageIndex == index
+                          ? Colors.white
+                          : Colors.white.withOpacity(0.5),
                     ),
-                  );
-                }),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      // 透明的应用栏，实际内容在其他地方构建
+      leading: Container(),
+      actions: [Container()],
+    );
+  }
+  
+  // 构建图片加载指示器
+  Widget _buildImageLoadingIndicator() {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            strokeWidth: 3,
+          ),
+          SizedBox(height: 16),
+          Text(
+            '加载图片中...',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 构建动态应用栏
+  Widget _buildAnimatedAppBar(double statusBarHeight) {
+    // 计算透明度 - 随着滚动逐渐变为不透明
+    final double opacity = (_scrollOffset / 200).clamp(0.0, 1.0);
+
+    return Container(
+      padding: EdgeInsets.only(top: statusBarHeight),
+      height: 56 + statusBarHeight,
+      decoration: BoxDecoration(
+        color: AppTheme.backgroundColor.withOpacity(opacity),
+        boxShadow: opacity > 0.8
+            ? [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                )
+              ]
+            : [],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // 返回按钮
+          IconButton(
+            icon: Icon(
+              Icons.arrow_back,
+              color: opacity > 0.5
+                  ? AppTheme.primaryTextColor
+                  : Colors.white,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+
+          // 景点名称 - 随着滚动显示
+          if (opacity > 0.5)
+            Expanded(
+              child: Text(
+                widget.spotData['name'],
+                style: TextStyle(
+                  color: AppTheme.primaryTextColor,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
+            )
+          else
+            Expanded(child: SizedBox()),
+
+          // 收藏按钮
+          IconButton(
+            icon: Icon(
+              _isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: _isFavorite
+                  ? Colors.red
+                  : (opacity > 0.5 ? AppTheme.primaryTextColor : Colors.white),
+            ),
+            onPressed: () {
+              setState(() {
+                _isFavorite = !_isFavorite;
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    _isFavorite ? '已添加到收藏' : '已取消收藏',
+                  ),
+                  duration: const Duration(seconds: 1),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 构建景点信息卡片
+  Widget _buildSpotInfo() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      decoration: BoxDecoration(
+        color: AppTheme.secondaryBackgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 标题和评分
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 标题
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.spotData['name'],
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryTextColor,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.spotData['location'],
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppTheme.secondaryTextColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // 评分
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.buttonColor,
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.star,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        widget.spotData['rating'].toString(),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // 信息栏
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildInfoItem(
+                  icon: Icons.access_time,
+                  label: '开放时间',
+                  value: widget.spotData['hours'],
+                ),
+                _buildInfoItem(
+                  icon: Icons.attach_money,
+                  label: '门票',
+                  value: widget.spotData['price'],
+                ),
+                _buildInfoItem(
+                  icon: Icons.people,
+                  label: '推荐游览',
+                  value: widget.spotData['duration'],
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // 标签
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: (widget.spotData['tags'] as List<String>)
+                  .map((tag) => Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.secondaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Text(
+                          tag,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.secondaryColor,
+                          ),
+                        ),
+                      ))
+                  .toList(),
+            ),
+
+            const SizedBox(height: 16),
+
+            // 查看地图按钮
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  createSlideTransition(
+                    MapViewScreen(
+                      spots: [widget.spotData],
+                      initialSpotIndex: 0,
+                    ),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Ink(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: AppTheme.buttonColor.withOpacity(0.1),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.map,
+                      color: AppTheme.buttonColor,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '在地图上查看',
+                      style: TextStyle(
+                        color: AppTheme.buttonColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -881,80 +707,193 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     );
   }
 
-  // 构建设施项
-  Widget _buildFacilityItem(
-    IconData icon,
-    String title, {
-    String facilityType = 'default',
+  // 构建信息项目
+  Widget _buildInfoItem({
+    required IconData icon,
+    required String label,
+    required String value,
   }) {
-    // 根据设施类型确定颜色
-    Color facilityColor;
-
-    switch (facilityType) {
-      case 'communication':
-        facilityColor = AppTheme.facilityCommunication;
-        break;
-      case 'dining':
-        facilityColor = AppTheme.facilityDining;
-        break;
-      case 'transport':
-        facilityColor = AppTheme.facilityTransport;
-        break;
-      case 'accessibility':
-        facilityColor = AppTheme.facilityAccessibility;
-        break;
-      case 'sightseeing':
-        facilityColor = AppTheme.facilitySightseeing;
-        break;
-      case 'shopping':
-        facilityColor = AppTheme.facilityShopping;
-        break;
-      default:
-        facilityColor = AppTheme.facilityDefault;
-    }
-
-    return GestureDetector(
-      onTap: () {
-        // 可以添加点击效果，比如展示设施详情
-        // 这里简单地显示一个SnackBar
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$title 可用'),
-            duration: const Duration(seconds: 1),
-            backgroundColor: facilityColor.withOpacity(0.8),
+    return Column(
+      children: [
+        Icon(
+          icon,
+          color: AppTheme.secondaryColor,
+          size: 22,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: AppTheme.secondaryTextColor,
           ),
-        );
-      },
-      child: Column(
-        children: [
-          // 使用AnimatedContainer添加轻微的动画效果
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: facilityColor.withOpacity(0.15),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: facilityColor.withOpacity(0.1),
-                  blurRadius: 8,
-                  spreadRadius: 1,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: AppTheme.primaryTextColor,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 构建景点描述
+  Widget _buildSpotDescription() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      decoration: BoxDecoration(
+        color: AppTheme.secondaryBackgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 关于部分
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '关于',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryTextColor,
+                  ),
+                ),
+
+                // 查看地图按钮
+                GestureDetector(
+                  onTap: () {
+                    NavigationUtils.scaleNavigateTo(
+                      context: context,
+                      page: MapViewScreen(
+                        spots: [widget.spotData],
+                        initialSpotIndex: 0,
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.buttonColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.map,
+                          color: AppTheme.buttonColor,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '查看地图',
+                          style: TextStyle(
+                            color: AppTheme.buttonColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
-            child: Icon(icon, color: facilityColor, size: 24),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: TextStyle(
-              color: AppTheme.secondaryTextColor,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+
+            const SizedBox(height: 12),
+
+            Text(
+              widget.spotData['description'] ??
+                  '这个神奇的地方拥有壮观的自然景观和丰富的文化历史。无论是徒步爱好者、摄影师还是历史爱好者，这里都能满足您的需求。清新的空气、美丽的风景和友好的当地人将为您的旅行增添难忘的回忆。',
+              style: TextStyle(
+                color: AppTheme.secondaryTextColor,
+                fontSize: 16,
+                height: 1.5,
+              ),
             ),
-            textAlign: TextAlign.center,
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 构建评论和评分
+  Widget _buildReviews() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      decoration: BoxDecoration(
+        color: AppTheme.secondaryBackgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            spreadRadius: 1,
           ),
         ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 评论部分
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '用户评论',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryTextColor,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // TODO: 导航到所有评论页面
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('查看全部评论'),
+                        behavior: SnackBarBehavior.floating,
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    '查看全部',
+                    style: TextStyle(
+                      color: AppTheme.buttonColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // 评论列表
+            ..._reviews.map((review) => _buildReviewItem(review)),
+          ],
+        ),
       ),
     );
   }
@@ -1037,177 +976,177 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   }
 
   // 构建底部抽屉
-  Widget _buildBottomDrawer() {
+  Widget _buildBottomDrawer(BuildContext context, double bottomPadding) {
     final drawerHeight = MediaQuery.of(context).size.height * 0.6;
 
-    return AnimatedBuilder(
-      animation: _drawerAnimController,
-      builder: (context, child) {
-        final slideHeight = (1 - _drawerAnimation.value) * drawerHeight;
-        final scale = 0.9 + (0.1 * _drawerAnimation.value); // 缩放效果
-        final opacity = _drawerAnimation.value; // 透明度效果
+    return Positioned(
+      bottom: -drawerHeight + _dragExtent,
+      left: 0,
+      right: 0,
+      child: AnimatedBuilder(
+        animation: _drawerAnimController,
+        builder: (context, child) {
+          final slideHeight = (1 - _drawerAnimation.value) * drawerHeight;
+          final scale = 0.9 + (0.1 * _drawerAnimation.value); // 缩放效果
+          final opacity = _drawerAnimation.value; // 透明度效果
 
-        return Positioned(
-          bottom: -slideHeight + _dragExtent,
-          left: 0,
-          right: 0,
-          child: Opacity(
+          return Opacity(
             opacity: opacity,
             child: Transform.scale(
               scale: scale,
               alignment: Alignment.bottomCenter,
               child: child!,
             ),
-          ),
-        );
-      },
-      child: GestureDetector(
-        onVerticalDragUpdate: (details) {
-          // 跟踪拖拽的位置变化
-          if (details.delta.dy > 0) {
-            // 向下拖动时，根据拖动距离调整抽屉位置
-            setState(() {
-              _dragExtent += details.delta.dy; // 累加拖拽距离
-            });
-          }
+          );
         },
-        onVerticalDragEnd: (details) {
-          // 根据拖拽速度决定是否关闭抽屉
-          if (details.primaryVelocity! > 300) {
-            _closeBottomDrawer();
-          } else if (_dragExtent > MediaQuery.of(context).size.height * 0.2) {
-            // 拖拽超过屏幕高度的20%也关闭抽屉
-            _closeBottomDrawer();
-          } else {
-            // 重置拖拽距离，抽屉回弹到原位
-            setState(() {
-              _dragExtent = 0;
-            });
-          }
-        },
-        child: Container(
-          height: drawerHeight,
-          decoration: BoxDecoration(
-            color: AppTheme.backgroundColor,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(30),
-              topRight: Radius.circular(30),
+        child: GestureDetector(
+          onVerticalDragUpdate: (details) {
+            // 跟踪拖拽的位置变化
+            if (details.delta.dy > 0) {
+              // 向下拖动时，根据拖动距离调整抽屉位置
+              setState(() {
+                _dragExtent += details.delta.dy; // 累加拖拽距离
+              });
+            }
+          },
+          onVerticalDragEnd: (details) {
+            // 根据拖拽速度决定是否关闭抽屉
+            if (details.primaryVelocity! > 300) {
+              _closeBottomDrawer();
+            } else if (_dragExtent > MediaQuery.of(context).size.height * 0.2) {
+              // 拖拽超过屏幕高度的20%也关闭抽屉
+              _closeBottomDrawer();
+            } else {
+              // 重置拖拽距离，抽屉回弹到原位
+              setState(() {
+                _dragExtent = 0;
+              });
+            }
+          },
+          child: Container(
+            height: drawerHeight,
+            decoration: BoxDecoration(
+              color: AppTheme.backgroundColor,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                ),
+              ],
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 16),
-              // 抽屉顶部把手
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppTheme.secondaryTextColor.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(2),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 16),
+                // 抽屉顶部把手
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppTheme.secondaryTextColor.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: 16),
-              // 抽屉标题
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Text(
-                  "选择购票方式",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryTextColor,
+                SizedBox(height: 16),
+                // 抽屉标题
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Text(
+                    "选择购票方式",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryTextColor,
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: 20),
-              // 抽屉选项列表
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: BouncingScrollPhysics(),
-                  child: Column(
-                    children: [
-                      // 地图导航选项
-                      _buildDrawerOption(
-                        icon: Icons.map_outlined,
-                        title: "地图导航",
-                        subtitle: "打开地图应用进行导航",
-                        onTap: () {
-                          _launchMaps();
-                        },
-                      ),
-                      // 浏览器搜索选项
-                      _buildDrawerOption(
-                        icon: Icons.search_outlined,
-                        title: "浏览器搜索",
-                        subtitle: "打开浏览器搜索购票信息",
-                        onTap: () {
-                          _launchBrowser();
-                        },
-                      ),
-                      // 微信小程序选项
-                      _buildDrawerOption(
-                        icon: Icons.wechat_outlined,
-                        title: "微信小程序",
-                        subtitle: "打开微信应用",
-                        onTap: () {
-                          _launchWeChat();
-                        },
-                      ),
-                      // 第三方旅行应用选项
-                      _buildDrawerOption(
-                        icon: Icons.travel_explore,
-                        title: "第三方旅行应用",
-                        subtitle: "尝试打开携程等应用",
-                        onTap: () {
-                          _launchTravelApp();
-                        },
-                        showDivider: false,
-                      ),
-                      SizedBox(height: 20),
-                      // 取消按钮
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: ElevatedButton(
-                          onPressed: () => _closeBottomDrawer(),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.cardColor,
-                            foregroundColor: AppTheme.buttonColor,
-                            minimumSize: Size(double.infinity, 56),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              side: BorderSide(
-                                color: AppTheme.secondaryTextColor.withOpacity(
-                                  0.3,
+                SizedBox(height: 20),
+                // 抽屉选项列表
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: BouncingScrollPhysics(),
+                    child: Column(
+                      children: [
+                        // 地图导航选项
+                        _buildDrawerOption(
+                          icon: Icons.map_outlined,
+                          title: "地图导航",
+                          subtitle: "打开地图应用进行导航",
+                          onTap: () {
+                            _launchMaps();
+                          },
+                        ),
+                        // 浏览器搜索选项
+                        _buildDrawerOption(
+                          icon: Icons.search_outlined,
+                          title: "浏览器搜索",
+                          subtitle: "打开浏览器搜索购票信息",
+                          onTap: () {
+                            _launchBrowser();
+                          },
+                        ),
+                        // 微信小程序选项
+                        _buildDrawerOption(
+                          icon: Icons.wechat_outlined,
+                          title: "微信小程序",
+                          subtitle: "打开微信应用",
+                          onTap: () {
+                            _launchWeChat();
+                          },
+                        ),
+                        // 第三方旅行应用选项
+                        _buildDrawerOption(
+                          icon: Icons.travel_explore,
+                          title: "第三方旅行应用",
+                          subtitle: "尝试打开携程等应用",
+                          onTap: () {
+                            _launchTravelApp();
+                          },
+                          showDivider: false,
+                        ),
+                        SizedBox(height: 20),
+                        // 取消按钮
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                          child: ElevatedButton(
+                            onPressed: () => _closeBottomDrawer(),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.cardColor,
+                              foregroundColor: AppTheme.buttonColor,
+                              minimumSize: Size(double.infinity, 56),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                side: BorderSide(
+                                  color: AppTheme.secondaryTextColor.withOpacity(
+                                    0.3,
+                                  ),
                                 ),
                               ),
+                              elevation: 0,
                             ),
-                            elevation: 0,
-                          ),
-                          child: Text(
-                            "取消",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                            child: Text(
+                              "取消",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      SizedBox(height: 40),
-                    ],
+                        SizedBox(height: 40),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -1245,32 +1184,76 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     launchUrl(Uri.parse('ctrip://'));
   }
 
-  List<Widget> _getFacilityItems() {
-    // 定义设施数据 - 在实际应用中，这些数据应该从API或spotData中获取
-    final List<Map<String, dynamic>> facilities = [
-      {'icon': Icons.wifi, 'title': '免费WiFi', 'type': 'communication'},
-      {'icon': Icons.restaurant, 'title': '餐厅', 'type': 'dining'},
-      {'icon': Icons.directions_car, 'title': '停车场', 'type': 'transport'},
-      {'icon': Icons.accessible, 'title': '无障碍通道', 'type': 'accessibility'},
-      {'icon': Icons.photo_camera, 'title': '观景台', 'type': 'sightseeing'},
-      {'icon': Icons.shopping_bag, 'title': '礼品店', 'type': 'shopping'},
-    ];
-
-    // 如果spotData中包含设施数据，可以解析并添加到facilities列表中
-    if (widget.spotData.containsKey('facilities') &&
-        widget.spotData['facilities'] is List) {
-      // 解析spotData中的设施数据 - 这里省略具体实现
-    }
-
-    // 返回设施项列表
-    return facilities
-        .map(
-          (facility) => _buildFacilityItem(
-            facility['icon'],
-            facility['title'],
-            facilityType: facility['type'],
+  // 构建抽屉选项
+  Widget _buildDrawerOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool showDivider = true,
+  }) {
+    return Column(
+      children: [
+        InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 16.0,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppTheme.buttonColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: AppTheme.buttonColor, size: 24),
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryTextColor,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppTheme.secondaryTextColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: AppTheme.secondaryTextColor,
+                  size: 16,
+                ),
+              ],
+            ),
           ),
-        )
-        .toList();
+        ),
+        if (showDivider)
+          Padding(
+            padding: const EdgeInsets.only(left: 88.0),
+            child: Divider(
+              height: 1,
+              color: AppTheme.cardColor.withOpacity(0.2),
+            ),
+          ),
+      ],
+    );
   }
 }
