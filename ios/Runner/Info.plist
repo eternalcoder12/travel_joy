@@ -54,8 +54,16 @@
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>需要获取您的位置，以便为您提供基于位置的服务和推荐</string>
 	
-	<!-- 添加iOS通知权限使用描述 -->
-	<key>NSUserNotificationUsageDescription</key>
-	<string>需要发送通知，以便您收到重要信息和更新</string>
+	<!-- 添加iOS通知权限配置 -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+	<key>NSCalendarsUsageDescription</key>
+	<string>需要访问您的日历，以便为您提供旅行日程管理服务</string>
+	<key>NSCameraUsageDescription</key>
+	<string>需要访问您的相机，以便您能够拍摄和分享照片</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>需要访问您的照片库，以便您能够分享照片</string>
 </dict>
 </plist>
