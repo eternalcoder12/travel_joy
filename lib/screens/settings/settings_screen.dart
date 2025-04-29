@@ -364,25 +364,39 @@ class _SettingsScreenState extends State<SettingsScreen>
                 value: _notificationsEnabled,
                 onTap: () async {
                   if (_notificationsEnabled) {
-                    // 如果当前为开启状态，直接关闭
-                    setState(() {
-                      _notificationsEnabled = false;
-                    });
-                    await _saveSettings();
-                  } else {
-                    // 如果当前为关闭状态，请求权限
-                    try {
-                      bool hasPermission = await _checkNotificationPermission();
-                      setState(() {
-                        _notificationsEnabled = hasPermission;
-                      });
-                      await _saveSettings();
-                    } catch (e) {
-                      print('通知权限请求失败: $e');
+                    // 关闭权限前询问用户确认
+                    bool confirm = await _showPermissionConfirmDialog(
+                      title: '关闭通知',
+                      content: '关闭通知后，您将不会收到任何新消息或活动的提醒。确定要关闭吗？',
+                      confirmText: '关闭',
+                    );
+                    if (confirm) {
                       setState(() {
                         _notificationsEnabled = false;
                       });
                       await _saveSettings();
+                    }
+                  } else {
+                    // 请求开启权限前询问用户确认
+                    bool confirm = await _showPermissionConfirmDialog(
+                      title: '开启通知',
+                      content: '开启通知后，您将收到新消息和活动的提醒。需要授予应用通知权限。',
+                      confirmText: '开启',
+                    );
+                    if (confirm) {
+                      try {
+                        bool hasPermission = await _checkNotificationPermission();
+                        setState(() {
+                          _notificationsEnabled = hasPermission;
+                        });
+                        await _saveSettings();
+                      } catch (e) {
+                        print('通知权限请求失败: $e');
+                        setState(() {
+                          _notificationsEnabled = false;
+                        });
+                        await _saveSettings();
+                      }
                     }
                   }
                 },
@@ -398,11 +412,35 @@ class _SettingsScreenState extends State<SettingsScreen>
                 subtitle: '切换应用的显示模式',
                 value: _darkModeEnabled,
                 onTap: () async {
-                  setState(() {
-                    _darkModeEnabled = !_darkModeEnabled;
-                  });
-                  await _saveSettings();
-                  _applySettings();
+                  if (_darkModeEnabled) {
+                    // 关闭深色模式前询问用户确认
+                    bool confirm = await _showPermissionConfirmDialog(
+                      title: '切换到浅色模式',
+                      content: '切换到浅色模式后，应用界面将使用浅色背景。确定要切换吗？',
+                      confirmText: '切换',
+                    );
+                    if (confirm) {
+                      setState(() {
+                        _darkModeEnabled = false;
+                      });
+                      await _saveSettings();
+                      _applySettings();
+                    }
+                  } else {
+                    // 开启深色模式前询问用户确认
+                    bool confirm = await _showPermissionConfirmDialog(
+                      title: '切换到深色模式',
+                      content: '切换到深色模式后，应用界面将使用深色背景，这有助于减少夜间使用时的眼睛疲劳。确定要切换吗？',
+                      confirmText: '切换',
+                    );
+                    if (confirm) {
+                      setState(() {
+                        _darkModeEnabled = true;
+                      });
+                      await _saveSettings();
+                      _applySettings();
+                    }
+                  }
                 },
               ),
 
@@ -416,11 +454,35 @@ class _SettingsScreenState extends State<SettingsScreen>
                 subtitle: '滚动时自动播放视频',
                 value: _autoPlayVideos,
                 onTap: () async {
-                  setState(() {
-                    _autoPlayVideos = !_autoPlayVideos;
-                  });
-                  await _saveSettings();
-                  _applySettings();
+                  if (_autoPlayVideos) {
+                    // 关闭自动播放视频前询问用户确认
+                    bool confirm = await _showPermissionConfirmDialog(
+                      title: '关闭自动播放视频',
+                      content: '关闭自动播放视频后，您需要手动点击播放视频。确定要关闭吗？',
+                      confirmText: '关闭',
+                    );
+                    if (confirm) {
+                      setState(() {
+                        _autoPlayVideos = false;
+                      });
+                      await _saveSettings();
+                      _applySettings();
+                    }
+                  } else {
+                    // 开启自动播放视频前询问用户确认
+                    bool confirm = await _showPermissionConfirmDialog(
+                      title: '开启自动播放视频',
+                      content: '开启自动播放视频后，滚动浏览时视频将自动播放，这可能会增加数据流量消耗。确定要开启吗？',
+                      confirmText: '开启',
+                    );
+                    if (confirm) {
+                      setState(() {
+                        _autoPlayVideos = true;
+                      });
+                      await _saveSettings();
+                      _applySettings();
+                    }
+                  }
                 },
               ),
 
@@ -435,25 +497,39 @@ class _SettingsScreenState extends State<SettingsScreen>
                 value: _locationTrackingEnabled,
                 onTap: () async {
                   if (_locationTrackingEnabled) {
-                    // 如果当前为开启状态，直接关闭
-                    setState(() {
-                      _locationTrackingEnabled = false;
-                    });
-                    await _saveSettings();
-                  } else {
-                    // 如果当前为关闭状态，请求权限
-                    try {
-                      bool hasPermission = await _checkLocationPermission();
-                      setState(() {
-                        _locationTrackingEnabled = hasPermission;
-                      });
-                      await _saveSettings();
-                    } catch (e) {
-                      print('位置权限请求失败: $e');
+                    // 关闭位置追踪前询问用户确认
+                    bool confirm = await _showPermissionConfirmDialog(
+                      title: '关闭位置追踪',
+                      content: '关闭位置追踪后，应用将无法为您提供基于位置的服务，如附近景点推荐等功能。确定要关闭吗？',
+                      confirmText: '关闭',
+                    );
+                    if (confirm) {
                       setState(() {
                         _locationTrackingEnabled = false;
                       });
                       await _saveSettings();
+                    }
+                  } else {
+                    // 请求开启位置追踪权限前询问用户确认
+                    bool confirm = await _showPermissionConfirmDialog(
+                      title: '开启位置追踪',
+                      content: '开启位置追踪后，应用将能够为您提供基于位置的服务。需要授予应用位置访问权限。',
+                      confirmText: '开启',
+                    );
+                    if (confirm) {
+                      try {
+                        bool hasPermission = await _checkLocationPermission();
+                        setState(() {
+                          _locationTrackingEnabled = hasPermission;
+                        });
+                        await _saveSettings();
+                      } catch (e) {
+                        print('位置权限请求失败: $e');
+                        setState(() {
+                          _locationTrackingEnabled = false;
+                        });
+                        await _saveSettings();
+                      }
                     }
                   }
                 },
@@ -469,11 +545,35 @@ class _SettingsScreenState extends State<SettingsScreen>
                 subtitle: '提高用户隐私保护级别',
                 value: _privacyModeEnabled,
                 onTap: () async {
-                  setState(() {
-                    _privacyModeEnabled = !_privacyModeEnabled;
-                  });
-                  await _saveSettings();
-                  _applySettings();
+                  if (_privacyModeEnabled) {
+                    // 关闭隐私模式前询问用户确认
+                    bool confirm = await _showPermissionConfirmDialog(
+                      title: '关闭隐私模式',
+                      content: '关闭隐私模式后，您的个人资料将对其他用户可见。确定要关闭吗？',
+                      confirmText: '关闭',
+                    );
+                    if (confirm) {
+                      setState(() {
+                        _privacyModeEnabled = false;
+                      });
+                      await _saveSettings();
+                      _applySettings();
+                    }
+                  } else {
+                    // 开启隐私模式前询问用户确认
+                    bool confirm = await _showPermissionConfirmDialog(
+                      title: '开启隐私模式',
+                      content: '开启隐私模式后，您的个人资料将对其他用户不可见，但可能会限制部分社交功能的使用。确定要开启吗？',
+                      confirmText: '开启',
+                    );
+                    if (confirm) {
+                      setState(() {
+                        _privacyModeEnabled = true;
+                      });
+                      await _saveSettings();
+                      _applySettings();
+                    }
+                  }
                 },
               ),
 
@@ -487,11 +587,35 @@ class _SettingsScreenState extends State<SettingsScreen>
                 subtitle: '显示更清晰的图片',
                 value: _highQualityImages,
                 onTap: () async {
-                  setState(() {
-                    _highQualityImages = !_highQualityImages;
-                  });
-                  await _saveSettings();
-                  _applySettings();
+                  if (_highQualityImages) {
+                    // 关闭高质量图片设置前询问用户确认
+                    bool confirm = await _showPermissionConfirmDialog(
+                      title: '关闭高质量图片',
+                      content: '关闭高质量图片后，应用将加载压缩后的图片，以节省流量。图片清晰度可能降低。确定要关闭吗？',
+                      confirmText: '关闭',
+                    );
+                    if (confirm) {
+                      setState(() {
+                        _highQualityImages = false;
+                      });
+                      await _saveSettings();
+                      _applySettings();
+                    }
+                  } else {
+                    // 开启高质量图片设置前询问用户确认
+                    bool confirm = await _showPermissionConfirmDialog(
+                      title: '开启高质量图片',
+                      content: '开启高质量图片后，应用将加载高分辨率图片，这将提供更清晰的视觉体验，但可能会增加数据流量消耗。确定要开启吗？',
+                      confirmText: '开启',
+                    );
+                    if (confirm) {
+                      setState(() {
+                        _highQualityImages = true;
+                      });
+                      await _saveSettings();
+                      _applySettings();
+                    }
+                  }
                 },
               ),
 
@@ -1365,12 +1489,24 @@ class _SettingsScreenState extends State<SettingsScreen>
                               subtitle: '开启或关闭所有通知',
                               value: _notificationsEnabled,
                               onChanged: (value) async {
-                                setState(() {
-                                  _notificationsEnabled = value;
-                                });
-                                await _saveSettings();
-                                // 请求通知权限或更新通知设置
-                                // 实际应用中可能需要使用平台通道请求权限
+                                if (value) {
+                                  // 从关闭到开启状态
+                                  try {
+                                    bool hasPermission = await _checkNotificationPermission();
+                                    setState(() {
+                                      _notificationsEnabled = hasPermission;
+                                    });
+                                    await _saveSettings();
+                                  } catch (e) {
+                                    print('通知权限请求失败: $e');
+                                  }
+                                } else {
+                                  // 从开启到关闭状态
+                                  setState(() {
+                                    _notificationsEnabled = false;
+                                  });
+                                  await _saveSettings();
+                                }
                               },
                             ),
 
@@ -1518,8 +1654,29 @@ class _SettingsScreenState extends State<SettingsScreen>
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          onChanged(!value); // 点击整行时切换开关
+        onTap: () async {
+          // 点击整行时不直接切换开关，而是弹出确认对话框
+          if (value) {
+            // 如果当前为开启状态，询问是否关闭
+            bool confirm = await _showPermissionConfirmDialog(
+              title: '关闭${title}',
+              content: '确定要关闭${title}吗？',
+              confirmText: '关闭',
+            );
+            if (confirm) {
+              onChanged(false);
+            }
+          } else {
+            // 如果当前为关闭状态，询问是否开启
+            bool confirm = await _showPermissionConfirmDialog(
+              title: '开启${title}',
+              content: '确定要开启${title}吗？',
+              confirmText: '开启',
+            );
+            if (confirm) {
+              onChanged(true);
+            }
+          }
         },
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -1571,7 +1728,30 @@ class _SettingsScreenState extends State<SettingsScreen>
               // 使用Flutter标准Switch组件
               Switch(
                 value: value,
-                onChanged: onChanged,
+                onChanged: (newValue) async {
+                  // Switch组件的onChanged回调中也添加确认对话框
+                  if (value && !newValue) {
+                    // 如果是从开启切换到关闭
+                    bool confirm = await _showPermissionConfirmDialog(
+                      title: '关闭${title}',
+                      content: '确定要关闭${title}吗？',
+                      confirmText: '关闭',
+                    );
+                    if (confirm) {
+                      onChanged(newValue);
+                    }
+                  } else if (!value && newValue) {
+                    // 如果是从关闭切换到开启
+                    bool confirm = await _showPermissionConfirmDialog(
+                      title: '开启${title}',
+                      content: '确定要开启${title}吗？',
+                      confirmText: '开启',
+                    );
+                    if (confirm) {
+                      onChanged(newValue);
+                    }
+                  }
+                },
                 activeColor: AppTheme.neonPurple,
                 activeTrackColor: AppTheme.neonPurple.withOpacity(0.5),
                 inactiveThumbColor: Colors.white,
@@ -1965,11 +2145,33 @@ class _SettingsScreenState extends State<SettingsScreen>
                               subtitle: '开启后，您的个人资料对其他用户不可见',
                               value: _privacyModeEnabled,
                               onChanged: (value) async {
-                                setState(() {
-                                  _privacyModeEnabled = value;
-                                });
-                                await _saveSettings();
-                                // 更新隐私模式设置
+                                if (!_privacyModeEnabled && value) {
+                                  // 从关闭到开启状态
+                                  bool confirm = await _showPermissionConfirmDialog(
+                                    title: '开启隐私模式',
+                                    content: '开启隐私模式后，您的个人资料将对其他用户不可见，但可能会限制部分社交功能的使用。确定要开启吗？',
+                                    confirmText: '开启',
+                                  );
+                                  if (confirm) {
+                                    setState(() {
+                                      _privacyModeEnabled = true;
+                                    });
+                                    await _saveSettings();
+                                  }
+                                } else if (_privacyModeEnabled && !value) {
+                                  // 从开启到关闭状态
+                                  bool confirm = await _showPermissionConfirmDialog(
+                                    title: '关闭隐私模式',
+                                    content: '关闭隐私模式后，您的个人资料将对其他用户可见。确定要关闭吗？',
+                                    confirmText: '关闭',
+                                  );
+                                  if (confirm) {
+                                    setState(() {
+                                      _privacyModeEnabled = false;
+                                    });
+                                    await _saveSettings();
+                                  }
+                                }
                               },
                             ),
 
@@ -1989,13 +2191,24 @@ class _SettingsScreenState extends State<SettingsScreen>
                               subtitle: '允许应用获取您的位置信息',
                               value: _locationTrackingEnabled,
                               onChanged: (value) async {
-                                setState(() {
-                                  _locationTrackingEnabled = value;
-                                });
-                                await _saveSettings();
-                                // 更新位置追踪设置
-                                // 如果禁用，可能需要停止位置服务
-                                // 如果启用，可能需要请求位置权限
+                                if (value) {
+                                  // 从关闭到开启状态
+                                  try {
+                                    bool hasPermission = await _checkLocationPermission();
+                                    setState(() {
+                                      _locationTrackingEnabled = hasPermission;
+                                    });
+                                    await _saveSettings();
+                                  } catch (e) {
+                                    print('位置权限请求失败: $e');
+                                  }
+                                } else {
+                                  // 从开启到关闭状态
+                                  setState(() {
+                                    _locationTrackingEnabled = false;
+                                  });
+                                  await _saveSettings();
+                                }
                               },
                             ),
 
@@ -3357,6 +3570,98 @@ class _SettingsScreenState extends State<SettingsScreen>
       print('检查通知权限时出错: $e');
       return false;
     }
+  }
+
+  // 显示权限确认对话框
+  Future<bool> _showPermissionConfirmDialog({
+    required String title,
+    required String content,
+    required String confirmText,
+    String cancelText = '取消',
+  }) async {
+    bool? result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: AppTheme.neonBlue.withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          insetPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          contentPadding: EdgeInsets.fromLTRB(24, 16, 24, 0),
+          titlePadding: EdgeInsets.fromLTRB(24, 20, 24, 8),
+          actionsPadding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+          title: Text(
+            title,
+            style: TextStyle(
+              color: AppTheme.primaryTextColor,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            content,
+            style: TextStyle(
+              color: AppTheme.secondaryTextColor,
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            // 包装在Row中以便控制布局
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    minimumSize: Size(60, 32),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    cancelText,
+                    style: TextStyle(
+                      color: AppTheme.secondaryTextColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12), // 按钮之间的间距
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.neonBlue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    // 设置更小的内边距
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    minimumSize: Size(60, 32),
+                  ),
+                  child: Text(
+                    confirmText,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+    return result ?? false;
   }
 
   // 检查并请求位置权限（安全实现，避免插件错误）
