@@ -3560,16 +3560,120 @@ class _SettingsScreenState extends State<SettingsScreen>
     return '最大';
   }
 
-  // 检查并请求通知权限（安全实现，避免插件错误）
+  // 检查并请求通知权限
   Future<bool> _checkNotificationPermission() async {
     try {
-      // 安全实现，避免插件依赖
-      print('通知权限检查：默认返回有权限');
-      return true;
+      // 检查当前通知权限状态
+      PermissionStatus status = await Permission.notification.status;
+      
+      // 如果尚未授予权限，请求权限
+      if (!status.isGranted) {
+        status = await Permission.notification.request();
+      }
+      
+      print('通知权限检查：${status.isGranted ? '已授予' : '未授予'}');
+      return status.isGranted;
     } catch (e) {
       print('检查通知权限时出错: $e');
       return false;
     }
+  }
+
+  // 检查并请求位置权限
+  Future<bool> _checkLocationPermission() async {
+    try {
+      // 检查当前位置权限状态
+      PermissionStatus status = await Permission.location.status;
+      
+      // 如果尚未授予权限，请求权限
+      if (!status.isGranted) {
+        status = await Permission.location.request();
+      }
+      
+      print('位置权限检查：${status.isGranted ? '已授予' : '未授予'}');
+      return status.isGranted;
+    } catch (e) {
+      print('检查位置权限时出错: $e');
+      return false;
+    }
+  }
+
+  // 切换通知设置
+  Future<void> _toggleNotifications() async {
+    try {
+      final hasPermission = await _checkNotificationPermission();
+      if (hasPermission) {
+        setState(() {
+          _notificationsEnabled = !_notificationsEnabled;
+        });
+        await _saveSettings();
+        // 应用设置变更
+        _applySettings();
+      } else {
+        print('没有通知权限');
+      }
+    } catch (e) {
+      print('切换通知设置时出错: $e');
+    }
+  }
+
+  // 切换暗黑模式设置
+  Future<void> _toggleDarkMode() async {
+    setState(() {
+      _darkModeEnabled = !_darkModeEnabled;
+    });
+    await _saveSettings();
+    // 应用设置变更
+    _applySettings();
+  }
+
+  // 切换自动播放视频设置
+  Future<void> _toggleAutoPlayVideos() async {
+    setState(() {
+      _autoPlayVideos = !_autoPlayVideos;
+    });
+    await _saveSettings();
+    // 应用设置变更
+    _applySettings();
+  }
+
+  // 切换位置追踪设置
+  Future<void> _toggleLocationTracking() async {
+    try {
+      final hasPermission = await _checkLocationPermission();
+      if (hasPermission) {
+        setState(() {
+          _locationTrackingEnabled = !_locationTrackingEnabled;
+        });
+        await _saveSettings();
+        // 应用设置变更
+        _applySettings();
+      } else {
+        print('没有位置权限');
+      }
+    } catch (e) {
+      print('切换位置追踪设置时出错: $e');
+    }
+  }
+
+  // 切换隐私模式设置
+  Future<void> _togglePrivacyMode() async {
+    setState(() {
+      _privacyModeEnabled = !_privacyModeEnabled;
+    });
+    await _saveSettings();
+    // 应用设置变更
+    _applySettings();
+  }
+
+  // 切换高质量图片设置
+  Future<void> _toggleHighQualityImages() async {
+    setState(() {
+      _highQualityImages = !_highQualityImages;
+    });
+    await _saveSettings();
+    // 应用设置变更
+    _applySettings();
   }
 
   // 显示权限确认对话框
@@ -3663,94 +3767,5 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
     return result ?? false;
   }
-
-  // 检查并请求位置权限（安全实现，避免插件错误）
-  Future<bool> _checkLocationPermission() async {
-    try {
-      // 安全实现，避免插件依赖
-      print('位置权限检查：默认返回有权限');
-      return true;
-    } catch (e) {
-      print('检查位置权限时出错: $e');
-      return false;
-    }
-  }
-
-  // 切换通知设置
-  Future<void> _toggleNotifications() async {
-    try {
-      final hasPermission = await _checkNotificationPermission();
-      if (hasPermission) {
-        setState(() {
-          _notificationsEnabled = !_notificationsEnabled;
-        });
-        await _saveSettings();
-        // 应用设置变更
-        _applySettings();
-      } else {
-        print('没有通知权限');
-      }
-    } catch (e) {
-      print('切换通知设置时出错: $e');
-    }
-  }
-
-  // 切换暗黑模式设置
-  Future<void> _toggleDarkMode() async {
-    setState(() {
-      _darkModeEnabled = !_darkModeEnabled;
-    });
-    await _saveSettings();
-    // 应用设置变更
-    _applySettings();
-  }
-
-  // 切换自动播放视频设置
-  Future<void> _toggleAutoPlayVideos() async {
-    setState(() {
-      _autoPlayVideos = !_autoPlayVideos;
-    });
-    await _saveSettings();
-    // 应用设置变更
-    _applySettings();
-  }
-
-  // 切换位置追踪设置
-  Future<void> _toggleLocationTracking() async {
-    try {
-      final hasPermission = await _checkLocationPermission();
-      if (hasPermission) {
-        setState(() {
-          _locationTrackingEnabled = !_locationTrackingEnabled;
-        });
-        await _saveSettings();
-        // 应用设置变更
-        _applySettings();
-      } else {
-        print('没有位置权限');
-      }
-    } catch (e) {
-      print('切换位置追踪设置时出错: $e');
-    }
-  }
-
-  // 切换隐私模式设置
-  Future<void> _togglePrivacyMode() async {
-    setState(() {
-      _privacyModeEnabled = !_privacyModeEnabled;
-    });
-    await _saveSettings();
-    // 应用设置变更
-    _applySettings();
-  }
-
-  // 切换高质量图片设置
-  Future<void> _toggleHighQualityImages() async {
-    setState(() {
-      _highQualityImages = !_highQualityImages;
-    });
-    await _saveSettings();
-    // 应用设置变更
-    _applySettings();
-  }
 }
+
