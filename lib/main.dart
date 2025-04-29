@@ -47,8 +47,7 @@ Future<void> initApp() async {
     if (Platform.isAndroid) {
       await _initializeAndroidPermissions();
     } else if (Platform.isIOS) {
-      // iOS权限在第一次使用时请求，这里不进行预先请求
-      print('iOS平台: 权限将在首次使用时请求');
+      await _initializeIOSPermissions();
     }
 
     // 使用FutureBuilder启动应用
@@ -69,6 +68,9 @@ Future<void> _initializeAndroidPermissions() async {
     Map<Permission, PermissionStatus> statuses = await [
       Permission.location,
       Permission.notification,
+      Permission.camera,
+      Permission.photos,
+      Permission.storage,
     ].request();
     
     // 输出权限状态用于调试
@@ -77,6 +79,28 @@ Future<void> _initializeAndroidPermissions() async {
     });
   } catch (e) {
     print('初始化Android权限时出错: $e');
+  }
+}
+
+// 初始化iOS权限
+Future<void> _initializeIOSPermissions() async {
+  try {
+    // iOS权限在第一次使用时请求，这里仅打印权限状态用于调试
+    print('iOS平台: 权限将在首次使用时请求');
+    
+    // 检查(不请求)当前权限状态
+    final locationStatus = await Permission.location.status;
+    final notificationStatus = await Permission.notification.status;
+    final cameraStatus = await Permission.camera.status;
+    final photosStatus = await Permission.photos.status;
+    
+    // 记录当前权限状态
+    print('位置权限状态: $locationStatus');
+    print('通知权限状态: $notificationStatus');
+    print('相机权限状态: $cameraStatus');
+    print('照片权限状态: $photosStatus');
+  } catch (e) {
+    print('检查iOS权限状态时出错: $e');
   }
 }
 

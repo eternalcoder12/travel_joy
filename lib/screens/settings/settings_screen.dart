@@ -38,6 +38,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   double _fontSizeScale = 1.0;
   bool _dataUsageLimitEnabled = false;
   String _selectedTheme = '深色'; // 固定为深色主题
+  bool _isLoading = true; // 添加加载状态变量
 
   final List<String> _themeOptions = ['深色', '浅色', '系统默认'];
   final List<String> _languageOptions = ['简体中文', 'English', '日本語', '한국어'];
@@ -98,42 +99,56 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   // 加载保存的设置
   Future<void> _loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      setState(() {
+        // 加载通知设置
+        _notificationsEnabled = prefs.getBool('notificationsEnabled') ?? false;
+        // 确保显示的状态和实际权限一致
+        if (_notificationsEnabled) {
+          // 如果存储的状态是开启的，需要验证实际权限
+          _checkNotificationPermissionStatus();
+        }
+        
+        // 固定其他设置
+        _locationTrackingEnabled = false;
+        _selectedLanguage = '简体中文';
+        _selectedTheme = '深色';
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('加载设置时出错: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
-    // 读取各项设置，如果没有保存过则使用默认值
-    bool notificationsEnabled =
-        prefs.getBool(KEY_NOTIFICATIONS_ENABLED) ?? true;
-
-    // 检查权限状态与存储的设置是否一致
-    bool hasNotificationPermission = await _checkNotificationPermission();
-
-    setState(() {
-      // 存储的设置必须与实际权限状态一致
-      _notificationsEnabled = notificationsEnabled && hasNotificationPermission;
-      
-      // 位置权限相关功能禁用
-      _locationTrackingEnabled = false;
-
-      // 其他设置不需要权限检查
-      _messageNotificationsEnabled =
-          prefs.getBool(KEY_MESSAGE_NOTIFICATIONS) ?? true;
-      _activityNotificationsEnabled =
-          prefs.getBool(KEY_ACTIVITY_NOTIFICATIONS) ?? true;
-      _darkModeEnabled = prefs.getBool(KEY_DARK_MODE) ?? true;
-      _autoPlayVideos = prefs.getBool(KEY_AUTO_PLAY_VIDEOS) ?? false;
-      _privacyModeEnabled = prefs.getBool(KEY_PRIVACY_MODE) ?? false;
-      _highQualityImages = prefs.getBool(KEY_HIGH_QUALITY_IMAGES) ?? true;
-      
-      // 固定语言和主题设置
-      _selectedLanguage = '简体中文';
-      _selectedTheme = '深色';
-      
-      _fontSizeScale = prefs.getDouble(KEY_FONT_SIZE_SCALE) ?? 1.0;
-      _dataUsageLimitEnabled = prefs.getBool(KEY_DATA_USAGE_LIMIT) ?? false;
-    });
-
-    // 应用当前保存的设置
-    _applySettings();
+  // 检查通知权限状态（不请求权限，只检查）
+  Future<void> _checkNotificationPermissionStatus() async {
+    PermissionStatus status = await Permission.notification.status;
+    print('当前通知权限状态: $status');
+    
+    // 如果存储的状态是开启，但实际权限未授予，更新状态
+    if (_notificationsEnabled && !status.isGranted) {
+      setState(() {
+        _notificationsEnabled = false;
+      });
+      // 保存更新后的状态
+      _saveNotificationSetting(false);
+    }
+  }
+  
+  // 保存通知设置
+  Future<void> _saveNotificationSetting(bool value) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('notifications_enabled', value);
+      print('通知设置已保存: $value');
+    } catch (e) {
+      print('保存通知设置时出错: $e');
+      _showErrorSnackbar('保存设置失败，请稍后重试');
+    }
   }
 
   // 保存设置
@@ -374,7 +389,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                       confirmText: '关闭',
                     );
                     if (confirm) {
-                      await _toggleNotifications();
+                      await _toggleNotifications(false);
                     }
                   } else {
                     // 请求开启权限前询问用户确认
@@ -384,7 +399,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                       confirmText: '开启',
                     );
                     if (confirm) {
-                      await _toggleNotifications();
+                      await _toggleNotifications(true);
                     }
                   }
                 },
@@ -1446,7 +1461,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                                     confirmText: '关闭',
                                   );
                                   if (confirm) {
-                                    await _toggleNotifications();
+                                    await _toggleNotifications(false);
                                   }
                                 } else if (!_notificationsEnabled && value) {
                                   // 从关闭切换到开启
@@ -1456,7 +1471,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                                     confirmText: '开启',
                                   );
                                   if (confirm) {
-                                    await _toggleNotifications();
+                                    await _toggleNotifications(true);
                                   }
                                 }
                               },
@@ -3385,17 +3400,9 @@ class _SettingsScreenState extends State<SettingsScreen>
   void _showErrorSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.error_outline, color: Colors.white),
-            SizedBox(width: 10),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: AppTheme.errorColor,
-        behavior: SnackBarBehavior.floating,
+        content: Text(message),
+        backgroundColor: Colors.red,
         duration: Duration(seconds: 3),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -3501,16 +3508,48 @@ class _SettingsScreenState extends State<SettingsScreen>
     try {
       // iOS和Android平台不同的处理方式
       if (Platform.isIOS) {
-        // 直接请求iOS通知权限
-        print('iOS: 直接请求通知权限...');
-        PermissionStatus status = await Permission.notification.request();
-        print('iOS通知权限请求结果: $status');
-        return status.isGranted;
+        // iOS需要特殊处理
+        print('iOS: 请求通知权限...');
+        // 首先检查当前权限状态
+        PermissionStatus status = await Permission.notification.status;
+        print('iOS当前通知权限状态: $status');
+        
+        // 如果已经授予，直接返回true
+        if (status.isGranted) {
+          return true;
+        }
+        
+        // 如果不是永久拒绝状态，尝试请求权限
+        if (!status.isPermanentlyDenied) {
+          status = await Permission.notification.request();
+          print('iOS通知权限请求结果: $status');
+          
+          // 如果请求后被拒绝但不是永久拒绝，显示友好提示
+          if (status.isDenied) {
+            _showPermissionDeniedSnackbar();
+          }
+          
+          return status.isGranted;
+        } else {
+          // 如果是永久拒绝状态，调用处理方法
+          return await _handlePermanentlyDeniedPermission();
+        }
       } else {
-        // Android平台直接请求权限
-        print('Android: 直接请求通知权限...');
+        // Android平台处理
+        print('Android: 请求通知权限...');
         PermissionStatus status = await Permission.notification.request();
         print('Android通知权限请求结果: $status');
+        
+        // 如果请求后被永久拒绝
+        if (status.isPermanentlyDenied) {
+          return await _handlePermanentlyDeniedPermission();
+        }
+        
+        // 如果被拒绝但不是永久拒绝
+        if (status.isDenied) {
+          _showPermissionDeniedSnackbar();
+        }
+        
         return status.isGranted;
       }
     } catch (e) {
@@ -3518,44 +3557,247 @@ class _SettingsScreenState extends State<SettingsScreen>
       return false;
     }
   }
+  
+  // 处理权限被永久拒绝的情况
+  Future<bool> _handlePermanentlyDeniedPermission() async {
+    // 如果是永久拒绝状态，需要引导用户到设置中开启
+    bool openSettings = await _showPermissionConfirmDialog(
+      title: '通知权限已被禁用',
+      content: '请前往设置，手动开启通知权限，以便接收重要通知。',
+      confirmText: '前往设置',
+    );
+    
+    if (openSettings) {
+      // 打开设置页面
+      await openAppSettings();
+      
+      // 给用户足够时间去更改设置
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('请在系统设置中开启通知权限'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      
+      // 等待几秒，然后重新检查权限状态
+      await Future.delayed(Duration(seconds: 3));
+      PermissionStatus newStatus = await Permission.notification.status;
+      return newStatus.isGranted;
+    }
+    return false;
+  }
+  
+  // 显示权限被拒绝的提示
+  void _showPermissionDeniedSnackbar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.notifications_off, color: Colors.amber),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text('通知权限被拒绝，您可能会错过重要提醒'),
+            ),
+          ],
+        ),
+        duration: Duration(seconds: 4),
+        action: SnackBarAction(
+          label: '重试',
+          onPressed: () => _toggleNotifications(true),
+        ),
+      ),
+    );
+  }
 
   // 切换通知设置
-  Future<void> _toggleNotifications() async {
-    try {
-      if (_notificationsEnabled) {
-        // 从开启到关闭，直接修改状态
+  Future<void> _toggleNotifications(bool value) async {
+    if (value) {
+      // 尝试请求权限
+      bool granted = await _requestNotificationPermission();
+      if (!granted) {
+        print('通知权限请求被拒绝');
+        // 如果用户未授予权限，重置开关状态
         setState(() {
           _notificationsEnabled = false;
         });
-        await _saveSettings();
-        _applySettings();
-      } else {
-        // 从关闭到开启，直接请求系统级权限
-        bool confirm = await _showPermissionConfirmDialog(
-          title: '开启通知',
-          content: '开启通知后，您将收到新消息和活动的提醒。需要授予应用通知权限。',
-          confirmText: '开启',
-        );
-        
-        if (confirm) {
-          final hasPermission = await _checkNotificationPermission();
-          setState(() {
-            _notificationsEnabled = hasPermission;
-          });
-          
-          if (!hasPermission) {
-            // 如果权限未授予，显示提示
-            _showErrorSnackbar('通知权限未授予，无法开启通知功能');
-          } else {
-            await _saveSettings();
-            _applySettings();
-          }
-        }
+        return;
       }
-    } catch (e) {
-      print('切换通知设置时出错: $e');
-      _showErrorSnackbar('设置通知失败，请稍后重试');
     }
+    
+    // 更新状态并保存设置
+    setState(() {
+      _notificationsEnabled = value;
+    });
+    _saveNotificationSetting(value);
+    
+    // 显示成功提示
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(value ? '通知已开启' : '通知已关闭'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+  
+  // 请求通知权限
+  Future<bool> _requestNotificationPermission() async {
+    // 先检查当前权限状态
+    PermissionStatus status = await Permission.notification.status;
+    print('请求权限前状态: $status');
+    
+    if (status.isGranted) {
+      // 已有权限，直接返回成功
+      return true;
+    }
+    
+    if (status.isPermanentlyDenied) {
+      // 权限被永久拒绝，引导用户到设置页面
+      bool? openSettings = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: Colors.black.withOpacity(0.6),
+        builder: (context) => AlertDialog(
+          backgroundColor: AppTheme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(
+              color: AppTheme.neonBlue.withOpacity(0.3),
+              width: 1.5,
+            ),
+          ),
+          icon: Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [AppTheme.neonBlue, AppTheme.neonPurple],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.neonBlue.withOpacity(0.3),
+                  blurRadius: 12,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: Icon(Icons.notifications_active, color: Colors.white, size: 30),
+          ),
+          title: Text(
+            '通知权限已被禁用',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppTheme.primaryTextColor,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '应用需要通知权限才能发送重要提醒。由于您之前已拒绝此权限，现在需要在系统设置中手动开启。',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppTheme.secondaryTextColor,
+                  fontSize: 15,
+                  height: 1.5,
+                ),
+              ),
+              SizedBox(height: 20),
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.backgroundColor.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppTheme.neonBlue.withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: AppTheme.neonOrange,
+                      size: 24,
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        '设置 → 通知 → Travel Joy → 允许通知',
+                        style: TextStyle(
+                          color: AppTheme.primaryTextColor,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                '稍后再说',
+                style: TextStyle(
+                  color: AppTheme.secondaryTextColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                backgroundColor: AppTheme.neonBlue,
+                foregroundColor: Colors.white,
+                elevation: 4,
+                shadowColor: AppTheme.neonBlue.withOpacity(0.4),
+              ),
+              child: Text(
+                '前往设置',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+          ],
+          actionsAlignment: MainAxisAlignment.spaceBetween,
+          actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        ),
+      );
+      
+      if (openSettings == true) {
+        await openAppSettings();
+        // 打开设置后重新检查权限状态
+        await Future.delayed(Duration(seconds: 1));
+        PermissionStatus newStatus = await Permission.notification.status;
+        return newStatus.isGranted;
+      }
+      return false;
+    }
+    
+    // 正常请求权限
+    PermissionStatus result = await Permission.notification.request();
+    print('请求权限后状态: $result');
+    return result.isGranted;
   }
 
   // 切换暗黑模式设置
@@ -3597,12 +3839,283 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   // 切换高质量图片设置
   Future<void> _toggleHighQualityImages() async {
+    // 先检查存储权限，高质量图片需要存储空间
+    bool hasPermission = await _checkStoragePermission();
+    
+    // 如果没有权限，询问是否申请
+    if (!hasPermission && _highQualityImages == false) {
+      bool confirm = await _showPermissionConfirmDialog(
+        title: '需要存储权限',
+        content: '启用高质量图片需要访问设备存储空间以缓存图像。',
+        confirmText: '授权',
+      );
+      
+      if (confirm) {
+        hasPermission = await _requestStoragePermission();
+      }
+      
+      if (!hasPermission) {
+        _showErrorSnackbar('无法启用高质量图片：未获得存储权限');
+        return;
+      }
+    }
+    
     setState(() {
       _highQualityImages = !_highQualityImages;
     });
     await _saveSettings();
-    // 应用设置变更
-    _applySettings();
+    
+    // 应用图像质量设置
+    _applyImageQualitySettings();
+    
+    // 显示成功提示
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_highQualityImages ? '已启用高质量图片' : '已切换到标准画质模式'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  // 应用图像质量设置
+  void _applyImageQualitySettings() {
+    // 这里可以根据_highQualityImages设置图片缓存管理器的配置
+    // 例如使用flutter_cache_manager设置缓存大小和图片质量
+    if (_highQualityImages) {
+      print('应用高质量图片设置');
+      // 实际实现中可以配置全局图片加载器使用高质量设置
+    } else {
+      print('应用标准质量图片设置');
+      // 使用压缩或低质量图片设置
+    }
+    
+    // 通知Flutter重新加载图片缓存策略
+    PaintingBinding.instance.imageCache.clear();
+    PaintingBinding.instance.imageCache.clearLiveImages();
+  }
+  
+  // 检查存储权限
+  Future<bool> _checkStoragePermission() async {
+    if (Platform.isAndroid) {
+      return await Permission.storage.isGranted;
+    } else if (Platform.isIOS) {
+      return await Permission.photos.isGranted;
+    }
+    return false;
+  }
+  
+  // 请求存储权限
+  Future<bool> _requestStoragePermission() async {
+    bool granted = false;
+    
+    if (Platform.isAndroid) {
+      PermissionStatus status = await Permission.storage.request();
+      granted = status.isGranted;
+    } else if (Platform.isIOS) {
+      PermissionStatus status = await Permission.photos.request();
+      granted = status.isGranted;
+    }
+    
+    if (!granted) {
+      if (Platform.isAndroid && await Permission.storage.isPermanentlyDenied) {
+        // 提示用户需要在设置中开启权限
+        bool openSettings = await _showPermissionConfirmDialog(
+          title: '存储权限已禁用',
+          content: '请前往设置开启存储权限',
+          confirmText: '前往设置',
+        );
+        
+        if (openSettings) {
+          await openAppSettings();
+          // 检查用户是否开启了权限
+          await Future.delayed(Duration(seconds: 2));
+          return await Permission.storage.isGranted;
+        }
+      } else if (Platform.isIOS && await Permission.photos.isPermanentlyDenied) {
+        // iOS提示用户需要在设置中开启权限
+        bool openSettings = await _showPermissionConfirmDialog(
+          title: '照片权限已禁用',
+          content: '请前往设置开启照片权限',
+          confirmText: '前往设置',
+        );
+        
+        if (openSettings) {
+          await openAppSettings();
+          // 检查用户是否开启了权限
+          await Future.delayed(Duration(seconds: 2));
+          return await Permission.photos.isGranted;
+        }
+      }
+    }
+    
+    return granted;
+  }
+  
+  // 自动播放视频设置相关处理
+  Future<void> _toggleAutoPlayVideos() async {
+    // 根据网络状态修改自动播放状态
+    // 如果开启自动播放，可能需要检查网络状态
+    if (!_autoPlayVideos) { // 将要开启自动播放
+      // 检查当前网络状态，提醒用户可能消耗流量
+      bool confirm = await _showPermissionConfirmDialog(
+        title: '开启自动播放',
+        content: '自动播放视频可能会消耗较多流量，非Wi-Fi环境下是否继续？',
+        confirmText: '开启',
+      );
+      
+      if (!confirm) {
+        return;
+      }
+    }
+    
+    setState(() {
+      _autoPlayVideos = !_autoPlayVideos;
+    });
+    await _saveSettings();
+    _applyVideoSettings();
+    
+    // 显示成功提示
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_autoPlayVideos ? '已开启视频自动播放' : '已关闭视频自动播放'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+  
+  // 应用视频播放设置
+  void _applyVideoSettings() {
+    // 实际应用中可以设置全局视频播放控制器
+    print('已应用视频播放设置: ${_autoPlayVideos ? "自动播放" : "手动播放"}');
+  }
+  
+  // 修改暗黑模式设置
+  Future<void> _toggleDarkMode() async {
+    // 无需权限，直接切换
+    setState(() {
+      _darkModeEnabled = !_darkModeEnabled;
+    });
+    await _saveSettings();
+    _applyDarkModeSettings();
+    
+    // 显示成功提示
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_darkModeEnabled ? '已切换到深色模式' : '已切换到浅色模式'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+  
+  // 应用暗黑模式设置
+  void _applyDarkModeSettings() {
+    // 应用主题模式
+    final brightness = _darkModeEnabled ? Brightness.dark : Brightness.light;
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarBrightness: brightness,
+        statusBarIconBrightness:
+            _darkModeEnabled ? Brightness.light : Brightness.dark,
+      ),
+    );
+    
+    // 通知主题更新
+    print('已应用${_darkModeEnabled ? "深色" : "浅色"}主题');
+  }
+  
+  // 切换隐私模式设置
+  Future<void> _togglePrivacyMode() async {
+    setState(() {
+      _privacyModeEnabled = !_privacyModeEnabled;
+    });
+    await _saveSettings();
+    _applyPrivacyModeSettings();
+    
+    // 显示成功提示
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_privacyModeEnabled ? '已开启隐私模式' : '已关闭隐私模式'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+  
+  // 应用隐私模式设置
+  void _applyPrivacyModeSettings() {
+    // 实际应用中可以控制数据可见性、社交功能等
+    print('已应用隐私模式设置: ${_privacyModeEnabled ? "开启" : "关闭"}');
+  }
+  
+  // 位置追踪设置（检查位置权限）
+  Future<void> _toggleLocationTracking() async {
+    // 如果当前设置为关闭，需要先检查权限
+    if (!_locationTrackingEnabled) {
+      bool hasPermission = await _checkLocationPermission();
+      
+      if (!hasPermission) {
+        bool confirm = await _showPermissionConfirmDialog(
+          title: '需要位置权限',
+          content: '位置追踪功能需要访问您的位置信息，请授权。',
+          confirmText: '授权',
+        );
+        
+        if (confirm) {
+          hasPermission = await _requestLocationPermission();
+        }
+        
+        if (!hasPermission) {
+          _showErrorSnackbar('无法启用位置追踪：未获得位置权限');
+          return;
+        }
+      }
+    }
+    
+    setState(() {
+      _locationTrackingEnabled = !_locationTrackingEnabled;
+    });
+    await _saveSettings();
+    _applyLocationSettings();
+    
+    // 显示成功提示
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_locationTrackingEnabled ? '已开启位置追踪' : '已关闭位置追踪'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+  
+  // 检查位置权限
+  Future<bool> _checkLocationPermission() async {
+    return await Permission.location.isGranted;
+  }
+  
+  // 请求位置权限
+  Future<bool> _requestLocationPermission() async {
+    PermissionStatus status = await Permission.location.request();
+    
+    if (status.isPermanentlyDenied) {
+      bool openSettings = await _showPermissionConfirmDialog(
+        title: '位置权限已禁用',
+        content: '请前往设置开启位置权限',
+        confirmText: '前往设置',
+      );
+      
+      if (openSettings) {
+        await openAppSettings();
+        await Future.delayed(Duration(seconds: 2));
+        return await Permission.location.isGranted;
+      }
+      return false;
+    }
+    
+    return status.isGranted;
+  }
+  
+  // 应用位置设置
+  void _applyLocationSettings() {
+    // 实际应用中控制位置服务
+    print('已应用位置追踪设置: ${_locationTrackingEnabled ? "开启" : "关闭"}');
   }
 
   // 显示权限确认对话框
@@ -3617,86 +4130,61 @@ class _SettingsScreenState extends State<SettingsScreen>
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: AppTheme.cardColor,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(
-              color: AppTheme.neonBlue.withOpacity(0.2),
-              width: 1,
-            ),
+            borderRadius: BorderRadius.circular(15),
           ),
-          insetPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          contentPadding: EdgeInsets.fromLTRB(24, 16, 24, 0),
-          titlePadding: EdgeInsets.fromLTRB(24, 20, 24, 8),
-          actionsPadding: EdgeInsets.fromLTRB(16, 0, 16, 16),
           title: Text(
             title,
             style: TextStyle(
-              color: AppTheme.primaryTextColor,
-              fontSize: 18,
               fontWeight: FontWeight.bold,
+              fontSize: 18,
             ),
           ),
           content: Text(
             content,
-            style: TextStyle(
-              color: AppTheme.secondaryTextColor,
-              fontSize: 14,
-            ),
+            style: TextStyle(fontSize: 16),
           ),
-          actions: [
-            // 包装在Row中以便控制布局
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                    minimumSize: Size(60, 32),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    cancelText,
-                    style: TextStyle(
-                      color: AppTheme.secondaryTextColor,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                cancelText,
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 16,
                 ),
-                const SizedBox(width: 12), // 按钮之间的间距
-                ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.neonBlue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    // 设置更小的内边距
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                    minimumSize: Size(60, 32),
-                  ),
-                  child: Text(
-                    confirmText,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
-              ],
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              child: Text(
+                confirmText,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
             ),
           ],
         );
       },
     );
+    
     return result ?? false;
   }
-
+  
   // 引导用户前往系统设置的对话框
   Future<bool> _showOpenSettingsDialog(String title, String content) async {
     return await _showPermissionConfirmDialog(
