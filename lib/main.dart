@@ -125,7 +125,7 @@ class _TravelJoyAppState extends State<TravelJoyApp> {
       location: '东京',
       date: '2023-10-15',
       description: '参观了浅草寺和东京塔，体验了当地美食。',
-      imageUrl: 'assets/images/tokyo.jpg',
+      imageUrl: null, // 改为null避免使用不存在的图片
       dotColor: Colors.blue,
       country: '日本',
     ),
@@ -133,7 +133,7 @@ class _TravelJoyAppState extends State<TravelJoyApp> {
       location: '巴黎',
       date: '2023-07-22',
       description: '游览了埃菲尔铁塔和卢浮宫，品尝了正宗的法式甜点。',
-      imageUrl: 'assets/images/paris.jpg',
+      imageUrl: null, // 改为null避免使用不存在的图片
       dotColor: Colors.purple,
       country: '法国',
     ),
@@ -141,7 +141,7 @@ class _TravelJoyAppState extends State<TravelJoyApp> {
       location: '曼谷',
       date: '2023-04-05',
       description: '参观了大皇宫和卧佛寺，享受了泰式按摩。',
-      imageUrl: 'assets/images/bangkok.jpg',
+      imageUrl: null, // 改为null避免使用不存在的图片
       dotColor: Colors.orange,
       country: '泰国',
     ),
@@ -149,7 +149,7 @@ class _TravelJoyAppState extends State<TravelJoyApp> {
       location: '纽约',
       date: '2022-12-18',
       description: '参观了自由女神像和时代广场，体验了百老汇演出。',
-      imageUrl: 'assets/images/newyork.jpg',
+      imageUrl: null, // 改为null避免使用不存在的图片
       dotColor: Colors.green,
       country: '美国',
     ),
