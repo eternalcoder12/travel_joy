@@ -5,6 +5,12 @@ import '../../app_theme.dart';
 import 'map_view_screen.dart';
 import '../../utils/navigation_utils.dart';
 
+// 添加AppTheme的扩展属性
+extension AppThemeExtension on AppTheme {
+  static Color get secondaryBackgroundColor => AppTheme.cardColor;
+  static Color get secondaryColor => AppTheme.accentColor;
+}
+
 class SpotDetailScreen extends StatefulWidget {
   final Map<String, dynamic> spotData;
 
@@ -529,7 +535,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       decoration: BoxDecoration(
-        color: AppTheme.secondaryBackgroundColor,
+        color: AppThemeExtension.secondaryBackgroundColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -642,14 +648,14 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.secondaryColor.withOpacity(0.1),
+                          color: AppThemeExtension.secondaryColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(30),
                         ),
                         child: Text(
                           tag,
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppTheme.secondaryColor,
+                            color: AppThemeExtension.secondaryColor,
                           ),
                         ),
                       ))
@@ -663,8 +669,8 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
               onTap: () {
                 Navigator.push(
                   context,
-                  createSlideTransition(
-                    MapViewScreen(
+                  MaterialPageRoute(
+                    builder: (context) => MapViewScreen(
                       spots: [widget.spotData],
                       initialSpotIndex: 0,
                     ),
@@ -717,7 +723,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
       children: [
         Icon(
           icon,
-          color: AppTheme.secondaryColor,
+          color: AppThemeExtension.secondaryColor,
           size: 22,
         ),
         const SizedBox(height: 8),
@@ -746,7 +752,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       decoration: BoxDecoration(
-        color: AppTheme.secondaryBackgroundColor,
+        color: AppThemeExtension.secondaryBackgroundColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -777,11 +783,13 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                 // 查看地图按钮
                 GestureDetector(
                   onTap: () {
-                    NavigationUtils.scaleNavigateTo(
-                      context: context,
-                      page: MapViewScreen(
-                        spots: [widget.spotData],
-                        initialSpotIndex: 0,
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MapViewScreen(
+                          spots: [widget.spotData],
+                          initialSpotIndex: 0,
+                        ),
                       ),
                     );
                   },
@@ -839,7 +847,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       decoration: BoxDecoration(
-        color: AppTheme.secondaryBackgroundColor,
+        color: AppThemeExtension.secondaryBackgroundColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -1254,6 +1262,87 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
             ),
           ),
       ],
+    );
+  }
+
+  // 添加缺失的 _buildBottomButtons 方法
+  Widget _buildBottomButtons(double bottomPadding) {
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 10,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2A2B3D),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // 价格信息
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '价格',
+                      style: TextStyle(
+                        color: AppTheme.secondaryTextColor,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '¥${widget.spotData['price'] ?? '88'}/人',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // 外部应用预订按钮
+              ElevatedButton.icon(
+                onPressed: _showBottomDrawer,
+                icon: const Icon(Icons.shopping_cart, size: 16),
+                label: const Text('前往预订'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.buttonColor,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  elevation: 0,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
