@@ -8,6 +8,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import '../../widgets/circle_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/services.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -371,10 +372,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                       confirmText: '关闭',
                     );
                     if (confirm) {
-                      setState(() {
-                        _notificationsEnabled = false;
-                      });
-                      await _saveSettings();
+                      await _toggleNotifications();
                     }
                   } else {
                     // 请求开启权限前询问用户确认
@@ -384,19 +382,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                       confirmText: '开启',
                     );
                     if (confirm) {
-                      try {
-                        bool hasPermission = await _checkNotificationPermission();
-                        setState(() {
-                          _notificationsEnabled = hasPermission;
-                        });
-                        await _saveSettings();
-                      } catch (e) {
-                        print('通知权限请求失败: $e');
-                        setState(() {
-                          _notificationsEnabled = false;
-                        });
-                        await _saveSettings();
-                      }
+                      await _toggleNotifications();
                     }
                   }
                 },
@@ -493,7 +479,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 icon: Icons.location_on,
                 iconColor: AppTheme.neonBlue,
                 title: '位置追踪',
-                subtitle: '允许应用获取您的位置',
+                subtitle: '允许应用获取您的位置信息',
                 value: _locationTrackingEnabled,
                 onTap: () async {
                   if (_locationTrackingEnabled) {
@@ -504,10 +490,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                       confirmText: '关闭',
                     );
                     if (confirm) {
-                      setState(() {
-                        _locationTrackingEnabled = false;
-                      });
-                      await _saveSettings();
+                      await _toggleLocationTracking();
                     }
                   } else {
                     // 请求开启位置追踪权限前询问用户确认
@@ -517,19 +500,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                       confirmText: '开启',
                     );
                     if (confirm) {
-                      try {
-                        bool hasPermission = await _checkLocationPermission();
-                        setState(() {
-                          _locationTrackingEnabled = hasPermission;
-                        });
-                        await _saveSettings();
-                      } catch (e) {
-                        print('位置权限请求失败: $e');
-                        setState(() {
-                          _locationTrackingEnabled = false;
-                        });
-                        await _saveSettings();
-                      }
+                      await _toggleLocationTracking();
                     }
                   }
                 },
@@ -1489,23 +1460,26 @@ class _SettingsScreenState extends State<SettingsScreen>
                               subtitle: '开启或关闭所有通知',
                               value: _notificationsEnabled,
                               onChanged: (value) async {
-                                if (value) {
-                                  // 从关闭到开启状态
-                                  try {
-                                    bool hasPermission = await _checkNotificationPermission();
-                                    setState(() {
-                                      _notificationsEnabled = hasPermission;
-                                    });
-                                    await _saveSettings();
-                                  } catch (e) {
-                                    print('通知权限请求失败: $e');
+                                if (_notificationsEnabled && !value) {
+                                  // 从开启切换到关闭
+                                  bool confirm = await _showPermissionConfirmDialog(
+                                    title: '关闭通知',
+                                    content: '关闭通知后，您将不会收到任何新消息或活动的提醒。确定要关闭吗？',
+                                    confirmText: '关闭',
+                                  );
+                                  if (confirm) {
+                                    await _toggleNotifications();
                                   }
-                                } else {
-                                  // 从开启到关闭状态
-                                  setState(() {
-                                    _notificationsEnabled = false;
-                                  });
-                                  await _saveSettings();
+                                } else if (!_notificationsEnabled && value) {
+                                  // 从关闭切换到开启
+                                  bool confirm = await _showPermissionConfirmDialog(
+                                    title: '开启通知',
+                                    content: '开启通知后，您将收到新消息和活动的提醒。需要授予应用通知权限。',
+                                    confirmText: '开启',
+                                  );
+                                  if (confirm) {
+                                    await _toggleNotifications();
+                                  }
                                 }
                               },
                             ),
@@ -2191,23 +2165,26 @@ class _SettingsScreenState extends State<SettingsScreen>
                               subtitle: '允许应用获取您的位置信息',
                               value: _locationTrackingEnabled,
                               onChanged: (value) async {
-                                if (value) {
-                                  // 从关闭到开启状态
-                                  try {
-                                    bool hasPermission = await _checkLocationPermission();
-                                    setState(() {
-                                      _locationTrackingEnabled = hasPermission;
-                                    });
-                                    await _saveSettings();
-                                  } catch (e) {
-                                    print('位置权限请求失败: $e');
+                                if (_locationTrackingEnabled && !value) {
+                                  // 从开启切换到关闭
+                                  bool confirm = await _showPermissionConfirmDialog(
+                                    title: '关闭位置追踪',
+                                    content: '关闭位置追踪后，应用将无法为您提供基于位置的服务，如附近景点推荐等功能。确定要关闭吗？',
+                                    confirmText: '关闭',
+                                  );
+                                  if (confirm) {
+                                    await _toggleLocationTracking();
                                   }
-                                } else {
-                                  // 从开启到关闭状态
-                                  setState(() {
-                                    _locationTrackingEnabled = false;
-                                  });
-                                  await _saveSettings();
+                                } else if (!_locationTrackingEnabled && value) {
+                                  // 从关闭切换到开启
+                                  bool confirm = await _showPermissionConfirmDialog(
+                                    title: '开启位置追踪',
+                                    content: '开启位置追踪后，应用将能够为您提供基于位置的服务。需要授予应用位置访问权限。',
+                                    confirmText: '开启',
+                                  );
+                                  if (confirm) {
+                                    await _toggleLocationTracking();
+                                  }
                                 }
                               },
                             ),
@@ -3566,17 +3543,45 @@ class _SettingsScreenState extends State<SettingsScreen>
       // 检查当前通知权限状态
       PermissionStatus status = await Permission.notification.status;
       
-      // 如果尚未授予权限，请求权限
-      if (!status.isGranted) {
-        status = await Permission.notification.request();
-      }
+      print('当前通知权限状态: $status');
       
-      print('通知权限检查：${status.isGranted ? '已授予' : '未授予'}');
-      return status.isGranted;
+      // 根据不同权限状态处理
+      if (status.isGranted) {
+        // 已授予权限
+        return true;
+      } else if (status.isDenied) {
+        // 权限被拒绝，但可以再次请求
+        status = await Permission.notification.request();
+        return status.isGranted;
+      } else if (status.isPermanentlyDenied || status.isRestricted) {
+        // 权限被永久拒绝或受限，需要引导用户前往设置
+        bool openSettings = await _showOpenSettingsDialog(
+          '通知权限已被禁用',
+          '请前往系统设置，允许应用发送通知，以便接收重要信息和更新。'
+        );
+        
+        if (openSettings) {
+          await openAppSettings();
+        }
+        return false;
+      } else {
+        // 其他状态
+        return false;
+      }
     } catch (e) {
       print('检查通知权限时出错: $e');
       return false;
     }
+  }
+
+  // 引导用户前往系统设置的对话框
+  Future<bool> _showOpenSettingsDialog(String title, String content) async {
+    return await _showPermissionConfirmDialog(
+      title: title,
+      content: content,
+      confirmText: '前往设置',
+      cancelText: '暂不开启'
+    );
   }
 
   // 检查并请求位置权限
@@ -3585,13 +3590,31 @@ class _SettingsScreenState extends State<SettingsScreen>
       // 检查当前位置权限状态
       PermissionStatus status = await Permission.location.status;
       
-      // 如果尚未授予权限，请求权限
-      if (!status.isGranted) {
-        status = await Permission.location.request();
-      }
+      print('当前位置权限状态: $status');
       
-      print('位置权限检查：${status.isGranted ? '已授予' : '未授予'}');
-      return status.isGranted;
+      // 根据不同权限状态处理
+      if (status.isGranted) {
+        // 已授予权限
+        return true;
+      } else if (status.isDenied) {
+        // 权限被拒绝，但可以再次请求
+        status = await Permission.location.request();
+        return status.isGranted;
+      } else if (status.isPermanentlyDenied || status.isRestricted) {
+        // 权限被永久拒绝或受限，需要引导用户前往设置
+        bool openSettings = await _showOpenSettingsDialog(
+          '位置权限已被禁用',
+          '请前往系统设置，允许应用获取位置信息，以便获得基于位置的服务和推荐。'
+        );
+        
+        if (openSettings) {
+          await openAppSettings();
+        }
+        return false;
+      } else {
+        // 其他状态
+        return false;
+      }
     } catch (e) {
       print('检查位置权限时出错: $e');
       return false;
@@ -3601,19 +3624,31 @@ class _SettingsScreenState extends State<SettingsScreen>
   // 切换通知设置
   Future<void> _toggleNotifications() async {
     try {
-      final hasPermission = await _checkNotificationPermission();
-      if (hasPermission) {
+      if (_notificationsEnabled) {
+        // 从开启到关闭，直接修改状态
         setState(() {
-          _notificationsEnabled = !_notificationsEnabled;
+          _notificationsEnabled = false;
         });
         await _saveSettings();
-        // 应用设置变更
         _applySettings();
       } else {
-        print('没有通知权限');
+        // 从关闭到开启，请求权限
+        final hasPermission = await _checkNotificationPermission();
+        setState(() {
+          _notificationsEnabled = hasPermission;
+        });
+        
+        if (!hasPermission) {
+          // 如果权限未授予，显示提示
+          _showErrorSnackbar('通知权限未授予，无法开启通知功能');
+        } else {
+          await _saveSettings();
+          _applySettings();
+        }
       }
     } catch (e) {
       print('切换通知设置时出错: $e');
+      _showErrorSnackbar('设置通知失败，请稍后重试');
     }
   }
 
@@ -3640,19 +3675,31 @@ class _SettingsScreenState extends State<SettingsScreen>
   // 切换位置追踪设置
   Future<void> _toggleLocationTracking() async {
     try {
-      final hasPermission = await _checkLocationPermission();
-      if (hasPermission) {
+      if (_locationTrackingEnabled) {
+        // 从开启到关闭，直接修改状态
         setState(() {
-          _locationTrackingEnabled = !_locationTrackingEnabled;
+          _locationTrackingEnabled = false;
         });
         await _saveSettings();
-        // 应用设置变更
         _applySettings();
       } else {
-        print('没有位置权限');
+        // 从关闭到开启，请求权限
+        final hasPermission = await _checkLocationPermission();
+        setState(() {
+          _locationTrackingEnabled = hasPermission;
+        });
+        
+        if (!hasPermission) {
+          // 如果权限未授予，显示提示
+          _showErrorSnackbar('位置权限未授予，无法开启位置追踪功能');
+        } else {
+          await _saveSettings();
+          _applySettings();
+        }
       }
     } catch (e) {
       print('切换位置追踪设置时出错: $e');
+      _showErrorSnackbar('设置位置追踪失败，请稍后重试');
     }
   }
 
