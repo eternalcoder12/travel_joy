@@ -31,13 +31,13 @@ class _SettingsScreenState extends State<SettingsScreen>
   bool _activityNotificationsEnabled = true;
   bool _darkModeEnabled = true;
   bool _autoPlayVideos = false;
-  bool _locationTrackingEnabled = true;
+  bool _locationTrackingEnabled = false; // 默认禁用位置追踪
   bool _privacyModeEnabled = false;
   bool _highQualityImages = true;
-  String _selectedLanguage = '简体中文';
+  String _selectedLanguage = '简体中文'; // 固定为简体中文
   double _fontSizeScale = 1.0;
   bool _dataUsageLimitEnabled = false;
-  String _selectedTheme = '深色';
+  String _selectedTheme = '深色'; // 固定为深色主题
 
   final List<String> _themeOptions = ['深色', '浅色', '系统默认'];
   final List<String> _languageOptions = ['简体中文', 'English', '日本語', '한국어'];
@@ -103,17 +103,16 @@ class _SettingsScreenState extends State<SettingsScreen>
     // 读取各项设置，如果没有保存过则使用默认值
     bool notificationsEnabled =
         prefs.getBool(KEY_NOTIFICATIONS_ENABLED) ?? true;
-    bool locationTrackingEnabled = prefs.getBool(KEY_LOCATION_TRACKING) ?? true;
 
     // 检查权限状态与存储的设置是否一致
     bool hasNotificationPermission = await _checkNotificationPermission();
-    bool hasLocationPermission = await _checkLocationPermission();
 
     setState(() {
       // 存储的设置必须与实际权限状态一致
       _notificationsEnabled = notificationsEnabled && hasNotificationPermission;
-      _locationTrackingEnabled =
-          locationTrackingEnabled && hasLocationPermission;
+      
+      // 位置权限相关功能禁用
+      _locationTrackingEnabled = false;
 
       // 其他设置不需要权限检查
       _messageNotificationsEnabled =
@@ -124,10 +123,13 @@ class _SettingsScreenState extends State<SettingsScreen>
       _autoPlayVideos = prefs.getBool(KEY_AUTO_PLAY_VIDEOS) ?? false;
       _privacyModeEnabled = prefs.getBool(KEY_PRIVACY_MODE) ?? false;
       _highQualityImages = prefs.getBool(KEY_HIGH_QUALITY_IMAGES) ?? true;
-      _selectedLanguage = prefs.getString(KEY_SELECTED_LANGUAGE) ?? '简体中文';
+      
+      // 固定语言和主题设置
+      _selectedLanguage = '简体中文';
+      _selectedTheme = '深色';
+      
       _fontSizeScale = prefs.getDouble(KEY_FONT_SIZE_SCALE) ?? 1.0;
       _dataUsageLimitEnabled = prefs.getBool(KEY_DATA_USAGE_LIMIT) ?? false;
-      _selectedTheme = prefs.getString(KEY_SELECTED_THEME) ?? '深色';
     });
 
     // 应用当前保存的设置
@@ -150,13 +152,13 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
     await prefs.setBool(KEY_DARK_MODE, _darkModeEnabled);
     await prefs.setBool(KEY_AUTO_PLAY_VIDEOS, _autoPlayVideos);
-    await prefs.setBool(KEY_LOCATION_TRACKING, _locationTrackingEnabled);
     await prefs.setBool(KEY_PRIVACY_MODE, _privacyModeEnabled);
     await prefs.setBool(KEY_HIGH_QUALITY_IMAGES, _highQualityImages);
-    await prefs.setString(KEY_SELECTED_LANGUAGE, _selectedLanguage);
     await prefs.setDouble(KEY_FONT_SIZE_SCALE, _fontSizeScale);
     await prefs.setBool(KEY_DATA_USAGE_LIMIT, _dataUsageLimitEnabled);
-    await prefs.setString(KEY_SELECTED_THEME, _selectedTheme);
+    
+    // 不再保存位置追踪设置
+    // 不再保存语言和主题设置
   }
 
   // 修改应用设置到实际功能
@@ -477,32 +479,13 @@ class _SettingsScreenState extends State<SettingsScreen>
               // 位置追踪
               _buildSimpleSettingItem(
                 icon: Icons.location_on,
-                iconColor: AppTheme.neonBlue,
+                iconColor: Colors.grey, // 使用灰色表示禁用
                 title: '位置追踪',
-                subtitle: '允许应用获取您的位置信息',
-                value: _locationTrackingEnabled,
+                subtitle: '功能已禁用',
+                value: false, // 始终显示为关闭
                 onTap: () async {
-                  if (_locationTrackingEnabled) {
-                    // 关闭位置追踪前询问用户确认
-                    bool confirm = await _showPermissionConfirmDialog(
-                      title: '关闭位置追踪',
-                      content: '关闭位置追踪后，应用将无法为您提供基于位置的服务，如附近景点推荐等功能。确定要关闭吗？',
-                      confirmText: '关闭',
-                    );
-                    if (confirm) {
-                      await _toggleLocationTracking();
-                    }
-                  } else {
-                    // 请求开启位置追踪权限前询问用户确认
-                    bool confirm = await _showPermissionConfirmDialog(
-                      title: '开启位置追踪',
-                      content: '开启位置追踪后，应用将能够为您提供基于位置的服务。需要授予应用位置访问权限。',
-                      confirmText: '开启',
-                    );
-                    if (confirm) {
-                      await _toggleLocationTracking();
-                    }
-                  }
+                  // 显示功能禁用提示
+                  _showErrorSnackbar('位置追踪功能已禁用');
                 },
               ),
 
@@ -595,20 +578,15 @@ class _SettingsScreenState extends State<SettingsScreen>
               // 语言设置 - 改用下拉框
               _buildSimpleMenuItem(
                 icon: Icons.language,
-                iconColor: AppTheme.neonOrange,
+                iconColor: Colors.grey, // 使用灰色表示禁用
                 title: '语言',
                 dropdownOptions: _languageOptions,
                 selectedValue: _selectedLanguage,
-                onChanged: (String? newValue) async {
-                  if (newValue != null && newValue != _selectedLanguage) {
-                    setState(() {
-                      _selectedLanguage = newValue;
-                    });
-                    await _saveSettings();
-                    _applySettings();
-                  }
+                onChanged: null, // 设为null表示禁用
+                onTap: () {
+                  // 显示功能禁用提示
+                  _showErrorSnackbar('语言切换功能暂未开放');
                 },
-                onTap: () {}, // 提供空函数，因为使用下拉框时不需要点击行为
               ),
 
               _buildDivider(),
@@ -616,20 +594,15 @@ class _SettingsScreenState extends State<SettingsScreen>
               // 主题设置 - 改用下拉框
               _buildSimpleMenuItem(
                 icon: Icons.palette,
-                iconColor: AppTheme.neonPurple,
+                iconColor: Colors.grey, // 使用灰色表示禁用
                 title: '主题',
                 dropdownOptions: _themeOptions,
                 selectedValue: _selectedTheme,
-                onChanged: (String? newValue) async {
-                  if (newValue != null && newValue != _selectedTheme) {
-                    setState(() {
-                      _selectedTheme = newValue;
-                    });
-                    await _saveSettings();
-                    _applySettings();
-                  }
+                onChanged: null, // 设为null表示禁用
+                onTap: () {
+                  // 显示功能禁用提示
+                  _showErrorSnackbar('主题切换功能暂未开放');
                 },
-                onTap: () {}, // 提供空函数，因为使用下拉框时不需要点击行为
               ),
 
               _buildDivider(),
@@ -842,13 +815,14 @@ class _SettingsScreenState extends State<SettingsScreen>
     String? selectedValue,
     Function(String?)? onChanged,
   }) {
+    final bool isDisabled = onChanged == null && dropdownOptions != null;
+    
     return InkWell(
-      onTap: dropdownOptions != null ? null : onTap,
+      onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: EdgeInsets.symmetric(vertical: 18, horizontal: 16),
         child: Row(
           children: [
-            // 图标
             Container(
               width: 36,
               height: 36,
@@ -856,12 +830,15 @@ class _SettingsScreenState extends State<SettingsScreen>
                 color: iconColor.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Center(child: Icon(icon, color: iconColor, size: 20)),
+              child: Center(
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                  size: 20,
+                ),
+              ),
             ),
-
             const SizedBox(width: 12),
-
-            // 文本
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -874,22 +851,29 @@ class _SettingsScreenState extends State<SettingsScreen>
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  if (subtitle != null && dropdownOptions == null)
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        color: AppTheme.secondaryTextColor,
-                        fontSize: 12,
+                  if (subtitle != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 5),
+                      child: Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: AppTheme.secondaryTextColor,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                 ],
               ),
             ),
-
-            // 下拉框或箭头
+            if (trailingIcon != null)
+              Icon(
+                trailingIcon,
+                color: AppTheme.secondaryTextColor,
+                size: 18,
+              ),
             if (dropdownOptions != null)
               InkWell(
-                onTap: () {
+                onTap: isDisabled ? null : () {
                   if (title == '语言') {
                     _showSelectionDialog(
                       title: title,
@@ -915,7 +899,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     Text(
                       selectedValue ?? '',
                       style: TextStyle(
-                        color:
+                        color: isDisabled ? Colors.grey : 
                             title == '语言'
                                 ? AppTheme.neonOrange
                                 : AppTheme.neonPurple,
@@ -926,7 +910,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     const SizedBox(width: 4),
                     Icon(
                       Icons.check,
-                      color:
+                      color: isDisabled ? Colors.grey :
                           title == '语言'
                               ? AppTheme.neonOrange
                               : AppTheme.neonPurple,
@@ -935,18 +919,12 @@ class _SettingsScreenState extends State<SettingsScreen>
                     const SizedBox(width: 4),
                     Icon(
                       Icons.arrow_drop_down,
-                      color: AppTheme.secondaryTextColor,
+                      color: isDisabled ? Colors.grey.withOpacity(0.5) : AppTheme.secondaryTextColor,
                       size: 18,
                     ),
                   ],
                 ),
               )
-            else if (trailingIcon != null)
-              Icon(
-                trailingIcon,
-                color: AppTheme.secondaryTextColor.withOpacity(0.7),
-                size: 14,
-              ),
           ],
         ),
       ),
@@ -2160,32 +2138,13 @@ class _SettingsScreenState extends State<SettingsScreen>
                             // 位置追踪
                             _buildNeonSwitchItem(
                               icon: Icons.location_on,
-                              iconColor: AppTheme.neonBlue,
+                              iconColor: Colors.grey, // 使用灰色表示禁用
                               title: '位置追踪',
-                              subtitle: '允许应用获取您的位置信息',
-                              value: _locationTrackingEnabled,
+                              subtitle: '功能已禁用',
+                              value: false, // 始终显示为关闭
                               onChanged: (value) async {
-                                if (_locationTrackingEnabled && !value) {
-                                  // 从开启切换到关闭
-                                  bool confirm = await _showPermissionConfirmDialog(
-                                    title: '关闭位置追踪',
-                                    content: '关闭位置追踪后，应用将无法为您提供基于位置的服务，如附近景点推荐等功能。确定要关闭吗？',
-                                    confirmText: '关闭',
-                                  );
-                                  if (confirm) {
-                                    await _toggleLocationTracking();
-                                  }
-                                } else if (!_locationTrackingEnabled && value) {
-                                  // 从关闭切换到开启
-                                  bool confirm = await _showPermissionConfirmDialog(
-                                    title: '开启位置追踪',
-                                    content: '开启位置追踪后，应用将能够为您提供基于位置的服务。需要授予应用位置访问权限。',
-                                    confirmText: '开启',
-                                  );
-                                  if (confirm) {
-                                    await _toggleLocationTracking();
-                                  }
-                                }
+                                // 显示功能禁用提示
+                                _showErrorSnackbar('位置追踪功能已禁用');
                               },
                             ),
 
@@ -3542,197 +3501,20 @@ class _SettingsScreenState extends State<SettingsScreen>
     try {
       // iOS和Android平台不同的处理方式
       if (Platform.isIOS) {
-        // iOS需要特殊处理
-        return await _checkIOSNotificationPermission();
-      }
-      
-      // Android平台处理逻辑
-      // 检查当前通知权限状态
-      PermissionStatus status = await Permission.notification.status;
-      
-      print('当前通知权限状态: $status');
-      
-      // Android平台特殊处理
-      if (Platform.isAndroid) {
-        // 在某些Android设备上，isDenied状态可能需要特殊处理
-        if (status.isDenied) {
-          // 先显示自定义对话框
-          bool shouldRequest = await _showPermissionConfirmDialog(
-            title: '需要通知权限',
-            content: '为了接收重要的消息和更新，我们需要您授予通知权限。',
-            confirmText: '授权',
-            cancelText: '取消'
-          );
-          
-          if (shouldRequest) {
-            // 请求权限
-            status = await Permission.notification.request();
-            print('Android通知权限请求结果: $status');
-          } else {
-            return false;
-          }
-        }
-      }
-      
-      // 根据不同权限状态处理
-      if (status.isGranted) {
-        // 已授予权限
-        return true;
-      } else if (status.isDenied) {
-        // 权限被拒绝，但可以再次请求
-        print('请求通知权限...');
-        status = await Permission.notification.request();
-        print('通知权限请求结果: $status');
+        // 直接请求iOS通知权限
+        print('iOS: 直接请求通知权限...');
+        PermissionStatus status = await Permission.notification.request();
+        print('iOS通知权限请求结果: $status');
         return status.isGranted;
-      } else if (status.isPermanentlyDenied || status.isRestricted) {
-        // 权限被永久拒绝或受限，需要引导用户前往设置
-        bool openSettings = await _showOpenSettingsDialog(
-          '通知权限已被禁用',
-          '请前往系统设置，允许应用发送通知，以便接收重要信息和更新。'
-        );
-        
-        if (openSettings) {
-          print('正在打开应用设置...');
-          await openAppSettings();
-        }
-        return false;
       } else {
-        // 其他状态
-        return false;
+        // Android平台直接请求权限
+        print('Android: 直接请求通知权限...');
+        PermissionStatus status = await Permission.notification.request();
+        print('Android通知权限请求结果: $status');
+        return status.isGranted;
       }
     } catch (e) {
       print('检查通知权限时出错: $e');
-      return false;
-    }
-  }
-
-  // iOS特定的通知权限检查
-  Future<bool> _checkIOSNotificationPermission() async {
-    try {
-      // 在iOS上，直接请求权限，不需要先检查状态
-      print('iOS: 请求通知权限...');
-      PermissionStatus status = await Permission.notification.request();
-      print('iOS通知权限请求结果: $status');
-      
-      // 处理权限结果
-      if (status.isGranted) {
-        return true;
-      } else {
-        // 如果被拒绝，提示用户前往设置
-        if (status.isDenied || status.isPermanentlyDenied) {
-          bool openSettings = await _showOpenSettingsDialog(
-            '通知权限已被禁用',
-            '请前往iOS设置，允许此应用发送通知。'
-          );
-          
-          if (openSettings) {
-            await openAppSettings();
-          }
-        }
-        return false;
-      }
-    } catch (e) {
-      print('iOS检查通知权限时出错: $e');
-      return false;
-    }
-  }
-
-  // 检查并请求位置权限
-  Future<bool> _checkLocationPermission() async {
-    try {
-      // iOS和Android平台不同的处理方式
-      if (Platform.isIOS) {
-        // iOS需要特殊处理
-        return await _checkIOSLocationPermission();
-      }
-      
-      // Android平台处理逻辑
-      // 检查当前位置权限状态
-      PermissionStatus status = await Permission.location.status;
-      
-      print('当前位置权限状态: $status');
-      
-      // Android平台特殊处理
-      if (Platform.isAndroid) {
-        // 在某些Android设备上，isDenied状态可能需要特殊处理
-        if (status.isDenied) {
-          // 先显示自定义对话框
-          bool shouldRequest = await _showPermissionConfirmDialog(
-            title: '需要位置权限',
-            content: '为了提供基于位置的服务和推荐，我们需要您授予位置权限。',
-            confirmText: '授权',
-            cancelText: '取消'
-          );
-          
-          if (shouldRequest) {
-            // 请求权限
-            status = await Permission.location.request();
-            print('Android位置权限请求结果: $status');
-          } else {
-            return false;
-          }
-        }
-      }
-      
-      // 根据不同权限状态处理
-      if (status.isGranted) {
-        // 已授予权限
-        return true;
-      } else if (status.isDenied) {
-        // 权限被拒绝，但可以再次请求
-        print('请求位置权限...');
-        status = await Permission.location.request();
-        print('位置权限请求结果: $status');
-        return status.isGranted;
-      } else if (status.isPermanentlyDenied || status.isRestricted) {
-        // 权限被永久拒绝或受限，需要引导用户前往设置
-        bool openSettings = await _showOpenSettingsDialog(
-          '位置权限已被禁用',
-          '请前往系统设置，允许应用获取位置信息，以便获得基于位置的服务和推荐。'
-        );
-        
-        if (openSettings) {
-          print('正在打开应用设置...');
-          await openAppSettings();
-        }
-        return false;
-      } else {
-        // 其他状态
-        return false;
-      }
-    } catch (e) {
-      print('检查位置权限时出错: $e');
-      return false;
-    }
-  }
-
-  // iOS特定的位置权限检查
-  Future<bool> _checkIOSLocationPermission() async {
-    try {
-      // 在iOS上，直接请求权限，不需要先检查状态
-      print('iOS: 请求位置权限...');
-      PermissionStatus status = await Permission.location.request();
-      print('iOS位置权限请求结果: $status');
-      
-      // 处理权限结果
-      if (status.isGranted) {
-        return true;
-      } else {
-        // 如果被拒绝，提示用户前往设置
-        if (status.isDenied || status.isPermanentlyDenied) {
-          bool openSettings = await _showOpenSettingsDialog(
-            '位置权限已被禁用',
-            '请前往iOS设置，允许此应用获取位置信息。'
-          );
-          
-          if (openSettings) {
-            await openAppSettings();
-          }
-        }
-        return false;
-      }
-    } catch (e) {
-      print('iOS检查位置权限时出错: $e');
       return false;
     }
   }
@@ -3748,18 +3530,26 @@ class _SettingsScreenState extends State<SettingsScreen>
         await _saveSettings();
         _applySettings();
       } else {
-        // 从关闭到开启，请求权限
-        final hasPermission = await _checkNotificationPermission();
-        setState(() {
-          _notificationsEnabled = hasPermission;
-        });
+        // 从关闭到开启，直接请求系统级权限
+        bool confirm = await _showPermissionConfirmDialog(
+          title: '开启通知',
+          content: '开启通知后，您将收到新消息和活动的提醒。需要授予应用通知权限。',
+          confirmText: '开启',
+        );
         
-        if (!hasPermission) {
-          // 如果权限未授予，显示提示
-          _showErrorSnackbar('通知权限未授予，无法开启通知功能');
-        } else {
-          await _saveSettings();
-          _applySettings();
+        if (confirm) {
+          final hasPermission = await _checkNotificationPermission();
+          setState(() {
+            _notificationsEnabled = hasPermission;
+          });
+          
+          if (!hasPermission) {
+            // 如果权限未授予，显示提示
+            _showErrorSnackbar('通知权限未授予，无法开启通知功能');
+          } else {
+            await _saveSettings();
+            _applySettings();
+          }
         }
       }
     } catch (e) {
@@ -3790,33 +3580,9 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   // 切换位置追踪设置
   Future<void> _toggleLocationTracking() async {
-    try {
-      if (_locationTrackingEnabled) {
-        // 从开启到关闭，直接修改状态
-        setState(() {
-          _locationTrackingEnabled = false;
-        });
-        await _saveSettings();
-        _applySettings();
-      } else {
-        // 从关闭到开启，请求权限
-        final hasPermission = await _checkLocationPermission();
-        setState(() {
-          _locationTrackingEnabled = hasPermission;
-        });
-        
-        if (!hasPermission) {
-          // 如果权限未授予，显示提示
-          _showErrorSnackbar('位置权限未授予，无法开启位置追踪功能');
-        } else {
-          await _saveSettings();
-          _applySettings();
-        }
-      }
-    } catch (e) {
-      print('切换位置追踪设置时出错: $e');
-      _showErrorSnackbar('设置位置追踪失败，请稍后重试');
-    }
+    // 位置功能已禁用
+    _showErrorSnackbar('位置追踪功能已禁用');
+    return;
   }
 
   // 切换隐私模式设置
