@@ -647,7 +647,17 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             border: Border.all(color: Colors.white.withOpacity(0.8), width: 3),
           ),
           padding: const EdgeInsets.all(2),
-          child: ClipOval(child: Image.asset(user.avatar, fit: BoxFit.cover)),
+          child: ClipOval(child: Image.asset(
+            user.avatar, 
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              // 图片加载失败时显示占位符
+              return Container(
+                color: Colors.grey[300],
+                child: Icon(Icons.person, color: Colors.grey[600], size: size * 0.5),
+              );
+            },
+          )),
         ),
 
         const SizedBox(height: 8),

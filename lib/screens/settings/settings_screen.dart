@@ -3563,7 +3563,9 @@ class _SettingsScreenState extends State<SettingsScreen>
     // 如果是永久拒绝状态，需要引导用户到设置中开启
     bool openSettings = await _showPermissionConfirmDialog(
       title: '通知权限已被禁用',
-      content: '请前往设置，手动开启通知权限，以便接收重要通知。',
+      content: Platform.isIOS 
+          ? '由于iOS的权限限制，您需要在系统设置中手动开启通知权限。\n\n请前往：设置 > 隐私与安全性 > 通知 > Travel Joy'
+          : '请前往设置，手动开启通知权限，以便接收重要通知。',
       confirmText: '前往设置',
     );
     
@@ -3571,7 +3573,37 @@ class _SettingsScreenState extends State<SettingsScreen>
       // 打开设置页面
       bool settingsOpened = await openAppSettings();
       if (!settingsOpened) {
-        _showErrorSnackbar('无法打开系统设置，请手动前往设置页面授予权限');
+        _showErrorSnackbar('无法自动打开系统设置，请手动前往"设置"应用');
+        
+        // 显示手动指引
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('手动打开设置'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('请按照以下步骤操作：'),
+                SizedBox(height: 10),
+                Text('1. 退出当前应用'),
+                Text('2. 打开设备"设置"应用'),
+                Text(Platform.isIOS 
+                    ? '3. 前往"设置 > 隐私与安全性 > 通知"'
+                    : '3. 前往"设置 > 应用"'),
+                Text('4. 找到并点击"Travel Joy"'),
+                Text('5. 开启所需权限'),
+                Text('6. 返回本应用'),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('我知道了'),
+              ),
+            ],
+          ),
+        );
         return false;
       }
       
@@ -3584,12 +3616,18 @@ class _SettingsScreenState extends State<SettingsScreen>
       );
       
       // 等待用户从设置页面返回
-      // 注意：iOS和Android可能有不同的行为，这里增加等待时间
-      await Future.delayed(Duration(seconds: Platform.isIOS ? 5 : 3));
+      // iOS 17+需要更长的等待时间
+      await Future.delayed(Duration(seconds: Platform.isIOS ? 8 : 3));
       
       // 重新检查权限状态
       PermissionStatus newStatus = await Permission.notification.status;
       print('用户从系统设置返回后的权限状态: $newStatus');
+      
+      // iOS 17+下可能需要重启应用才能正确识别权限变更
+      if (Platform.isIOS && newStatus.isDenied) {
+        _showErrorSnackbar('权限更改可能需要重启应用才能生效');
+      }
+      
       return newStatus.isGranted;
     }
     return false;
@@ -3658,172 +3696,64 @@ class _SettingsScreenState extends State<SettingsScreen>
       return true;
     }
     
-    if (status.isPermanentlyDenied) {
-      // 权限被永久拒绝，引导用户到设置页面
+    // 处理iOS 17+特殊情况
+    if (Platform.isIOS) {
+      print('iOS设备请求通知权限...');
+    }
+    
+    // 正常请求权限
+    PermissionStatus result = await Permission.notification.request();
+    print('请求权限后状态: $result');
+    
+    // 检查iOS特殊情况：有时权限请求会直接返回permanentlyDenied
+    if (Platform.isIOS && (result.isPermanentlyDenied || result.isDenied)) {
+      print('iOS权限请求被拒绝或需要在设置中开启');
+      
       bool? openSettings = await showDialog<bool>(
         context: context,
         barrierDismissible: false,
-        barrierColor: Colors.black.withOpacity(0.6),
         builder: (context) => AlertDialog(
-          backgroundColor: AppTheme.cardColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(
-              color: AppTheme.neonBlue.withOpacity(0.3),
-              width: 1.5,
-            ),
-          ),
-          icon: Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [AppTheme.neonBlue, AppTheme.neonPurple],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.neonBlue.withOpacity(0.3),
-                  blurRadius: 12,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: Icon(Icons.notifications_active, color: Colors.white, size: 30),
-          ),
-          title: Text(
-            '通知权限已被禁用',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppTheme.primaryTextColor,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          title: Text('需要通知权限'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '应用需要通知权限才能发送重要提醒。由于您之前已拒绝此权限，现在需要在系统设置中手动开启。',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppTheme.secondaryTextColor,
-                  fontSize: 15,
-                  height: 1.5,
-                ),
-              ),
-              SizedBox(height: 20),
-              Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.backgroundColor.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppTheme.neonBlue.withOpacity(0.2),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: AppTheme.neonOrange,
-                      size: 24,
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        // 针对不同平台显示不同的设置路径
-                        Platform.isIOS 
-                            ? '设置 → 隐私与安全性 → 通知 → Travel Joy'
-                            : '设置 → 应用管理 → Travel Joy → 通知',
-                        style: TextStyle(
-                          color: AppTheme.primaryTextColor,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              Text('由于iOS系统限制，请在设置中手动开启通知权限：'),
+              SizedBox(height: 10),
+              Text('设置 > 隐私与安全性 > 通知 > Travel Joy'),
             ],
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                '稍后再说',
-                style: TextStyle(
-                  color: AppTheme.secondaryTextColor,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('稍后再说'),
             ),
             ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                backgroundColor: AppTheme.neonBlue,
-                foregroundColor: Colors.white,
-                elevation: 4,
-                shadowColor: AppTheme.neonBlue.withOpacity(0.4),
-              ),
-              child: Text(
-                '前往设置',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
-              ),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text('前往设置'),
             ),
           ],
-          actionsAlignment: MainAxisAlignment.spaceBetween,
-          actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
       );
       
       if (openSettings == true) {
         bool settingsOpened = await openAppSettings();
         if (!settingsOpened) {
-          _showErrorSnackbar('无法打开系统设置，请手动前往设置授予权限');
+          _showErrorSnackbar('无法自动打开系统设置，请手动前往"设置"应用');
           return false;
         }
         
-        // 给用户足够时间去更改设置
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('请在系统设置中开启通知权限'),
-            duration: Duration(seconds: 3),
-          ),
-        );
-        
         // 等待用户从设置页面返回
-        await Future.delayed(Duration(seconds: Platform.isIOS ? 5 : 3));
+        await Future.delayed(Duration(seconds: 8));
         
         // 重新检查权限状态
         PermissionStatus newStatus = await Permission.notification.status;
-        print('用户从系统设置返回后的通知权限状态: $newStatus');
+        print('从设置返回后的权限状态: $newStatus');
         return newStatus.isGranted;
       }
       return false;
     }
     
-    // 正常请求权限
-    PermissionStatus result = await Permission.notification.request();
-    print('请求权限后状态: $result');
     return result.isGranted;
   }
 

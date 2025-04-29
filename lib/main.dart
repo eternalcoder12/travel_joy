@@ -25,9 +25,31 @@ void main() {
 
   // 确保Flutter绑定已初始化
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // 预先初始化图片加载处理
+  _initializeImageErrorHandling();
 
   // 处理应用程序初始化
   initApp();
+}
+
+// 初始化图片错误处理
+void _initializeImageErrorHandling() {
+  // 为避免图片加载错误导致应用崩溃，注册全局错误处理
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    // 过滤图片相关错误
+    if (details.exception.toString().contains('image')) {
+      print('捕获到图片加载错误: ${details.exception}');
+      // 返回一个占位UI而不是崩溃
+      return Container(
+        color: Colors.grey[300],
+        child: const Icon(Icons.image, color: Colors.grey),
+      );
+    }
+    
+    // 其他类型的错误使用默认处理
+    return ErrorWidget(details.exception);
+  };
 }
 
 // 应用程序初始化函数，处理异步操作
