@@ -12,6 +12,8 @@ import 'screens/points/points_exchange_screen.dart';
 import 'screens/points/exchange_history_screen.dart';
 import 'widgets/travel_timeline.dart'; // 导入 TravelEvent 类定义所在的文件
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io' show Platform;
 
 // 应用入口函数
 void main() {
@@ -41,6 +43,11 @@ Future<void> initApp() async {
     final prefs = await SharedPreferences.getInstance();
     final bool hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
 
+    // 初始化权限处理
+    if (Platform.isAndroid) {
+      await _initializeAndroidPermissions();
+    }
+
     // 使用FutureBuilder启动应用
     runApp(TravelJoyApp(hasSeenOnboarding: hasSeenOnboarding));
   } catch (e) {
@@ -49,6 +56,24 @@ Future<void> initApp() async {
     runApp(
       MaterialApp(home: Scaffold(body: Center(child: Text('应用启动失败，请重试: $e')))),
     );
+  }
+}
+
+// 初始化Android权限
+Future<void> _initializeAndroidPermissions() async {
+  try {
+    // 检查并请求必要的权限
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.location,
+      Permission.notification,
+    ].request();
+    
+    // 输出权限状态用于调试
+    statuses.forEach((permission, status) {
+      print('权限 ${permission.toString()} 状态: $status');
+    });
+  } catch (e) {
+    print('初始化Android权限时出错: $e');
   }
 }
 

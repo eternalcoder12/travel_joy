@@ -3545,13 +3545,37 @@ class _SettingsScreenState extends State<SettingsScreen>
       
       print('当前通知权限状态: $status');
       
+      // Android平台特殊处理
+      if (Platform.isAndroid) {
+        // 在某些Android设备上，isDenied状态可能需要特殊处理
+        if (status.isDenied) {
+          // 先显示自定义对话框
+          bool shouldRequest = await _showPermissionConfirmDialog(
+            title: '需要通知权限',
+            content: '为了接收重要的消息和更新，我们需要您授予通知权限。',
+            confirmText: '授权',
+            cancelText: '取消'
+          );
+          
+          if (shouldRequest) {
+            // 请求权限
+            status = await Permission.notification.request();
+            print('Android通知权限请求结果: $status');
+          } else {
+            return false;
+          }
+        }
+      }
+      
       // 根据不同权限状态处理
       if (status.isGranted) {
         // 已授予权限
         return true;
       } else if (status.isDenied) {
         // 权限被拒绝，但可以再次请求
+        print('请求通知权限...');
         status = await Permission.notification.request();
+        print('通知权限请求结果: $status');
         return status.isGranted;
       } else if (status.isPermanentlyDenied || status.isRestricted) {
         // 权限被永久拒绝或受限，需要引导用户前往设置
@@ -3561,6 +3585,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         );
         
         if (openSettings) {
+          print('正在打开应用设置...');
           await openAppSettings();
         }
         return false;
@@ -3574,16 +3599,6 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
   }
 
-  // 引导用户前往系统设置的对话框
-  Future<bool> _showOpenSettingsDialog(String title, String content) async {
-    return await _showPermissionConfirmDialog(
-      title: title,
-      content: content,
-      confirmText: '前往设置',
-      cancelText: '暂不开启'
-    );
-  }
-
   // 检查并请求位置权限
   Future<bool> _checkLocationPermission() async {
     try {
@@ -3592,13 +3607,37 @@ class _SettingsScreenState extends State<SettingsScreen>
       
       print('当前位置权限状态: $status');
       
+      // Android平台特殊处理
+      if (Platform.isAndroid) {
+        // 在某些Android设备上，isDenied状态可能需要特殊处理
+        if (status.isDenied) {
+          // 先显示自定义对话框
+          bool shouldRequest = await _showPermissionConfirmDialog(
+            title: '需要位置权限',
+            content: '为了提供基于位置的服务和推荐，我们需要您授予位置权限。',
+            confirmText: '授权',
+            cancelText: '取消'
+          );
+          
+          if (shouldRequest) {
+            // 请求权限
+            status = await Permission.location.request();
+            print('Android位置权限请求结果: $status');
+          } else {
+            return false;
+          }
+        }
+      }
+      
       // 根据不同权限状态处理
       if (status.isGranted) {
         // 已授予权限
         return true;
       } else if (status.isDenied) {
         // 权限被拒绝，但可以再次请求
+        print('请求位置权限...');
         status = await Permission.location.request();
+        print('位置权限请求结果: $status');
         return status.isGranted;
       } else if (status.isPermanentlyDenied || status.isRestricted) {
         // 权限被永久拒绝或受限，需要引导用户前往设置
@@ -3608,6 +3647,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         );
         
         if (openSettings) {
+          print('正在打开应用设置...');
           await openAppSettings();
         }
         return false;
@@ -3813,6 +3853,16 @@ class _SettingsScreenState extends State<SettingsScreen>
       },
     );
     return result ?? false;
+  }
+
+  // 引导用户前往系统设置的对话框
+  Future<bool> _showOpenSettingsDialog(String title, String content) async {
+    return await _showPermissionConfirmDialog(
+      title: title,
+      content: content,
+      confirmText: '前往设置',
+      cancelText: '暂不开启'
+    );
   }
 }
 
