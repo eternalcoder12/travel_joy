@@ -3569,7 +3569,11 @@ class _SettingsScreenState extends State<SettingsScreen>
     
     if (openSettings) {
       // 打开设置页面
-      await openAppSettings();
+      bool settingsOpened = await openAppSettings();
+      if (!settingsOpened) {
+        _showErrorSnackbar('无法打开系统设置，请手动前往设置页面授予权限');
+        return false;
+      }
       
       // 给用户足够时间去更改设置
       ScaffoldMessenger.of(context).showSnackBar(
@@ -3579,9 +3583,13 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
       );
       
-      // 等待几秒，然后重新检查权限状态
-      await Future.delayed(Duration(seconds: 3));
+      // 等待用户从设置页面返回
+      // 注意：iOS和Android可能有不同的行为，这里增加等待时间
+      await Future.delayed(Duration(seconds: Platform.isIOS ? 5 : 3));
+      
+      // 重新检查权限状态
       PermissionStatus newStatus = await Permission.notification.status;
+      print('用户从系统设置返回后的权限状态: $newStatus');
       return newStatus.isGranted;
     }
     return false;
@@ -3726,7 +3734,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        '设置 → 通知 → Travel Joy → 允许通知',
+                        // 针对不同平台显示不同的设置路径
+                        Platform.isIOS 
+                            ? '设置 → 隐私与安全性 → 通知 → Travel Joy'
+                            : '设置 → 应用管理 → Travel Joy → 通知',
                         style: TextStyle(
                           color: AppTheme.primaryTextColor,
                           fontSize: 13,
@@ -3785,10 +3796,26 @@ class _SettingsScreenState extends State<SettingsScreen>
       );
       
       if (openSettings == true) {
-        await openAppSettings();
-        // 打开设置后重新检查权限状态
-        await Future.delayed(Duration(seconds: 1));
+        bool settingsOpened = await openAppSettings();
+        if (!settingsOpened) {
+          _showErrorSnackbar('无法打开系统设置，请手动前往设置授予权限');
+          return false;
+        }
+        
+        // 给用户足够时间去更改设置
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('请在系统设置中开启通知权限'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        
+        // 等待用户从设置页面返回
+        await Future.delayed(Duration(seconds: Platform.isIOS ? 5 : 3));
+        
+        // 重新检查权限状态
         PermissionStatus newStatus = await Permission.notification.status;
+        print('用户从系统设置返回后的通知权限状态: $newStatus');
         return newStatus.isGranted;
       }
       return false;
@@ -3911,34 +3938,56 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
     
     if (!granted) {
-      if (Platform.isAndroid && await Permission.storage.isPermanentlyDenied) {
+      bool isPermanentlyDenied = false;
+      
+      // 检查是否永久拒绝
+      if (Platform.isAndroid) {
+        isPermanentlyDenied = await Permission.storage.isPermanentlyDenied;
+      } else if (Platform.isIOS) {
+        isPermanentlyDenied = await Permission.photos.isPermanentlyDenied;
+      }
+      
+      if (isPermanentlyDenied) {
         // 提示用户需要在设置中开启权限
+        String title = Platform.isAndroid ? '存储权限已禁用' : '照片权限已禁用';
+        String content = Platform.isAndroid ? '请前往设置开启存储权限' : '请前往设置开启照片权限';
+        
         bool openSettings = await _showPermissionConfirmDialog(
-          title: '存储权限已禁用',
-          content: '请前往设置开启存储权限',
+          title: title,
+          content: content,
           confirmText: '前往设置',
         );
         
         if (openSettings) {
-          await openAppSettings();
-          // 检查用户是否开启了权限
-          await Future.delayed(Duration(seconds: 2));
-          return await Permission.storage.isGranted;
+          bool settingsOpened = await openAppSettings();
+          if (!settingsOpened) {
+            _showErrorSnackbar('无法打开系统设置，请手动前往设置授予权限');
+            return false;
+          }
+          
+          // 给用户足够时间去更改设置
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('请在系统设置中开启所需权限'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+          
+          // 等待用户从设置页面返回
+          await Future.delayed(Duration(seconds: Platform.isIOS ? 5 : 3));
+          
+          // 重新检查权限状态
+          if (Platform.isAndroid) {
+            bool newStatus = await Permission.storage.isGranted;
+            print('用户从系统设置返回后的存储权限状态: $newStatus');
+            return newStatus;
+          } else if (Platform.isIOS) {
+            bool newStatus = await Permission.photos.isGranted;
+            print('用户从系统设置返回后的照片权限状态: $newStatus');
+            return newStatus;
+          }
         }
-      } else if (Platform.isIOS && await Permission.photos.isPermanentlyDenied) {
-        // iOS提示用户需要在设置中开启权限
-        bool openSettings = await _showPermissionConfirmDialog(
-          title: '照片权限已禁用',
-          content: '请前往设置开启照片权限',
-          confirmText: '前往设置',
-        );
-        
-        if (openSettings) {
-          await openAppSettings();
-          // 检查用户是否开启了权限
-          await Future.delayed(Duration(seconds: 2));
-          return await Permission.photos.isGranted;
-        }
+        return false;
       }
     }
     
@@ -4029,9 +4078,27 @@ class _SettingsScreenState extends State<SettingsScreen>
       );
       
       if (openSettings) {
-        await openAppSettings();
-        await Future.delayed(Duration(seconds: 2));
-        return await Permission.location.isGranted;
+        bool settingsOpened = await openAppSettings();
+        if (!settingsOpened) {
+          _showErrorSnackbar('无法打开系统设置，请手动前往设置授予权限');
+          return false;
+        }
+        
+        // 给用户足够时间去更改设置
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('请在系统设置中开启位置权限'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        
+        // 等待用户从设置页面返回
+        await Future.delayed(Duration(seconds: Platform.isIOS ? 5 : 3));
+        
+        // 重新检查权限状态
+        bool newStatus = await Permission.location.isGranted;
+        print('用户从系统设置返回后的位置权限状态: $newStatus');
+        return newStatus;
       }
       return false;
     }
