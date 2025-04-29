@@ -3540,6 +3540,13 @@ class _SettingsScreenState extends State<SettingsScreen>
   // 检查并请求通知权限
   Future<bool> _checkNotificationPermission() async {
     try {
+      // iOS和Android平台不同的处理方式
+      if (Platform.isIOS) {
+        // iOS需要特殊处理
+        return await _checkIOSNotificationPermission();
+      }
+      
+      // Android平台处理逻辑
       // 检查当前通知权限状态
       PermissionStatus status = await Permission.notification.status;
       
@@ -3599,9 +3606,47 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
   }
 
+  // iOS特定的通知权限检查
+  Future<bool> _checkIOSNotificationPermission() async {
+    try {
+      // 在iOS上，直接请求权限，不需要先检查状态
+      print('iOS: 请求通知权限...');
+      PermissionStatus status = await Permission.notification.request();
+      print('iOS通知权限请求结果: $status');
+      
+      // 处理权限结果
+      if (status.isGranted) {
+        return true;
+      } else {
+        // 如果被拒绝，提示用户前往设置
+        if (status.isDenied || status.isPermanentlyDenied) {
+          bool openSettings = await _showOpenSettingsDialog(
+            '通知权限已被禁用',
+            '请前往iOS设置，允许此应用发送通知。'
+          );
+          
+          if (openSettings) {
+            await openAppSettings();
+          }
+        }
+        return false;
+      }
+    } catch (e) {
+      print('iOS检查通知权限时出错: $e');
+      return false;
+    }
+  }
+
   // 检查并请求位置权限
   Future<bool> _checkLocationPermission() async {
     try {
+      // iOS和Android平台不同的处理方式
+      if (Platform.isIOS) {
+        // iOS需要特殊处理
+        return await _checkIOSLocationPermission();
+      }
+      
+      // Android平台处理逻辑
       // 检查当前位置权限状态
       PermissionStatus status = await Permission.location.status;
       
@@ -3657,6 +3702,37 @@ class _SettingsScreenState extends State<SettingsScreen>
       }
     } catch (e) {
       print('检查位置权限时出错: $e');
+      return false;
+    }
+  }
+
+  // iOS特定的位置权限检查
+  Future<bool> _checkIOSLocationPermission() async {
+    try {
+      // 在iOS上，直接请求权限，不需要先检查状态
+      print('iOS: 请求位置权限...');
+      PermissionStatus status = await Permission.location.request();
+      print('iOS位置权限请求结果: $status');
+      
+      // 处理权限结果
+      if (status.isGranted) {
+        return true;
+      } else {
+        // 如果被拒绝，提示用户前往设置
+        if (status.isDenied || status.isPermanentlyDenied) {
+          bool openSettings = await _showOpenSettingsDialog(
+            '位置权限已被禁用',
+            '请前往iOS设置，允许此应用获取位置信息。'
+          );
+          
+          if (openSettings) {
+            await openAppSettings();
+          }
+        }
+        return false;
+      }
+    } catch (e) {
+      print('iOS检查位置权限时出错: $e');
       return false;
     }
   }

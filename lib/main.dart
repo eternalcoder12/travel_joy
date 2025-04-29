@@ -46,6 +46,9 @@ Future<void> initApp() async {
     // 初始化权限处理
     if (Platform.isAndroid) {
       await _initializeAndroidPermissions();
+    } else if (Platform.isIOS) {
+      // iOS权限在第一次使用时请求，这里不进行预先请求
+      print('iOS平台: 权限将在首次使用时请求');
     }
 
     // 使用FutureBuilder启动应用

@@ -45,5 +45,17 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- 添加iOS位置权限使用描述 -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>需要获取您的位置，以便为您提供基于位置的服务和推荐</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>需要获取您的位置，以便为您提供基于位置的服务和推荐</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>需要获取您的位置，以便为您提供基于位置的服务和推荐</string>
+	
+	<!-- 添加iOS通知权限使用描述 -->
+	<key>NSUserNotificationUsageDescription</key>
+	<string>需要发送通知，以便您收到重要信息和更新</string>
 </dict>
 </plist>
