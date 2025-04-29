@@ -100,9 +100,15 @@ Future<void> _initializeIOSPermissions() async {
     print('相机权限状态: $cameraStatus');
     print('照片权限状态: $photosStatus');
     
-    // 检查iOS 17+的权限授权状态记录
-    if (int.tryParse(Platform.operatingSystemVersion.split(' ').first) ?? 0 >= 17) {
-      print('检测到iOS 17+系统，权限处理可能需要额外步骤');
+    // 检查iOS版本
+    try {
+      final osVersion = Platform.operatingSystemVersion;
+      print('iOS版本: $osVersion');
+      if (osVersion.contains('17.') || osVersion.contains('18.')) {
+        print('检测到iOS 17+系统，权限处理可能需要额外步骤');
+      }
+    } catch (e) {
+      print('获取iOS版本信息出错: $e');
     }
   } catch (e) {
     print('检查iOS权限状态时出错: $e');
