@@ -3,6 +3,7 @@ import 'package:travel_joy/app_theme.dart';
 import 'dart:math' as math;
 import '../../widgets/animated_item.dart';
 import '../../widgets/circle_button.dart';
+import 'package:travel_joy/widgets/network_image.dart' as network;
 
 // 活动数据模型
 class Activity {
@@ -702,474 +703,410 @@ class _ActivityScreenState extends State<ActivityScreen>
   }
 
   Widget _buildActivityCard(Activity activity) {
-    // 获取活动卡片的状态颜色
-    Color statusColor = activity.getStatusColor();
-    return GestureDetector(
-      onTap: () => _showActivityDetails(context, activity),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 20),
-        decoration: BoxDecoration(
-          color: AppTheme.cardColor,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
-            ),
-          ],
-          border: Border.all(color: activity.color.withOpacity(0.3), width: 1),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 顶部区域 - 用渐变背景和图标代替图片
-            Container(
-              height: 120,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    activity.color.withOpacity(0.2),
-                    activity.color.withOpacity(0.4),
-                  ],
-                ),
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16.0),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Stack(
+            children: [
+              ClipRRect(
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(19),
-                  topRight: Radius.circular(19),
+                  topLeft: Radius.circular(12.0),
+                  topRight: Radius.circular(12.0),
+                ),
+                child: network.NetworkImage(
+                  imageUrl: activity.imageUrl,
+                  width: double.infinity,
+                  height: 160,
+                  fit: BoxFit.cover,
+                  placeholder: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                  errorWidget: const Icon(Icons.error, size: 50),
                 ),
               ),
-              child: Stack(
-                children: [
-                  // 装饰圆点和线条
-                  Positioned.fill(
-                    child: CustomPaint(
-                      painter: _ActivityCardBackgroundPainter(
-                        color: activity.color,
-                      ),
+              Positioned(
+                top: 12,
+                right: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.25),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: activity.getStatusColor().withOpacity(0.5),
+                      width: 1,
                     ),
                   ),
-
-                  // 中心大图标
-                  Center(
-                    child: Container(
-                      width: 70,
-                      height: 70,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.15),
-                        boxShadow: [
-                          BoxShadow(
-                            color: activity.color.withOpacity(0.3),
-                            blurRadius: 12,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: Icon(activity.icon, color: Colors.white, size: 35),
-                    ),
-                  ),
-
-                  // 活动状态标签
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.25),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: activity.getStatusColor().withOpacity(0.5),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            activity.status == '进行中'
-                                ? Icons.play_circle_outline
-                                : activity.status == '未开始'
-                                ? Icons.schedule
-                                : Icons.check_circle_outline,
-                            color: activity.getStatusColor(),
-                            size: 14,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            activity.status,
-                            style: TextStyle(
-                              color: activity.getStatusColor(),
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // 时间信息
-                  Positioned(
-                    bottom: 12,
-                    left: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.25),
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_today,
-                            color: Colors.white.withOpacity(0.9),
-                            size: 12,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            '${activity.startDate.month}/${activity.startDate.day}',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // 地点信息
-                  Positioned(
-                    bottom: 12,
-                    right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.25),
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.location_on,
-                            color: Colors.white.withOpacity(0.9),
-                            size: 12,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            activity.location.length > 8
-                                ? '${activity.location.substring(0, 8)}...'
-                                : activity.location,
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // 活动标题和标签
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Expanded(
-                        child: Text(
-                          activity.title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      Icon(
+                        activity.status == '进行中'
+                            ? Icons.play_circle_outline
+                            : activity.status == '未开始'
+                            ? Icons.schedule
+                            : Icons.check_circle_outline,
+                        color: activity.getStatusColor(),
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        activity.status,
+                        style: TextStyle(
+                          color: activity.getStatusColor(),
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      if (activity.isRegistered)
-                        Container(
-                          margin: const EdgeInsets.only(left: 8),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppTheme.neonGreen.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: AppTheme.neonGreen.withOpacity(0.5),
-                              width: 1,
-                            ),
-                          ),
-                          child: const Text(
-                            '已报名',
-                            style: TextStyle(
-                              color: AppTheme.neonGreen,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  // 标签行
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children:
-                          activity.tags
-                              .map(
-                                (tag) => Container(
-                                  margin: const EdgeInsets.only(right: 8),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: activity.color.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: activity.color.withOpacity(0.2),
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    tag,
-                                    style: TextStyle(
-                                      color: activity.color,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-
-            // 活动详情区域
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                children: [
-                  // 参与人数
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.backgroundColor.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.people,
-                            color: Colors.white.withOpacity(0.7),
-                            size: 16,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            '${activity.participantsCount}/${activity.maxParticipants}',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
+              Positioned(
+                bottom: 12,
+                left: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.25),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.2),
+                      width: 1,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  // 积分奖励
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        color: Colors.white.withOpacity(0.9),
+                        size: 12,
                       ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.backgroundColor.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(12),
+                      const SizedBox(width: 5),
+                      Text(
+                        '${activity.startDate.month}/${activity.startDate.day}',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.stars,
-                            color: AppTheme.neonPurple,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            '+${activity.points}',
-                            style: TextStyle(
-                              color: AppTheme.neonPurple,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  // 经验值奖励
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.backgroundColor.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.trending_up,
-                            color: AppTheme.neonBlue,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            '+${activity.experience}',
-                            style: TextStyle(
-                              color: AppTheme.neonBlue,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-
-            // 底部按钮区域
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // 组织者信息
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: activity.color.withOpacity(0.1),
-                          ),
-                          child: Icon(
-                            Icons.business_center,
-                            color: activity.color,
-                            size: 16,
+              Positioned(
+                bottom: 12,
+                right: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.25),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        color: Colors.white.withOpacity(0.9),
+                        size: 12,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        activity.location.length > 8
+                            ? '${activity.location.substring(0, 8)}...'
+                            : activity.location,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        activity.title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (activity.isRegistered)
+                      Container(
+                        margin: const EdgeInsets.only(left: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.neonGreen.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppTheme.neonGreen.withOpacity(0.5),
+                            width: 1,
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '组织者',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.5),
-                                  fontSize: 10,
+                        child: const Text(
+                          '已报名',
+                          style: TextStyle(
+                            color: AppTheme.neonGreen,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children:
+                        activity.tags
+                            .map(
+                              (tag) => Container(
+                                margin: const EdgeInsets.only(right: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: activity.color.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: activity.color.withOpacity(0.2),
+                                    width: 0.5,
+                                  ),
+                                ),
+                                child: Text(
+                                  tag,
+                                  style: TextStyle(
+                                    color: activity.color,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                              Text(
-                                activity.organizer,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
+                            )
+                            .toList(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.backgroundColor.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.people,
+                          color: Colors.white.withOpacity(0.7),
+                          size: 16,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          '${activity.participantsCount}/${activity.maxParticipants}',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
                   ),
-
-                  // 操作按钮
-                  Row(
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.backgroundColor.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.stars,
+                          color: AppTheme.neonPurple,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          '+${activity.points}',
+                          style: TextStyle(
+                            color: AppTheme.neonPurple,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.backgroundColor.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.trending_up,
+                          color: AppTheme.neonBlue,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          '+${activity.experience}',
+                          style: TextStyle(
+                            color: AppTheme.neonBlue,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Row(
                     children: [
-                      // 分享按钮
-                      _buildIconButton(
-                        Icons.share,
-                        AppTheme.neonBlue,
-                        () {}, // 分享功能
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: activity.color.withOpacity(0.1),
+                        ),
+                        child: Icon(
+                          Icons.business_center,
+                          color: activity.color,
+                          size: 16,
+                        ),
                       ),
                       const SizedBox(width: 8),
-                      // 收藏按钮
-                      _buildIconButton(
-                        Icons.favorite_border,
-                        AppTheme.neonPink,
-                        () {}, // 收藏功能
-                      ),
-                      const SizedBox(width: 8),
-                      // 报名/详情按钮
-                      _buildIconButton(
-                        activity.isRegistered
-                            ? Icons.check_circle_outline
-                            : activity.status == '已结束'
-                            ? Icons.event_busy
-                            : Icons.add_circle_outline,
-                        activity.getStatusColor(),
-                        () => _showActivityDetails(context, activity),
-                        isMain: true,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '组织者',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.5),
+                                fontSize: 10,
+                              ),
+                            ),
+                            Text(
+                              activity.organizer,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+                Row(
+                  children: [
+                    _buildIconButton(
+                      Icons.share,
+                      AppTheme.neonBlue,
+                      () {},
+                    ),
+                    const SizedBox(width: 8),
+                    _buildIconButton(
+                      Icons.favorite_border,
+                      AppTheme.neonPink,
+                      () {},
+                    ),
+                    const SizedBox(width: 8),
+                    _buildIconButton(
+                      activity.isRegistered
+                          ? Icons.check_circle_outline
+                          : activity.status == '已结束'
+                          ? Icons.event_busy
+                          : Icons.add_circle_outline,
+                      activity.getStatusColor(),
+                      () => _showActivityDetails(context, activity),
+                      isMain: true,
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -1222,7 +1159,6 @@ class _ActivityScreenState extends State<ActivityScreen>
     );
   }
 
-  // 加载更多活动
   Future<void> _loadMoreActivities() async {
     if (_isLoadingMore || !_hasMoreData) return;
 
@@ -1232,10 +1168,8 @@ class _ActivityScreenState extends State<ActivityScreen>
 
     await Future.delayed(const Duration(seconds: 1));
 
-    // 模拟获取更多数据
     final moreActivities = Activity.getSampleActivities().take(5).toList();
 
-    // 模拟加载完所有数据的情况
     if (_currentPage >= 3) {
       setState(() {
         _hasMoreData = false;
@@ -1252,7 +1186,6 @@ class _ActivityScreenState extends State<ActivityScreen>
     });
   }
 
-  // 显示活动详情
   void _showActivityDetails(BuildContext context, Activity activity) {
     showModalBottomSheet(
       context: context,
@@ -1270,7 +1203,6 @@ class _ActivityScreenState extends State<ActivityScreen>
             ),
             child: Column(
               children: [
-                // 顶部拖动条
                 Container(
                   margin: const EdgeInsets.only(top: 12),
                   width: 40,
@@ -1280,13 +1212,10 @@ class _ActivityScreenState extends State<ActivityScreen>
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-
-                // 活动头部信息
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                   child: Row(
                     children: [
-                      // 活动图标
                       Container(
                         width: 60,
                         height: 60,
@@ -1301,7 +1230,6 @@ class _ActivityScreenState extends State<ActivityScreen>
                         ),
                       ),
                       const SizedBox(width: 16),
-                      // 活动名称和状态
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1341,8 +1269,6 @@ class _ActivityScreenState extends State<ActivityScreen>
                     ],
                   ),
                 ),
-
-                // 进度条 - 这里表示活动已报名人数/总人数
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
@@ -1374,7 +1300,6 @@ class _ActivityScreenState extends State<ActivityScreen>
                       const SizedBox(height: 8),
                       Stack(
                         children: [
-                          // 背景进度条
                           Container(
                             height: 8,
                             width: double.infinity,
@@ -1383,7 +1308,6 @@ class _ActivityScreenState extends State<ActivityScreen>
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),
-                          // 前景进度条
                           Container(
                             height: 8,
                             width:
@@ -1413,8 +1337,6 @@ class _ActivityScreenState extends State<ActivityScreen>
                     ],
                   ),
                 ),
-
-                // 活动详情内容
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -1423,7 +1345,6 @@ class _ActivityScreenState extends State<ActivityScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 活动描述卡片
                           Container(
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
@@ -1458,10 +1379,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                               ],
                             ),
                           ),
-
                           const SizedBox(height: 20),
-
-                          // 活动信息卡片
                           Container(
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
@@ -1485,7 +1403,6 @@ class _ActivityScreenState extends State<ActivityScreen>
                                   ),
                                 ),
                                 const SizedBox(height: 16),
-                                // 时间
                                 _buildDetailInfoRow(
                                   Icons.access_time_rounded,
                                   '活动时间',
@@ -1496,7 +1413,6 @@ class _ActivityScreenState extends State<ActivityScreen>
                                   height: 32,
                                   thickness: 0.2,
                                 ),
-                                // 地点
                                 _buildDetailInfoRow(
                                   Icons.location_on_rounded,
                                   '活动地点',
@@ -1507,7 +1423,6 @@ class _ActivityScreenState extends State<ActivityScreen>
                                   height: 32,
                                   thickness: 0.2,
                                 ),
-                                // 组织者
                                 _buildDetailInfoRow(
                                   Icons.business_center_rounded,
                                   '组织者',
@@ -1518,7 +1433,6 @@ class _ActivityScreenState extends State<ActivityScreen>
                                   height: 32,
                                   thickness: 0.2,
                                 ),
-                                // 参与人数
                                 _buildDetailInfoRow(
                                   Icons.people_rounded,
                                   '参与人数',
@@ -1527,10 +1441,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                               ],
                             ),
                           ),
-
                           const SizedBox(height: 20),
-
-                          // 活动收益卡片
                           Container(
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
@@ -1554,7 +1465,6 @@ class _ActivityScreenState extends State<ActivityScreen>
                                   ),
                                 ),
                                 const SizedBox(height: 16),
-                                // 积分
                                 _buildRewardInfoRow(
                                   Icons.stars_rounded,
                                   '获得积分',
@@ -1562,7 +1472,6 @@ class _ActivityScreenState extends State<ActivityScreen>
                                   AppTheme.neonYellow,
                                 ),
                                 const SizedBox(height: 12),
-                                // 经验值
                                 _buildRewardInfoRow(
                                   Icons.trending_up_rounded,
                                   '获得经验值',
@@ -1572,10 +1481,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                               ],
                             ),
                           ),
-
                           const SizedBox(height: 20),
-
-                          // 活动标签卡片
                           Container(
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
@@ -1642,8 +1548,6 @@ class _ActivityScreenState extends State<ActivityScreen>
                     ),
                   ),
                 ),
-
-                // 底部按钮区
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
@@ -1661,7 +1565,6 @@ class _ActivityScreenState extends State<ActivityScreen>
                   ),
                   child: Row(
                     children: [
-                      // 分享按钮
                       Container(
                         width: 50,
                         height: 50,
@@ -1682,7 +1585,6 @@ class _ActivityScreenState extends State<ActivityScreen>
                         ),
                       ),
                       const SizedBox(width: 12),
-                      // 收藏按钮
                       Container(
                         width: 50,
                         height: 50,
@@ -1703,7 +1605,6 @@ class _ActivityScreenState extends State<ActivityScreen>
                         ),
                       ),
                       const SizedBox(width: 16),
-                      // 报名按钮
                       Expanded(
                         child: Container(
                           height: 50,
@@ -1729,7 +1630,6 @@ class _ActivityScreenState extends State<ActivityScreen>
                                         activity.status == '已结束'
                                     ? null
                                     : () {
-                                      // 处理报名逻辑
                                       Navigator.pop(context);
                                     },
                             shape: RoundedRectangleBorder(
@@ -1759,7 +1659,6 @@ class _ActivityScreenState extends State<ActivityScreen>
     );
   }
 
-  // 详情页面的信息行构建
   Widget _buildDetailInfoRow(IconData icon, String label, String value) {
     return Row(
       children: [
@@ -1796,7 +1695,6 @@ class _ActivityScreenState extends State<ActivityScreen>
     );
   }
 
-  // 奖励信息行构建
   Widget _buildRewardInfoRow(
     IconData icon,
     String label,
@@ -1832,12 +1730,9 @@ class _ActivityScreenState extends State<ActivityScreen>
     );
   }
 
-  // 应用筛选
   void _applyFilter(String filter) {
     setState(() {
       _currentFilter = filter;
-
-      // 先清除列表
       _filteredActivities.clear();
 
       if (filter == "全部活动") {
@@ -1856,14 +1751,12 @@ class _ActivityScreenState extends State<ActivityScreen>
             _activities.where((activity) => activity.status == "已结束").toList();
       }
 
-      // 重置滚动控制器
       if (_scrollController.hasClients) {
         _scrollController.jumpTo(0);
       }
     });
   }
 
-  // 构建空状态
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -1896,7 +1789,6 @@ class _ActivityScreenState extends State<ActivityScreen>
     );
   }
 
-  // 构建加载指示器
   Widget _buildLoadingIndicator() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),

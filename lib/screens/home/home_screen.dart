@@ -16,6 +16,7 @@ import 'package:travel_joy/screens/activity/activity_screen.dart';
 import 'package:travel_joy/screens/collection/collection_screen.dart';
 import 'package:travel_joy/screens/profile/user_stats_screen.dart';
 import 'package:travel_joy/screens/settings/settings_screen.dart';
+import 'package:travel_joy/widgets/network_image.dart' as network; // 添加这一行，使用别名避免与Flutter的NetworkImage冲突
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -3068,4 +3069,97 @@ class BarChartPainter extends CustomPainter {
   bool shouldRepaint(BarChartPainter oldDelegate) {
     return oldDelegate.data != data || oldDelegate.maxValue != maxValue;
   }
+}
+
+/// 旅行事件类
+class TravelEvent {
+  final String location;
+  final String date;
+  final String description;
+  final String imageUrl;
+  final Color dotColor;
+
+  TravelEvent({
+    required this.location,
+    required this.date,
+    required this.description,
+    required this.imageUrl,
+    required this.dotColor,
+  });
+}
+
+// 修改使用图片的Widget方法
+Widget _buildTravelEventCard(TravelEvent event) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 16),
+    decoration: BoxDecoration(
+      color: Colors.white.withOpacity(0.1),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Row(
+      children: [
+        ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(12),
+            bottomLeft: Radius.circular(12),
+          ),
+          child: network.NetworkImage( // 使用我们的自定义NetworkImage组件
+            imageUrl: event.imageUrl,
+            width: 100,
+            height: 100,
+            fit: BoxFit.cover,
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: event.dotColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      event.location,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  event.date,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.7),
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  event.description,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 13,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }

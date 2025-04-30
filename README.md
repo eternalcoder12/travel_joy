@@ -212,3 +212,7 @@ NavigationUtils.glowingNavigateTo(
 ## 许可证
 
 本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。
+
+## 开发文档
+
+- [图片加载指南](docs/IMAGE_GUIDE.md) - 了解如何使用网络图片替换本地图片资源
