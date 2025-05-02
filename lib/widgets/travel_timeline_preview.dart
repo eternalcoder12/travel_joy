@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:travel_joy/app_theme.dart';
-import 'package:travel_joy/widgets/travel_timeline.dart';
+import '../app_theme.dart';
+import '../widgets/travel_timeline.dart'; 
+import '../utils/navigation_utils.dart';
 
 class TravelTimelinePreview extends StatelessWidget {
-  final List<TravelEvent> events;
+  final List<TimelineTravelEvent> events;
   final VoidCallback onViewAllPressed;
 
   const TravelTimelinePreview({
@@ -21,242 +22,411 @@ class TravelTimelinePreview extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 头部标题和查看全部按钮
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.place_outlined,
-                    color: AppTheme.neonPurple,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    '旅行足迹',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryTextColor,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
+        // 顶部区域
+        _buildHeader(context),
 
-        // 统计信息
-        _buildStatisticsRow(),
-        const SizedBox(height: 20),
+        // 预览时间线
+        ...events.take(3).map((e) => _buildTimelineEventCard(e)).toList(),
 
-        // 底部查看全部按钮
-        Padding(
-          padding: const EdgeInsets.only(
-            top: 8,
-            bottom: 12,
-            left: 16,
-            right: 16,
-          ),
-          child: GestureDetector(
-            onTap: onViewAllPressed,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: AppTheme.buttonColor.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppTheme.buttonColor.withOpacity(0.2),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '查看全部旅行足迹',
-                    style: TextStyle(
-                      color: AppTheme.buttonColor,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Icon(
-                    Icons.arrow_forward,
-                    size: 16,
-                    color: AppTheme.buttonColor,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+        // 查看全部按钮
+        _buildViewAllButton(context),
       ],
     );
   }
 
-  // 构建统计信息行
-  Widget _buildStatisticsRow() {
-    // 计算唯一城市和国家
-    final cities = _getUniqueCities();
-    final countries = _getUniqueCountries();
-
+  // 顶部标题区域
+  Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Row(
-        children: [
-          _buildStatItem(
-            icon: Icons.location_city,
-            value: cities.length.toString(),
-            label: '城市',
-            color: AppTheme.neonBlue,
-          ),
-          const SizedBox(width: 12),
-          _buildStatItem(
-            icon: Icons.public,
-            value: countries.length.toString(),
-            label: '国家',
-            color: AppTheme.neonPurple,
-          ),
-          const SizedBox(width: 12),
-          _buildStatItem(
-            icon: Icons.place,
-            value: events.length.toString(),
-            label: '足迹',
-            color: AppTheme.neonPink,
-          ),
-        ],
+      padding: const EdgeInsets.only(
+        left: 20.0,
+        right: 20.0,
+        bottom: 16.0,
       ),
-    );
-  }
-
-  // 构建单个统计项 - 修改为与旅行偏好分析卡片类似的样式
-  Widget _buildStatItem({
-    required IconData icon,
-    required String value,
-    required String label,
-    required Color color,
-  }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.2), width: 1),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
-                shape: BoxShape.circle,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // 顶部标题
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '旅行足迹',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: AppTheme.primaryTextColor,
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              child: Icon(icon, size: 14, color: color),
+              const SizedBox(height: 4.0),
+              Text(
+                '您去过 ${_getUniqueLocations().length} 个地方，${_getUniqueCountries().length} 个国家',
+                style: TextStyle(
+                  color: AppTheme.secondaryTextColor,
+                  fontSize: 13.0,
+                ),
+              ),
+            ],
+          ),
+
+          // 统计数字
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12.0,
+              vertical: 6.0,
             ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            decoration: BoxDecoration(
+              color: AppTheme.cardColor,
+              borderRadius: BorderRadius.circular(12.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4.0,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
               children: [
+                Icon(
+                  Icons.flight_takeoff_rounded,
+                  color: AppTheme.neonBlue,
+                  size: 16.0,
+                ),
+                const SizedBox(width: 6.0),
                 Text(
-                  value,
+                  '${events.length}',
                   style: TextStyle(
-                    fontSize: 16,
+                    color: AppTheme.primaryTextColor,
                     fontWeight: FontWeight.bold,
-                    color: color,
+                    fontSize: 14.0,
                   ),
                 ),
                 Text(
-                  label,
+                  ' 次旅行',
                   style: TextStyle(
-                    fontSize: 11,
                     color: AppTheme.secondaryTextColor,
+                    fontSize: 12.0,
                   ),
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // 构建空状态
-  Widget _buildEmptyState() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppTheme.buttonColor.withOpacity(0.1),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.explore_outlined,
-            size: 48,
-            color: AppTheme.secondaryTextColor.withOpacity(0.3),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            '暂无旅行足迹',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.primaryTextColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '记录您的旅行冒险，创建美好回忆！',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: AppTheme.secondaryTextColor.withOpacity(0.7),
-            ),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              // 添加旅行记录的逻辑
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.buttonColor,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text('添加旅行记录'),
           ),
         ],
       ),
     );
   }
 
-  // 获取唯一城市列表
-  Set<String> _getUniqueCities() {
+  // 构建时间线事件卡片
+  Widget _buildTimelineEventCard(TimelineTravelEvent event) {
+    final dotColor = event.dotColor ?? AppTheme.neonBlue;
+
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: 20.0,
+        right: 20.0,
+        bottom: 16.0,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 左侧日期和装饰
+          Column(
+            children: [
+              // 日期气泡
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  color: dotColor.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: dotColor.withOpacity(0.3),
+                    width: 2.0,
+                  ),
+                ),
+                child: Text(
+                  _formatDateBubble(event.date),
+                  style: TextStyle(
+                    color: dotColor,
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+
+              // 连接线
+              if (events.indexOf(event) != events.length - 1)
+                Container(
+                  width: 2.0,
+                  height: 40.0,
+                  margin: const EdgeInsets.symmetric(vertical: 4.0),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        dotColor.withOpacity(0.7),
+                        dotColor.withOpacity(0.1),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+
+          // 右侧内容卡片
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.only(left: 12.0),
+              padding: const EdgeInsets.all(12.0),
+              decoration: BoxDecoration(
+                color: AppTheme.cardColor,
+                borderRadius: BorderRadius.circular(12.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 地点信息
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              size: 16.0,
+                              color: dotColor,
+                            ),
+                            const SizedBox(width: 4.0),
+                            Expanded(
+                              child: Text(
+                                event.location,
+                                style: TextStyle(
+                                  fontSize: 14.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryTextColor,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (event.country != null)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 20.0,
+                              top: 2.0,
+                            ),
+                            child: Text(
+                              event.country!,
+                              style: TextStyle(
+                                fontSize: 12.0,
+                                color: AppTheme.secondaryTextColor,
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 6.0),
+                        Text(
+                          event.description,
+                          style: TextStyle(
+                            fontSize: 13.0,
+                            color: AppTheme.primaryTextColor.withOpacity(0.8),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // 右侧箭头
+                  // 外层包裹的容器提供触摸区域
+                  Container(
+                    margin: const EdgeInsets.only(left: 8.0),
+                    child: Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 14.0,
+                      color: AppTheme.secondaryTextColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 查看全部按钮
+  Widget _buildViewAllButton(BuildContext context) {
+    return Align(
+      alignment: Alignment.center,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 4.0, bottom: 16.0),
+        child: InkWell(
+          onTap: onViewAllPressed,
+          borderRadius: BorderRadius.circular(20.0),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 8.0,
+            ),
+            decoration: BoxDecoration(
+              color: AppTheme.buttonColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20.0),
+              border: Border.all(
+                color: AppTheme.buttonColor.withOpacity(0.3),
+                width: 1.0,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '查看全部足迹',
+                  style: TextStyle(
+                    color: AppTheme.buttonColor,
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(width: 4.0),
+                Icon(
+                  Icons.arrow_forward_rounded,
+                  color: AppTheme.buttonColor,
+                  size: 16.0,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 空状态视图
+  Widget _buildEmptyState() {
+    return Container(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '旅行足迹',
+                style: TextStyle(
+                  color: AppTheme.primaryTextColor,
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Icon(
+                Icons.flight,
+                color: AppTheme.secondaryTextColor,
+              ),
+            ],
+          ),
+          const SizedBox(height: 20.0),
+          Container(
+            padding: const EdgeInsets.all(20.0),
+            decoration: BoxDecoration(
+              color: AppTheme.cardColor,
+              borderRadius: BorderRadius.circular(12.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.flight_takeoff,
+                  size: 40.0,
+                  color: AppTheme.secondaryTextColor.withOpacity(0.5),
+                ),
+                const SizedBox(height: 16.0),
+                Text(
+                  '暂无旅行记录',
+                  style: TextStyle(
+                    color: AppTheme.primaryTextColor,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8.0),
+                Text(
+                  '开始您的旅行，记录精彩时刻',
+                  style: TextStyle(
+                    color: AppTheme.secondaryTextColor,
+                    fontSize: 14.0,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16.0),
+                OutlinedButton(
+                  onPressed: onViewAllPressed,
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: AppTheme.buttonColor),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                    ),
+                  ),
+                  child: Text(
+                    '添加旅行',
+                    style: TextStyle(
+                      color: AppTheme.buttonColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 获取唯一地点
+  Set<String> _getUniqueLocations() {
     return events.map((event) => event.location).toSet();
   }
 
-  // 获取唯一国家列表
+  // 获取唯一国家
   Set<String> _getUniqueCountries() {
     return events
         .where((event) => event.country != null)
         .map((event) => event.country!)
         .toSet();
+  }
+
+  // 格式化日期气泡显示
+  String _formatDateBubble(String date) {
+    // 简单地提取月/日
+    if (date.contains('-')) {
+      final parts = date.split('-');
+      if (parts.length >= 2) {
+        return '${parts[1]}';
+      }
+    } else if (date.contains('年') && date.contains('月')) {
+      final month = date.split('年')[1].split('月')[0];
+      return month;
+    }
+    
+    // 默认返回短格式
+    return date.length > 5 ? date.substring(5, 7) : date;
   }
 }
