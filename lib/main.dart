@@ -10,10 +10,11 @@ import 'screens/travel/travel_timeline_screen.dart';
 import 'screens/leaderboard/leaderboard_screen.dart';
 import 'screens/points/points_exchange_screen.dart';
 import 'screens/points/exchange_history_screen.dart';
-import 'widgets/travel_timeline.dart'; // 导入 TravelEvent 类定义所在的文件
+import 'widgets/travel_timeline.dart'; // 导入TimelineTravelEvent类定义所在的文件
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' if (dart.library.html) 'utils/web_stub.dart' as io;
 
 // 应用入口函数
 void main() {
@@ -65,11 +66,11 @@ Future<void> initApp() async {
     final prefs = await SharedPreferences.getInstance();
     final bool hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
 
-    // 初始化权限处理
-    if (Platform.isAndroid) {
-      await _initializeAndroidPermissions();
-    } else if (Platform.isIOS) {
-      await _initializeIOSPermissions();
+    // 初始化权限处理 - 仅在移动平台执行
+    if (!kIsWeb) {
+      await _initializePlatformPermissions();
+    } else {
+      print('Web平台: 不需要初始化移动平台权限');
     }
 
     // 使用FutureBuilder启动应用
@@ -80,6 +81,22 @@ Future<void> initApp() async {
     runApp(
       MaterialApp(home: Scaffold(body: Center(child: Text('应用启动失败，请重试: $e')))),
     );
+  }
+}
+
+// 根据平台初始化相应权限
+Future<void> _initializePlatformPermissions() async {
+  if (kIsWeb) return; // Web平台不需要请求权限
+  
+  try {
+    // 根据平台调用相应方法
+    if (io.Platform.isAndroid) {
+      await _initializeAndroidPermissions();
+    } else if (io.Platform.isIOS) {
+      await _initializeIOSPermissions();
+    }
+  } catch (e) {
+    print('初始化平台权限时出错: $e');
   }
 }
 
@@ -122,22 +139,31 @@ Future<void> _initializeIOSPermissions() async {
     print('相机权限状态: $cameraStatus');
     print('照片权限状态: $photosStatus');
     
-    // 检查iOS版本
-    try {
-      final osVersion = Platform.operatingSystemVersion;
-      print('iOS版本: $osVersion');
-      if (osVersion.contains('17.') || osVersion.contains('18.')) {
-        print('检测到iOS 17+系统，权限处理可能需要额外步骤');
-      }
-    } catch (e) {
-      print('获取iOS版本信息出错: $e');
-    }
+    // 安全获取iOS版本信息
+    _safeGetIOSVersion();
   } catch (e) {
     print('检查iOS权限状态时出错: $e');
     // 记录详细的错误信息以便调试
     if (e is Exception) {
       print('异常类型: ${e.runtimeType}');
     }
+  }
+}
+
+// 安全获取iOS版本信息
+void _safeGetIOSVersion() {
+  if (kIsWeb) return; // Web平台直接返回
+  
+  try {
+    if (io.Platform.isIOS) {
+      final osVersion = io.Platform.operatingSystemVersion;
+      print('iOS版本: $osVersion');
+      if (osVersion.contains('17.') || osVersion.contains('18.')) {
+        print('检测到iOS 17+系统，权限处理可能需要额外步骤');
+      }
+    }
+  } catch (e) {
+    print('获取iOS版本信息出错: $e');
   }
 }
 
@@ -157,36 +183,36 @@ class _TravelJoyAppState extends State<TravelJoyApp> {
       GlobalKey<NavigatorState>();
 
   // 示例旅行数据 - 在真实应用中，这些数据应该从数据库或API获取
-  final List<TravelEvent> _demoTravelEvents = [
-    TravelEvent(
+  final List<TimelineTravelEvent> _demoTravelEvents = [
+    TimelineTravelEvent(
       location: '东京',
       date: '2023-10-15',
       description: '参观了浅草寺和东京塔，体验了当地美食。',
-      imageUrl: null, // 改为null避免使用不存在的图片
+      imageUrl: null, // 图片可为空
       dotColor: Colors.blue,
       country: '日本',
     ),
-    TravelEvent(
+    TimelineTravelEvent(
       location: '巴黎',
       date: '2023-07-22',
       description: '游览了埃菲尔铁塔和卢浮宫，品尝了正宗的法式甜点。',
-      imageUrl: null, // 改为null避免使用不存在的图片
+      imageUrl: null, // 图片可为空
       dotColor: Colors.purple,
       country: '法国',
     ),
-    TravelEvent(
+    TimelineTravelEvent(
       location: '曼谷',
       date: '2023-04-05',
       description: '参观了大皇宫和卧佛寺，享受了泰式按摩。',
-      imageUrl: null, // 改为null避免使用不存在的图片
+      imageUrl: null, // 图片可为空
       dotColor: Colors.orange,
       country: '泰国',
     ),
-    TravelEvent(
+    TimelineTravelEvent(
       location: '纽约',
       date: '2022-12-18',
       description: '参观了自由女神像和时代广场，体验了百老汇演出。',
-      imageUrl: null, // 改为null避免使用不存在的图片
+      imageUrl: null, // 图片可为空
       dotColor: Colors.green,
       country: '美国',
     ),
