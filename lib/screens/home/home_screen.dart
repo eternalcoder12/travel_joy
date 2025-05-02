@@ -18,6 +18,9 @@ import 'package:travel_joy/screens/profile/user_stats_screen.dart';
 import 'package:travel_joy/screens/settings/settings_screen.dart';
 import 'package:travel_joy/widgets/network_image.dart' as network; // 添加这一行，使用别名避免与Flutter的NetworkImage冲突
 
+// 导入TimelineTravelEvent
+import 'package:travel_joy/widgets/travel_timeline.dart' show TimelineTravelEvent;
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
@@ -3161,5 +3164,16 @@ Widget _buildTravelEventCard(TravelEvent event) {
         ),
       ],
     ),
+  );
+}
+
+/// 将HomePageTravelEvent转换为TimelineTravelEvent
+TimelineTravelEvent _convertToTimelineTravelEvent(TravelEvent event) {
+  return TimelineTravelEvent(
+    location: event.location,
+    date: event.date,
+    description: event.description,
+    imageUrl: event.imageUrl,
+    dotColor: event.dotColor,
   );
 }

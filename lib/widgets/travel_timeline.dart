@@ -3,7 +3,7 @@ import 'package:travel_joy/app_theme.dart';
 import 'package:collection/collection.dart';
 import 'package:travel_joy/widgets/animated_item.dart';
 
-class TravelEvent {
+class TimelineTravelEvent {
   final String location;
   final String date;
   final String description;
@@ -11,7 +11,7 @@ class TravelEvent {
   final Color? dotColor;
   final String? country;
 
-  TravelEvent({
+  TimelineTravelEvent({
     required this.location,
     required this.date,
     required this.description,
@@ -22,7 +22,7 @@ class TravelEvent {
 }
 
 class TravelTimeline extends StatelessWidget {
-  final List<TravelEvent> events;
+  final List<TimelineTravelEvent> events;
   final ScrollController? scrollController;
 
   const TravelTimeline({Key? key, required this.events, this.scrollController})
@@ -116,11 +116,11 @@ class TravelTimeline extends StatelessWidget {
   }
 
   // 按年份分组事件
-  Map<String, List<TravelEvent>> _groupEventsByYear() {
-    final Map<String, List<TravelEvent>> grouped = {};
+  Map<String, List<TimelineTravelEvent>> _groupEventsByYear() {
+    final Map<String, List<TimelineTravelEvent>> grouped = {};
 
     // 对事件进行排序 (从新到旧)
-    final sortedEvents = List<TravelEvent>.from(events);
+    final sortedEvents = List<TimelineTravelEvent>.from(events);
     sortedEvents.sort((a, b) => b.date.compareTo(a.date));
 
     for (var event in sortedEvents) {
@@ -149,7 +149,7 @@ class TravelTimeline extends StatelessWidget {
   // 构建时间线项目 - 减小元素尺寸
   Widget _buildTimelineItem(
     BuildContext context,
-    TravelEvent event,
+    TimelineTravelEvent event,
     bool isLast,
     int index,
   ) {
@@ -198,338 +198,222 @@ class TravelTimeline extends StatelessWidget {
                         _getMonth(event.date),
                         style: TextStyle(
                           color: dotColor,
-                          fontSize: 9, // 调整字体
+                          fontSize: 9,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
                         _getDay(event.date),
                         style: TextStyle(
-                          color: AppTheme.primaryTextColor,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
                   ),
                 ),
-
-                // 连接线和圆点 - 更现代化设计
+                // 线条
                 if (!isLast)
-                  SizedBox(
-                    height: 40, // 调整高度
-                    child: Stack(
-                      alignment: Alignment.topCenter,
-                      children: [
-                        // 连接线 - 虚线效果
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            return CustomPaint(
-                              size: Size(1, constraints.maxHeight),
-                              painter: DashedLinePainter(
-                                color: dotColor.withOpacity(0.5),
-                                dashHeight: 3,
-                                dashSpace: 3,
-                              ),
-                            );
-                          },
-                        ),
-
-                        // 位置点 - 美化设计
-                        Positioned(
-                          top: 6,
-                          child: Container(
-                            width: 14,
-                            height: 14,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppTheme.backgroundColor,
-                              border: Border.all(color: dotColor, width: 1.5),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: dotColor.withOpacity(0.3),
-                                  blurRadius: 4,
-                                  spreadRadius: 0,
-                                ),
-                              ],
-                            ),
-                            child: Center(
-                              child: Icon(
-                                Icons.place,
-                                color: dotColor,
-                                size: 8,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                else
-                  SizedBox(
-                    height: 14,
-                    child: Stack(
-                      alignment: Alignment.topCenter,
-                      children: [
-                        // 位置点
-                        Positioned(
-                          top: 4,
-                          child: Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppTheme.backgroundColor.withOpacity(0.8),
-                              border: Border.all(color: dotColor, width: 1),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: dotColor.withOpacity(0.2),
-                                  blurRadius: 2,
-                                  spreadRadius: 0,
-                                ),
-                              ],
-                            ),
-                            child: Center(
-                              child: Icon(
-                                Icons.place,
-                                color: dotColor,
-                                size: 6,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                  Container(
+                    width: 1.5,
+                    height: 50,
+                    margin: const EdgeInsets.only(top: 4),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          dotColor.withOpacity(0.7),
+                          dotColor.withOpacity(0.1),
+                        ],
+                      ),
                     ),
                   ),
               ],
             ),
           ),
 
-          // 右侧内容区域
+          // 右侧内容
           Expanded(
             child: Container(
-              margin: const EdgeInsets.only(bottom: 8),
+              margin: const EdgeInsets.only(left: 8),
               decoration: BoxDecoration(
-                color: AppTheme.cardColor.withOpacity(0.7),
+                color: AppTheme.cardColor.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-                border: Border.all(color: dotColor.withOpacity(0.1), width: 1),
+                border: Border.all(
+                  color: dotColor.withOpacity(0.3),
+                  width: 0.5,
+                ),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Stack(
-                  children: [
-                    // 顶部渐变装饰
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: 4,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: [
-                              dotColor.withOpacity(0.7),
-                              dotColor.withOpacity(0.3),
-                            ],
-                          ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 上半部分 - 地点和时间
+                  ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            dotColor.withOpacity(0.2),
+                            AppTheme.cardColor.withOpacity(0.1),
+                          ],
                         ),
                       ),
-                    ),
-
-                    // 主要内容
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      padding: const EdgeInsets.all(10),
+                      child: Row(
                         children: [
-                          // 地点和标签行
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.location_on,
-                                size: 16,
-                                color: dotColor,
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  event.location,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.primaryTextColor,
-                                  ),
-                                ),
-                              ),
-
-                              // 右侧标签
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: dotColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.access_time_filled,
-                                      size: 10,
-                                      color: dotColor,
-                                    ),
-                                    const SizedBox(width: 3),
-                                    Text(
-                                      travelDuration,
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w500,
-                                        color: dotColor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                          // 位置图标和文本
+                          Icon(
+                            Icons.place,
+                            color: dotColor,
+                            size: 16,
                           ),
-
-                          const SizedBox(height: 8),
-
-                          // 国家信息
-                          if (event.country != null)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.public,
-                                    size: 14,
-                                    color: AppTheme.secondaryTextColor,
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  event.location,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
                                   ),
-                                  const SizedBox(width: 4),
+                                ),
+                                if (event.country != null)
                                   Text(
                                     event.country!,
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 10,
+                                      color: Colors.white.withOpacity(0.7),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          
+                          // 旅行类型标签
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: dotColor.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: dotColor.withOpacity(0.3),
+                                width: 0.5,
+                              ),
+                            ),
+                            child: Text(
+                              travelType,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: dotColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  // 底部 - 旅行信息
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 旅行描述
+                        Text(
+                          event.description,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withOpacity(0.9),
+                            height: 1.3,
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        
+                        // 底部信息栏
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // 旅行时长
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.access_time,
+                                  color: AppTheme.secondaryTextColor,
+                                  size: 12,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  travelDuration,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: AppTheme.secondaryTextColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            
+                            // 情绪标签
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.emoji_emotions_outlined,
+                                  color: AppTheme.secondaryTextColor,
+                                  size: 12,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  travelMood,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: AppTheme.secondaryTextColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            
+                            // 照片指示器
+                            if (event.imageUrl != null)
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.photo_library_outlined,
+                                    color: AppTheme.secondaryTextColor,
+                                    size: 12,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    "有照片",
+                                    style: TextStyle(
+                                      fontSize: 10,
                                       color: AppTheme.secondaryTextColor,
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
-
-                          // 描述文本
-                          Text(
-                            event.description,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppTheme.primaryTextColor.withOpacity(0.8),
-                            ),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          // 底部标签行
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              // 旅行类型
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.backgroundColor
-                                          .withOpacity(0.5),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      travelType,
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: AppTheme.secondaryTextColor,
-                                      ),
-                                    ),
-                                  ),
-
-                                  const SizedBox(width: 6),
-
-                                  // 旅行心情
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.backgroundColor
-                                          .withOpacity(0.5),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      travelMood,
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: AppTheme.secondaryTextColor,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              // 查看详情
-                              TextButton(
-                                onPressed: () {
-                                  // 查看详情逻辑，暂不实现具体页面
-                                },
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                  minimumSize: Size.zero,
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      '查看详情',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: dotColor,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 2),
-                                    Icon(
-                                      Icons.arrow_forward_ios_rounded,
-                                      size: 9,
-                                      color: dotColor,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -692,7 +576,7 @@ class TravelTimeline extends StatelessWidget {
 }
 
 class TravelTimelinePreview extends StatelessWidget {
-  final List<TravelEvent> events;
+  final List<TimelineTravelEvent> events;
   final VoidCallback onViewAllPressed;
 
   const TravelTimelinePreview({
@@ -963,7 +847,7 @@ class TravelTimelinePreview extends StatelessWidget {
     );
   }
 
-  Widget _buildTimelineEventCard(TravelEvent event) {
+  Widget _buildTimelineEventCard(TimelineTravelEvent event) {
     final dotColor = event.dotColor ?? AppTheme.neonBlue;
 
     return Container(
