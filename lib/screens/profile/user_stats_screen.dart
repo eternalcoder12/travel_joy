@@ -3,7 +3,7 @@ import '../../app_theme.dart';
 import '../../widgets/animated_item.dart';
 import '../../widgets/circle_button.dart';
 import '../travel/travel_history_screen.dart';
-import '../../widgets/travel_timeline.dart';
+import '../../widgets/travel_timeline.dart' show TimelineTravelEvent;
 import 'dart:math' as math;
 
 class UserStatsScreen extends StatefulWidget {
@@ -365,33 +365,37 @@ class _UserStatsScreenState extends State<UserStatsScreen>
                     builder:
                         (context) => TravelHistoryScreen(
                           events: [
-                            TravelEvent(
+                            TimelineTravelEvent(
                               location: '东京',
                               date: '2023年10月15日',
                               description: '参观了浅草寺和东京塔，体验了当地美食。',
                               imageUrl: 'assets/images/tokyo.jpg',
                               dotColor: AppTheme.neonBlue,
+                              country: '日本',
                             ),
-                            TravelEvent(
+                            TimelineTravelEvent(
                               location: '巴黎',
                               date: '2023年7月22日',
                               description: '游览了埃菲尔铁塔和卢浮宫，品尝了正宗的法式甜点。',
                               imageUrl: 'assets/images/paris.jpg',
                               dotColor: AppTheme.neonPurple,
+                              country: '法国',
                             ),
-                            TravelEvent(
+                            TimelineTravelEvent(
                               location: '曼谷',
                               date: '2023年4月5日',
                               description: '参观了大皇宫和卧佛寺，享受了泰式按摩。',
                               imageUrl: 'assets/images/bangkok.jpg',
                               dotColor: AppTheme.neonOrange,
+                              country: '泰国',
                             ),
-                            TravelEvent(
+                            TimelineTravelEvent(
                               location: '纽约',
                               date: '2022年12月18日',
                               description: '参观了自由女神像和时代广场，体验了百老汇演出。',
                               imageUrl: 'assets/images/newyork.jpg',
                               dotColor: AppTheme.neonGreen,
+                              country: '美国',
                             ),
                           ],
                         ),

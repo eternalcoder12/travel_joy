@@ -151,6 +151,51 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         return _HomeTab(key: const ValueKey<int>(0), isCurrentPage: true);
     }
   }
+
+  // 导航到旅行历史页面
+  void _navigateToTravelHistory() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TravelHistoryScreen(
+          events: [
+            TimelineTravelEvent(
+              location: '东京',
+              date: '2023年10月15日',
+              description: '参观了浅草寺和东京塔，体验了当地美食。',
+              imageUrl: 'assets/images/tokyo.jpg',
+              dotColor: AppTheme.neonBlue,
+              country: '日本',
+            ),
+            TimelineTravelEvent(
+              location: '巴黎',
+              date: '2023年7月22日',
+              description: '游览了埃菲尔铁塔和卢浮宫，品尝了正宗的法式甜点。',
+              imageUrl: 'assets/images/paris.jpg',
+              dotColor: AppTheme.neonPurple,
+              country: '法国',
+            ),
+            TimelineTravelEvent(
+              location: '曼谷',
+              date: '2023年4月5日',
+              description: '参观了大皇宫和卧佛寺，享受了泰式按摩。',
+              imageUrl: 'assets/images/bangkok.jpg',
+              dotColor: AppTheme.neonOrange,
+              country: '泰国',
+            ),
+            TimelineTravelEvent(
+              location: '纽约',
+              date: '2022年12月18日',
+              description: '参观了自由女神像和时代广场，体验了百老汇演出。',
+              imageUrl: 'assets/images/newyork.jpg',
+              dotColor: AppTheme.neonGreen,
+              country: '美国',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // 首页标签
@@ -1425,29 +1470,29 @@ class _ProfileTabState extends State<_ProfileTab>
   late Animation<double> _donutChartAnimation;
 
   // 在_ProfileTabState中添加旅行事件数据
-  final List<TravelEvent> _travelEvents = [
-    TravelEvent(
+  final List<TimelineTravelEvent> _travelEvents = [
+    TimelineTravelEvent(
       location: '东京',
       date: '2023年10月15日',
       description: '参观了浅草寺和东京塔，体验了当地美食。',
       imageUrl: 'assets/images/tokyo.jpg',
       dotColor: AppTheme.neonBlue,
     ),
-    TravelEvent(
+    TimelineTravelEvent(
       location: '巴黎',
       date: '2023年7月22日',
       description: '游览了埃菲尔铁塔和卢浮宫，品尝了正宗的法式甜点。',
       imageUrl: 'assets/images/paris.jpg',
       dotColor: AppTheme.neonPurple,
     ),
-    TravelEvent(
+    TimelineTravelEvent(
       location: '曼谷',
       date: '2023年4月5日',
       description: '参观了大皇宫和卧佛寺，享受了泰式按摩。',
       imageUrl: 'assets/images/bangkok.jpg',
       dotColor: AppTheme.neonOrange,
     ),
-    TravelEvent(
+    TimelineTravelEvent(
       location: '纽约',
       date: '2022年12月18日',
       description: '参观了自由女神像和时代广场，体验了百老汇演出。',
@@ -2320,28 +2365,28 @@ class _ProfileTabState extends State<_ProfileTab>
               builder:
                   (context) => TravelHistoryScreen(
                     events: [
-                      TravelEvent(
+                      TimelineTravelEvent(
                         location: '东京',
                         date: '2023年10月15日',
                         description: '参观了浅草寺和东京塔，体验了当地美食。',
                         imageUrl: 'assets/images/tokyo.jpg',
                         dotColor: AppTheme.neonBlue,
                       ),
-                      TravelEvent(
+                      TimelineTravelEvent(
                         location: '巴黎',
                         date: '2023年7月22日',
                         description: '游览了埃菲尔铁塔和卢浮宫，品尝了正宗的法式甜点。',
                         imageUrl: 'assets/images/paris.jpg',
                         dotColor: AppTheme.neonPurple,
                       ),
-                      TravelEvent(
+                      TimelineTravelEvent(
                         location: '曼谷',
                         date: '2023年4月5日',
                         description: '参观了大皇宫和卧佛寺，享受了泰式按摩。',
                         imageUrl: 'assets/images/bangkok.jpg',
                         dotColor: AppTheme.neonOrange,
                       ),
-                      TravelEvent(
+                      TimelineTravelEvent(
                         location: '纽约',
                         date: '2022年12月18日',
                         description: '参观了自由女神像和时代广场，体验了百老汇演出。',
@@ -3075,24 +3120,26 @@ class BarChartPainter extends CustomPainter {
 }
 
 /// 旅行事件类
-class TravelEvent {
-  final String location;
-  final String date;
-  final String description;
-  final String imageUrl;
-  final Color dotColor;
+// class TravelEvent {
+//   final String location;
+//   final String date;
+//   final String description;
+//   final String imageUrl;
+//   final Color dotColor;
 
-  TravelEvent({
-    required this.location,
-    required this.date,
-    required this.description,
-    required this.imageUrl,
-    required this.dotColor,
-  });
-}
+//   TravelEvent({
+//     required this.location,
+//     required this.date,
+//     required this.description,
+//     required this.imageUrl,
+//     required this.dotColor,
+//   });
+// }
 
-// 修改使用图片的Widget方法
-Widget _buildTravelEventCard(TravelEvent event) {
+// 注意：此类已被TimelineTravelEvent替代，请使用TimelineTravelEvent
+
+// 修改使用图片的Widget方法，处理imageUrl可能为空的情况
+Widget _buildTravelEventCard(TimelineTravelEvent event) {
   return Container(
     margin: const EdgeInsets.only(bottom: 16),
     decoration: BoxDecoration(
@@ -3106,12 +3153,23 @@ Widget _buildTravelEventCard(TravelEvent event) {
             topLeft: Radius.circular(12),
             bottomLeft: Radius.circular(12),
           ),
-          child: network.NetworkImage( // 使用我们的自定义NetworkImage组件
-            imageUrl: event.imageUrl,
-            width: 100,
-            height: 100,
-            fit: BoxFit.cover,
-          ),
+          child: event.imageUrl != null 
+            ? network.NetworkImage( // 使用我们的自定义NetworkImage组件
+                imageUrl: event.imageUrl!,  // 使用非空断言确保不为空
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
+              )
+            : Container(
+                width: 100,
+                height: 100,
+                color: Colors.grey.withOpacity(0.2),
+                child: Icon(
+                  Icons.image_not_supported,
+                  color: Colors.white.withOpacity(0.5),
+                  size: 30,
+                ),
+              ),
         ),
         Expanded(
           child: Padding(
@@ -3167,8 +3225,8 @@ Widget _buildTravelEventCard(TravelEvent event) {
   );
 }
 
-/// 将HomePageTravelEvent转换为TimelineTravelEvent
-TimelineTravelEvent _convertToTimelineTravelEvent(TravelEvent event) {
+/// 将TimelineTravelEvent转换为另一个TimelineTravelEvent实例
+TimelineTravelEvent _convertToTimelineTravelEvent(TimelineTravelEvent event) {
   return TimelineTravelEvent(
     location: event.location,
     date: event.date,
