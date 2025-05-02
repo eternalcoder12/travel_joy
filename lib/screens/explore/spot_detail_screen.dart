@@ -297,6 +297,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
         child: Icon(Icons.more_horiz, color: Colors.white),
         // 添加弹出动画
         heroTag: 'fab',
+        mini: true, // 使用较小的FAB尺寸
       ),
     );
   }
@@ -1054,53 +1055,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
               ],
             ),
           ),
-          
-          SizedBox(height: 20),
-          
-          // 使用动画地图按钮替换
-          _buildMapViewButton(),
         ],
-      ),
-    );
-  }
-  
-  // 修改地图按钮，使用简单的InkWell
-  Widget _buildMapViewButton() {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MapViewScreen(
-              spots: [widget.spotData],
-              initialSpotIndex: 0,
-            ),
-          ),
-        );
-      },
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: AppTheme.neonBlue,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        alignment: Alignment.center,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.map_rounded, color: Colors.white, size: 18),
-            SizedBox(width: 8),
-            Text(
-              '在地图上查看',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -2080,6 +2035,8 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
             children: [
               // 返回按钮
               Container(
+                width: MCPDimension.circleContainerMedium,
+                height: MCPDimension.circleContainerMedium,
                 margin: EdgeInsets.only(left: MCPDimension.spacingSmall),
                 decoration: BoxDecoration(
                   color: (opacity > 0.5 ? Colors.black : Colors.white).withOpacity(0.2),
@@ -2115,6 +2072,8 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
               
               // 收藏按钮
               Container(
+                width: MCPDimension.circleContainerMedium,
+                height: MCPDimension.circleContainerMedium,
                 margin: EdgeInsets.only(right: MCPDimension.spacingSmall),
                 decoration: BoxDecoration(
                   color: (opacity > 0.5 ? Colors.black : Colors.white).withOpacity(0.2),
