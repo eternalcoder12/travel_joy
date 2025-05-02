@@ -65,5 +65,9 @@
 	<string>需要访问您的相机，以便您能够拍摄和分享照片</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>需要访问您的照片库，以便您能够分享照片</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>需要访问您的照片库，以便您能够保存照片</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>需要使用麦克风，以便您能够录制视频</string>
 </dict>
 </plist>

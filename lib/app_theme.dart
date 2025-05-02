@@ -29,6 +29,7 @@ class AppTheme {
   static const Color neonOrange = Color(0xFFFF9E00); // 霓虹橙色
   static const Color neonGreen = Color(0xFF39D353); // 霓虹绿色
   static const Color neonYellow = Color(0xFFFFD700); // 霓虹黄色
+  static const Color neonRed = Color(0xFFFF3B30); // 霓虹红色
 
   // 设施与服务类型颜色
   static const Color facilityCommunication = Color(0xFF4D79FF); // 通信设施 - 蓝色

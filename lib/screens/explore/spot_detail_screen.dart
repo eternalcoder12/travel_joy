@@ -8,6 +8,11 @@ import '../../widgets/network_image.dart' as network;
 import 'package:animations/animations.dart';
 import '../../widgets/glass_card.dart';
 import '../../utils/dimensions.dart';
+import 'dart:io' show File, Platform;
+import 'dart:async';
+import 'package:share_plus/share_plus.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter/services.dart';
 
 // 添加AppTheme的扩展属性
 extension AppThemeExtension on AppTheme {
@@ -219,6 +224,9 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isIOS = Platform.isIOS;
+    final isSmallScreen = screenWidth < 340;
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
@@ -279,8 +287,8 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                     ),
                   ),
                   
-                  // 底部间距
-                  SizedBox(height: 30 + bottomPadding),
+                  // 底部间距 - 根据设备平台调整
+                  SizedBox(height: 30 + bottomPadding + (isIOS ? 10 : 0)),
                 ],
               ),
             ),
@@ -291,13 +299,16 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
             _buildBottomDrawer(context, bottomPadding),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showBottomDrawer,
-        backgroundColor: AppTheme.buttonColor,
-        child: Icon(Icons.more_horiz, color: Colors.white),
-        // 添加弹出动画
-        heroTag: 'fab',
-        mini: true, // 使用较小的FAB尺寸
+      floatingActionButton: Transform.scale(
+        scale: isSmallScreen ? 0.9 : 1.1, // 根据屏幕大小调整按钮大小
+        child: FloatingActionButton(
+          onPressed: _showBottomDrawer,
+          backgroundColor: AppTheme.buttonColor,
+          child: Icon(Icons.more_horiz, color: Colors.white),
+          // 添加弹出动画
+          heroTag: 'fab',
+          mini: isSmallScreen, // 在小屏幕上使用mini属性
+        ),
       ),
     );
   }
@@ -498,11 +509,15 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   
   // 建立标题部分
   Widget _buildTitleSection() {
+    final isIOS = Platform.isIOS;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final horizontalMargin = isIOS ? MCPDimension.spacingLarge : MCPDimension.spacingMedium;
+    
     return Container(
       margin: EdgeInsets.fromLTRB(
-        MCPDimension.spacingLarge, 
+        horizontalMargin, 
         MCPDimension.spacingXLarge, 
-        MCPDimension.spacingLarge, 
+        horizontalMargin, 
         MCPDimension.spacingMedium
       ),
       child: Column(
@@ -510,8 +525,9 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
         children: [
           // 价格与游览时间信息卡片
           Container(
+            width: double.infinity, // 确保宽度填满父容器
             padding: EdgeInsets.symmetric(
-              horizontal: MCPDimension.spacingLarge, 
+              horizontal: screenWidth < 360 ? MCPDimension.spacingMedium : MCPDimension.spacingLarge, 
               vertical: MCPDimension.spacingMedium
             ),
             decoration: BoxDecoration(
@@ -534,71 +550,110 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                 ],
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildInfoCard(
-                  icon: Icons.attach_money_rounded,
-                  title: '门票',
-                  value: '¥${_getSpotPrice()}',
-                  color: AppTheme.neonTeal,
-                ),
-                Container(
-                  height: MCPDimension.cardHeightSmall * 0.5,
-                  width: 1,
-                  color: AppTheme.secondaryTextColor.withOpacity(0.2),
-                ),
-                _buildInfoCard(
-                  icon: Icons.access_time_rounded,
-                  title: '开放时间',
-                  value: _getSpotHours(),
-                  color: AppTheme.neonOrange,
-                ),
-                Container(
-                  height: MCPDimension.cardHeightSmall * 0.5,
-                  width: 1,
-                  color: AppTheme.secondaryTextColor.withOpacity(0.2),
-                ),
-                _buildInfoCard(
-                  icon: Icons.timelapse_rounded,
-                  title: '建议游览',
-                  value: _getSpotDuration(),
-                  color: AppTheme.neonPurple,
-                ),
-              ],
-            ),
+            child: screenWidth < 340 
+                ? Column(
+                    children: [
+                      _buildInfoCard(
+                        icon: Icons.attach_money_rounded,
+                        title: '门票',
+                        value: '¥${_getSpotPrice()}',
+                        color: AppTheme.neonTeal,
+                      ),
+                      SizedBox(height: MCPDimension.spacingSmall),
+                      Divider(
+                        color: AppTheme.secondaryTextColor.withOpacity(0.2),
+                        height: 1,
+                      ),
+                      SizedBox(height: MCPDimension.spacingSmall),
+                      _buildInfoCard(
+                        icon: Icons.access_time_rounded,
+                        title: '开放时间',
+                        value: _getSpotHours(),
+                        color: AppTheme.neonOrange,
+                      ),
+                      SizedBox(height: MCPDimension.spacingSmall),
+                      Divider(
+                        color: AppTheme.secondaryTextColor.withOpacity(0.2),
+                        height: 1,
+                      ),
+                      SizedBox(height: MCPDimension.spacingSmall),
+                      _buildInfoCard(
+                        icon: Icons.timelapse_rounded,
+                        title: '建议游览',
+                        value: _getSpotDuration(),
+                        color: AppTheme.neonPurple,
+                      ),
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildInfoCard(
+                        icon: Icons.attach_money_rounded,
+                        title: '门票',
+                        value: '¥${_getSpotPrice()}',
+                        color: AppTheme.neonTeal,
+                      ),
+                      Container(
+                        height: MCPDimension.cardHeightSmall * 0.5,
+                        width: 1,
+                        color: AppTheme.secondaryTextColor.withOpacity(0.2),
+                      ),
+                      _buildInfoCard(
+                        icon: Icons.access_time_rounded,
+                        title: '开放时间',
+                        value: _getSpotHours(),
+                        color: AppTheme.neonOrange,
+                      ),
+                      Container(
+                        height: MCPDimension.cardHeightSmall * 0.5,
+                        width: 1,
+                        color: AppTheme.secondaryTextColor.withOpacity(0.2),
+                      ),
+                      _buildInfoCard(
+                        icon: Icons.timelapse_rounded,
+                        title: '建议游览',
+                        value: _getSpotDuration(),
+                        color: AppTheme.neonPurple,
+                      ),
+                    ],
+                  ),
           ),
 
           SizedBox(height: MCPDimension.spacingLarge),
           
-          // 标签列表
+          // 标签列表 - 修复跨平台滚动问题
           Container(
             height: MCPDimension.cardHeightSmall * 0.45,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: _getSpotTags().map((tag) => Container(
-                margin: EdgeInsets.only(right: MCPDimension.spacingMedium),
-                padding: EdgeInsets.symmetric(
-                  horizontal: MCPDimension.spacingLarge, 
-                  vertical: MCPDimension.spacingSmall
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.neonBlue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
-                  border: Border.all(
-                    color: AppTheme.neonBlue.withOpacity(0.3),
-                    width: 1,
+            child: Center(
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: MCPDimension.spacingXSmall),
+                children: _getSpotTags().map((tag) => Container(
+                  margin: EdgeInsets.only(right: MCPDimension.spacingMedium),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: MCPDimension.spacingLarge, 
+                    vertical: MCPDimension.spacingSmall
                   ),
-                ),
-                child: Text(
-                  tag,
-                  style: TextStyle(
-                    fontSize: MCPDimension.fontSizeSmall,
-                    fontWeight: FontWeight.w500,
-                    color: AppTheme.neonBlue,
+                  decoration: BoxDecoration(
+                    color: AppTheme.neonBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
+                    border: Border.all(
+                      color: AppTheme.neonBlue.withOpacity(0.3),
+                      width: 1,
+                    ),
                   ),
-                ),
-              )).toList(),
+                  child: Text(
+                    tag,
+                    style: TextStyle(
+                      fontSize: MCPDimension.fontSizeSmall,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.neonBlue,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                )).toList(),
+              ),
             ),
           ),
         ],
@@ -613,7 +668,10 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     required String value,
     required Color color,
   }) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
           padding: MCPDimension.paddingSmall,
@@ -634,15 +692,19 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
             fontSize: MCPDimension.fontSizeXSmall,
             color: AppTheme.secondaryTextColor,
           ),
+          textAlign: TextAlign.center,
         ),
         SizedBox(height: MCPDimension.spacingXXSmall),
         Text(
           value,
           style: TextStyle(
-            fontSize: MCPDimension.fontSizeSmall,
+            fontSize: screenWidth < 340 ? MCPDimension.fontSizeXSmall : MCPDimension.fontSizeSmall,
             fontWeight: FontWeight.bold,
             color: AppTheme.primaryTextColor,
           ),
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
         ),
       ],
     );
@@ -650,14 +712,23 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   
   // 快捷操作按钮
   Widget _buildQuickActionButtons() {
+    final isIOS = Platform.isIOS;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final horizontalMargin = isIOS ? MCPDimension.spacingLarge : MCPDimension.spacingMedium;
+    final buttonSpacing = screenWidth > 360 ? MainAxisAlignment.spaceEvenly : MainAxisAlignment.spaceAround;
+
     return Container(
+      width: double.infinity,
       margin: EdgeInsets.fromLTRB(
-        MCPDimension.spacingLarge, 
+        horizontalMargin, 
         MCPDimension.spacingXSmall, 
-        MCPDimension.spacingLarge, 
+        horizontalMargin, 
         MCPDimension.spacingLarge
       ),
-      padding: MCPDimension.paddingVerticalLarge,
+      padding: EdgeInsets.symmetric(
+        vertical: MCPDimension.spacingLarge,
+        horizontal: screenWidth < 340 ? MCPDimension.spacingXSmall : MCPDimension.spacingSmall
+      ),
       decoration: BoxDecoration(
         color: AppTheme.cardColor,
         borderRadius: BorderRadius.circular(MCPDimension.radiusXLarge),
@@ -670,46 +741,89 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildActionButton(
-            Icons.map_rounded,
-            '导航',
-            AppTheme.neonBlue,
-            () => _launchMaps(),
-          ),
-          _buildActionButton(
-            Icons.share_rounded,
-            '分享',
-            AppTheme.neonPurple,
-            () => _shareSpot(),
-          ),
-          _buildActionButton(
-            Icons.favorite_rounded,
-            _isFavorite ? '已收藏' : '收藏',
-            _isFavorite ? AppTheme.neonPink : AppTheme.secondaryTextColor,
-            () {
-              setState(() {
-                _isFavorite = !_isFavorite;
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(_isFavorite ? '已添加到收藏' : '已取消收藏'),
-                  behavior: SnackBarBehavior.floating,
-                  duration: Duration(seconds: 1),
+      child: screenWidth < 340
+          ? Wrap(
+              alignment: WrapAlignment.spaceEvenly,
+              spacing: MCPDimension.spacingMedium,
+              runSpacing: MCPDimension.spacingMedium,
+              children: [
+                _buildActionButton(
+                  Icons.map_rounded,
+                  '导航',
+                  AppTheme.neonBlue,
+                  () => _launchMaps(),
                 ),
-              );
-            },
-          ),
-          _buildActionButton(
-            Icons.camera_alt_rounded,
-            '拍照',
-            AppTheme.neonGreen,
-            () => _openCamera(),
-          ),
-        ],
-      ),
+                _buildActionButton(
+                  Icons.share_rounded,
+                  '分享',
+                  AppTheme.neonPurple,
+                  () => _shareSpot(),
+                ),
+                _buildActionButton(
+                  Icons.favorite_rounded,
+                  _isFavorite ? '已收藏' : '收藏',
+                  _isFavorite ? AppTheme.neonPink : AppTheme.secondaryTextColor,
+                  () {
+                    setState(() {
+                      _isFavorite = !_isFavorite;
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(_isFavorite ? '已添加到收藏' : '已取消收藏'),
+                        behavior: SnackBarBehavior.floating,
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                ),
+                _buildActionButton(
+                  Icons.camera_alt_rounded,
+                  '拍照',
+                  AppTheme.neonGreen,
+                  () => _openCamera(),
+                ),
+              ],
+            )
+          : Row(
+              mainAxisAlignment: buttonSpacing,
+              children: [
+                _buildActionButton(
+                  Icons.map_rounded,
+                  '导航',
+                  AppTheme.neonBlue,
+                  () => _launchMaps(),
+                ),
+                _buildActionButton(
+                  Icons.share_rounded,
+                  '分享',
+                  AppTheme.neonPurple,
+                  () => _shareSpot(),
+                ),
+                _buildActionButton(
+                  Icons.favorite_rounded,
+                  _isFavorite ? '已收藏' : '收藏',
+                  _isFavorite ? AppTheme.neonPink : AppTheme.secondaryTextColor,
+                  () {
+                    setState(() {
+                      _isFavorite = !_isFavorite;
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(_isFavorite ? '已添加到收藏' : '已取消收藏'),
+                        behavior: SnackBarBehavior.floating,
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                ),
+                _buildActionButton(
+                  Icons.camera_alt_rounded,
+                  '拍照',
+                  AppTheme.neonGreen,
+                  () => _openCamera(),
+                ),
+              ],
+            ),
     );
   }
   
@@ -726,7 +840,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
       child: Padding(
         padding: EdgeInsets.symmetric(
           vertical: MCPDimension.spacingSmall, 
-          horizontal: MCPDimension.spacingMedium
+          horizontal: MCPDimension.spacingSmall
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -751,6 +865,205 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                 fontWeight: FontWeight.w500,
                 color: color,
               ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 添加打开相机的方法
+  Future<void> _openCamera() async {
+    try {
+      // 请求相机权限(权限处理在main.dart中已配置)
+      
+      // 使用ImagePicker拍照
+      final ImagePicker picker = ImagePicker();
+      final XFile? photo = await picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 85,
+      );
+      
+      // 处理拍照结果
+      if (photo != null) {
+        // 照片拍摄成功，显示成功信息和分享选项
+        _showPhotoOptionsDialog(photo);
+      } else {
+        // 用户取消了拍照
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('已取消拍照'),
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 1),
+          )
+        );
+      }
+    } on PlatformException catch (e) {
+      // 权限被拒绝或其他错误
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('无法使用相机: ${e.message}'),
+          behavior: SnackBarBehavior.floating,
+        )
+      );
+    } catch (e) {
+      // 其他错误
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('发生错误: $e'),
+          behavior: SnackBarBehavior.floating,
+        )
+      );
+    }
+  }
+  
+  // 显示照片操作选项对话框
+  void _showPhotoOptionsDialog(XFile photo) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppTheme.backgroundColor,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 10,
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: 5,
+                width: 40,
+                margin: EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2.5),
+                ),
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 照片预览缩略图
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(
+                      File(photo.path),
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '拍摄成功!',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryTextColor,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          '你想要怎么处理这张照片?',
+                          style: TextStyle(
+                            color: AppTheme.secondaryTextColor,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 24),
+              // 操作按钮
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildPhotoActionButton(
+                    icon: Icons.share,
+                    label: '分享照片',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _sharePhoto(photo);
+                    },
+                  ),
+                  _buildPhotoActionButton(
+                    icon: Icons.delete,
+                    label: '删除',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _deletePhoto(photo);
+                    },
+                  ),
+                  _buildPhotoActionButton(
+                    icon: Icons.close,
+                    label: '关闭',
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  
+  // 构建照片操作按钮
+  Widget _buildPhotoActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 85,
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Column(
+          children: [
+            Container(
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppTheme.neonBlue.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: AppTheme.neonBlue,
+                size: 24,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: AppTheme.primaryTextColor,
+              ),
             ),
           ],
         ),
@@ -758,1736 +1071,614 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     );
   }
   
-  // 添加打开相机的方法
-  void _openCamera() {
-    // 在实际应用中，这里应该请求相机权限并打开相机
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('正在打开相机，请授予相机权限'),
-        duration: Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
+  // 分享照片
+  void _sharePhoto(XFile photo) {
+    final spotName = _getSpotName();
+    final location = _getSpotLocation();
     
-    // 这里模拟相机打开过程
-    Future.delayed(Duration(seconds: 1), () {
+    final String shareText = 
+        '我在$spotName拍摄的照片\n'
+        '位置: $location\n'
+        '来自Travel Joy旅行应用';
+    
+    // 使用share_plus分享照片和文本
+    Share.shareXFiles(
+      [photo],
+      text: shareText,
+      subject: '我的旅行照片 - $spotName',
+    ).then((_) {
+      // 分享成功
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('相机已打开，您可以开始拍照'),
-          duration: Duration(seconds: 2),
+          content: Text('照片分享成功!'),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+          duration: Duration(seconds: 1),
+        )
+      );
+    }).catchError((error) {
+      // 分享失败
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('照片分享失败: $error'),
+          behavior: SnackBarBehavior.floating,
+        )
       );
     });
   }
   
+  // 删除照片
+  void _deletePhoto(XFile photo) {
+    try {
+      // 创建File对象
+      final File photoFile = File(photo.path);
+      
+      // 检查文件是否存在
+      if (photoFile.existsSync()) {
+        // 删除文件
+        photoFile.deleteSync();
+        
+        // 显示删除成功的消息
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('照片已删除'),
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 1),
+          )
+        );
+      } else {
+        // 文件不存在
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('照片不存在或已被删除'),
+            behavior: SnackBarBehavior.floating,
+          )
+        );
+      }
+    } catch (e) {
+      // 处理删除过程中发生的错误
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('删除照片失败: $e'),
+          behavior: SnackBarBehavior.floating,
+        )
+      );
+    }
+  }
+  
   // 景点信息区
   Widget _buildInfoSection() {
+    final horizontalPadding = Platform.isIOS ? MCPDimension.spacingLarge : MCPDimension.spacingMedium;
+    
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16),
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.getGlassDecoration(
-          opacity: 0.05,
-          borderRadius: 20,
-          gradientColor: AppTheme.cardColor,
-        ).color,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppTheme.neonBlue.withOpacity(0.1),
-          width: 1,
-        ),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppTheme.cardColor.withOpacity(0.9),
-            AppTheme.cardColor.withOpacity(0.8),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            spreadRadius: 0,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      margin: EdgeInsets.only(bottom: MCPDimension.spacingLarge),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 标题
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppTheme.neonBlue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.info_outline_rounded,
-                  color: AppTheme.neonBlue,
-                  size: 20,
-                ),
-              ),
-              SizedBox(width: 10),
-              Text(
-                '景点详情',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryTextColor,
-                ),
-              ),
-            ],
-          ),
-          
-          SizedBox(height: 16),
-          
-          // 设施图标
-          Wrap(
-            spacing: 20,
-            runSpacing: 16,
-            children: [
-              _buildFacilityIcon(
-                Icons.wifi_rounded,
-                'Wi-Fi',
-                AppTheme.facilityCommunication,
-              ),
-              _buildFacilityIcon(
-                Icons.restaurant_rounded,
-                '餐厅',
-                AppTheme.facilityDining,
-              ),
-              _buildFacilityIcon(
-                Icons.directions_bus_rounded,
-                '交通',
-                AppTheme.facilityTransport,
-              ),
-              _buildFacilityIcon(
-                Icons.accessible_rounded,
-                '无障碍',
-                AppTheme.facilityAccessibility,
-              ),
-              _buildFacilityIcon(
-                Icons.local_parking_rounded,
-                '停车场',
-                AppTheme.facilityTransport,
-              ),
-              _buildFacilityIcon(
-                Icons.shopping_bag_rounded,
-                '购物',
-                AppTheme.facilityShopping,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-  
-  // 构建设施图标
-  Widget _buildFacilityIcon(IconData icon, String label, Color color) {
-    return Column(
-      children: [
-        Container(
-          padding: EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            icon,
-            color: color,
-            size: 22,
-          ),
-        ),
-        SizedBox(height: 6),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: AppTheme.secondaryTextColor,
-          ),
-        ),
-      ],
-    );
-  }
-  
-  // 景点描述区
-  Widget _buildDescriptionSection() {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            spreadRadius: 0,
-            offset: Offset(0, 4),
-          ),
-        ],
-        border: Border.all(
-          color: AppTheme.secondaryTextColor.withOpacity(0.1),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 景点介绍
           Container(
-            padding: EdgeInsets.all(16),
+            width: double.infinity,
+            padding: EdgeInsets.all(MCPDimension.spacingLarge),
             decoration: BoxDecoration(
-              color: AppTheme.cardColor.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(16),
+              color: AppTheme.cardColor.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
               border: Border.all(
-                color: AppTheme.neonPurple.withOpacity(0.1),
+                color: AppTheme.neonBlue.withOpacity(0.1),
                 width: 1,
               ),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppTheme.cardColor.withOpacity(0.9),
+                  AppTheme.cardColor.withOpacity(0.8),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: MCPDimension.elevationLarge,
+                  spreadRadius: 0,
+                  offset: Offset(0, MCPDimension.elevationSmall),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _getSpotDescription(),
-                  style: TextStyle(
-                    color: AppTheme.primaryTextColor.withOpacity(0.9),
-                    fontSize: 15,
-                    height: 1.6,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-                
-                SizedBox(height: 16),
-                
-                Divider(
-                  color: AppTheme.secondaryTextColor.withOpacity(0.1),
-                  thickness: 1,
-                ),
-                
-                SizedBox(height: 16),
-                
-                // 最佳游览季节
-                Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: AppTheme.neonTeal.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.wb_sunny_rounded,
-                        color: AppTheme.neonTeal,
-                        size: 16,
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      '最佳季节: ',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppTheme.primaryTextColor,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        '春季和秋季 (3-5月, 9-11月)',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.secondaryTextColor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                
-                SizedBox(height: 12),
-                
-                // 适合人群
-                Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: AppTheme.neonPink.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.people_rounded,
-                        color: AppTheme.neonPink,
-                        size: 16,
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      '适合人群: ',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppTheme.primaryTextColor,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        '所有年龄段, 特别适合摄影爱好者',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.secondaryTextColor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 用户评论区
-  Widget _buildReviewSection() {
-    return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: MCPDimension.spacingLarge, 
-        vertical: MCPDimension.spacingLarge
-      ),
-      decoration: BoxDecoration(
-        color: Color(0xFF262645),
-        borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: MCPDimension.elevationLarge,
-            spreadRadius: 1,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 评论标题栏 - 简化设计
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: MCPDimension.spacingLarge,
-              vertical: MCPDimension.spacingMedium,
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.chat_bubble_outline_rounded,
-                  color: AppTheme.primaryTextColor,
-                  size: MCPDimension.iconSizeMedium,
-                ),
-                SizedBox(width: MCPDimension.spacingSmall),
-                Text(
-                  '用户评论',
+                  '景点基本信息',
                   style: TextStyle(
                     fontSize: MCPDimension.fontSizeLarge,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.primaryTextColor,
                   ),
                 ),
+                SizedBox(height: MCPDimension.spacingMedium),
+                _buildInfoRow(Icons.place_outlined, '地址', _getSpotLocation()),
+                SizedBox(height: MCPDimension.spacingMedium),
+                _buildInfoRow(Icons.access_time_rounded, '最佳游览时间', _getSpotBestTime()),
+                SizedBox(height: MCPDimension.spacingMedium),
+                _buildInfoRow(Icons.group_outlined, '适合人群', '所有年龄段，尤其是${_getSpotSuitableFor()}'),
+                SizedBox(height: MCPDimension.spacingMedium),
+                _buildInfoRow(Icons.phone_outlined, '联系电话', _getSpotContact()),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
 
-          // 评论列表 - 无边距设计
-          if (_reviews.isEmpty)
-            _buildEmptyReviews()
-          else
-            ListView.separated(
-              physics: NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              padding: EdgeInsets.symmetric(horizontal: MCPDimension.spacingMedium),
-              itemCount: _reviews.length,
-              separatorBuilder: (context, index) => Divider(
-                color: Colors.grey.withOpacity(0.1),
-                height: 1,
-              ),
-              itemBuilder: (context, index) {
-                return _buildReviewItem(_reviews[index]);
-              },
-            ),
-          
-          // 写评论按钮 - 新设计
-          Container(
-            width: double.infinity,
-            margin: EdgeInsets.all(MCPDimension.spacingMedium),
-            child: TextButton(
-              onPressed: _addNewReview,
-              style: TextButton.styleFrom(
-                backgroundColor: Color(0xFF4D79FF),
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: MCPDimension.spacingMedium),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+  // 构建信息行
+  Widget _buildInfoRow(IconData icon, String title, String content) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 340;
+    
+    return isSmallScreen
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Icon(
-                    Icons.edit_note_rounded,
-                    size: MCPDimension.iconSizeMedium,
+                  Container(
+                    padding: EdgeInsets.all(MCPDimension.spacingXSmall),
+                    decoration: BoxDecoration(
+                      color: AppTheme.neonBlue.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      icon,
+                      color: AppTheme.neonBlue,
+                      size: MCPDimension.iconSizeSmall,
+                    ),
                   ),
                   SizedBox(width: MCPDimension.spacingSmall),
                   Text(
-                    '写评论',
+                    title,
                     style: TextStyle(
-                      fontSize: MCPDimension.fontSizeMedium,
-                      fontWeight: FontWeight.bold,
+                      fontSize: MCPDimension.fontSizeSmall,
+                      color: AppTheme.secondaryTextColor,
                     ),
                   ),
                 ],
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  // 构建空评论状态
-  Widget _buildEmptyReviews() {
-    return Container(
-      padding: EdgeInsets.all(MCPDimension.spacingXLarge),
-      alignment: Alignment.center,
-      child: Column(
-        children: [
-          Icon(
-            Icons.chat_bubble_outline_rounded,
-            color: Colors.grey.withOpacity(0.5),
-            size: MCPDimension.iconSizeXXLarge,
-          ),
-          SizedBox(height: MCPDimension.spacingSmall),
-          Text(
-            '暂无评论',
-            style: TextStyle(
-              fontSize: MCPDimension.fontSizeMedium,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.secondaryTextColor,
-            ),
-          ),
-          SizedBox(height: MCPDimension.spacingXSmall),
-          Text(
-            '分享你的体验，帮助其他旅行者',
-            style: TextStyle(
-              fontSize: MCPDimension.fontSizeSmall,
-              color: AppTheme.secondaryTextColor.withOpacity(0.7),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-  
-  // 优化评论项样式
-  Widget _buildReviewItem(Map<String, dynamic> review) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        vertical: MCPDimension.spacingMedium,
-        horizontal: MCPDimension.spacingSmall,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 头部 - 用户信息
-          Row(
-            children: [
-              // 用户头像 - 简化设计
-              CircleAvatar(
-                backgroundImage: NetworkImage(review['avatar']),
-                radius: MCPDimension.spacingLarge,
-              ),
-              SizedBox(width: MCPDimension.spacingSmall),
-              
-              // 用户名和日期
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      review['userName'],
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: MCPDimension.fontSizeSmall,
-                        color: AppTheme.primaryTextColor,
-                      ),
-                    ),
-                    Text(
-                      review['date'],
-                      style: TextStyle(
-                        fontSize: MCPDimension.fontSizeXSmall,
-                        color: AppTheme.secondaryTextColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              // 评分 - 简化设计
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: MCPDimension.spacingSmall, 
-                  vertical: MCPDimension.spacingXXSmall
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(MCPDimension.radiusMedium),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.star, 
-                      color: Colors.amber, 
-                      size: MCPDimension.iconSizeSmall
-                    ),
-                    SizedBox(width: 2),
-                    Text(
-                      review['rating'].toString(),
-                      style: TextStyle(
-                        color: Colors.amber,
-                        fontWeight: FontWeight.bold,
-                        fontSize: MCPDimension.fontSizeXSmall,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          
-          SizedBox(height: MCPDimension.spacingMedium),
-          
-          // 评论内容
-          Text(
-            review['comment'],
-            style: TextStyle(
-              fontSize: MCPDimension.fontSizeSmall,
-              color: AppTheme.primaryTextColor,
-              height: 1.3,
-            ),
-          ),
-          
-          SizedBox(height: MCPDimension.spacingSmall),
-          
-          // 底部交互按钮 - 更紧凑的布局
-          Row(
-            children: [
-              _buildReviewActionButton(Icons.thumb_up_alt_outlined, '有用'),
-              SizedBox(width: MCPDimension.spacingMedium),
-              _buildReviewActionButton(Icons.comment_outlined, '回复'),
-              SizedBox(width: MCPDimension.spacingMedium),
-              _buildReviewActionButton(Icons.share_outlined, '分享'),
-              Spacer(),
-              Icon(
-                Icons.more_horiz,
-                color: AppTheme.secondaryTextColor,
-                size: MCPDimension.iconSizeSmall,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 评论操作按钮 - 更简洁的设计
-  Widget _buildReviewActionButton(IconData icon, String label) {
-    return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$label评论')),
-        );
-      },
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: MCPDimension.iconSizeSmall,
-            color: AppTheme.secondaryTextColor,
-          ),
-          SizedBox(width: MCPDimension.spacingXXSmall),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: MCPDimension.fontSizeXSmall,
-              color: AppTheme.secondaryTextColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 添加新评论的方法 - 优化UI
-  void _addNewReview() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
-        decoration: BoxDecoration(
-          color: AppTheme.backgroundColor,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(MCPDimension.radiusXXLarge),
-            topRight: Radius.circular(MCPDimension.radiusXXLarge),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: MCPDimension.elevationXLarge,
-              spreadRadius: 0,
-              offset: Offset(0, -5),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            // 顶部把手和标题
-            Container(
-              padding: EdgeInsets.symmetric(vertical: MCPDimension.spacingLarge),
-              child: Column(
-                children: [
-                  // 顶部把手
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: AppTheme.secondaryTextColor.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(MCPDimension.radiusXXSmall),
-                    ),
-                  ),
-                  SizedBox(height: MCPDimension.spacingLarge),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.edit_note_rounded,
-                        color: AppTheme.primaryTextColor,
-                        size: MCPDimension.iconSizeLarge,
-                      ),
-                      SizedBox(width: MCPDimension.spacingSmall),
-                      Text(
-                        '写评论',
-                        style: TextStyle(
-                          fontSize: MCPDimension.fontSizeXXLarge,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryTextColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            
-            Divider(color: Colors.grey.withOpacity(0.1)),
-            
-            // 内容
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(
-                  horizontal: MCPDimension.spacingXLarge, 
-                  vertical: MCPDimension.spacingMedium
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 景点信息提示
-                    Container(
-                      padding: MCPDimension.paddingLarge,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Color(0xFF3B5998).withOpacity(0.1),
-                            Color(0xFF4569cb).withOpacity(0.1),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
-                        border: Border.all(
-                          color: AppTheme.buttonColor.withOpacity(0.2),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: MCPDimension.paddingSmall,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(MCPDimension.radiusMedium),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: MCPDimension.elevationMedium,
-                                  spreadRadius: 0,
-                                ),
-                              ],
-                            ),
-                            child: Icon(
-                              Icons.place,
-                              color: AppTheme.buttonColor,
-                              size: MCPDimension.iconSizeMedium,
-                            ),
-                          ),
-                          SizedBox(width: MCPDimension.spacingLarge),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _getSpotName(),
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.primaryTextColor,
-                                    fontSize: MCPDimension.fontSizeLarge,
-                                  ),
-                                ),
-                                SizedBox(height: MCPDimension.spacingXXSmall),
-                                Text(
-                                  _getSpotLocation(),
-                                  style: TextStyle(
-                                    fontSize: MCPDimension.fontSizeSmall,
-                                    color: AppTheme.secondaryTextColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    
-                    SizedBox(height: MCPDimension.spacingXXLarge),
-                    
-                    // 选择评分 - 更现代的UI
-                    Text(
-                      '你的评分',
-                      style: TextStyle(
-                        fontSize: MCPDimension.fontSizeLarge,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.primaryTextColor,
-                      ),
-                    ),
-                    SizedBox(height: MCPDimension.spacingMedium),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        vertical: MCPDimension.spacingLarge, 
-                        horizontal: MCPDimension.spacingXSmall
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.cardColor,
-                        borderRadius: BorderRadius.circular(MCPDimension.radiusMedium),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(5, (index) => 
-                          Container(
-                            padding: MCPDimension.paddingSmall,
-                            decoration: index < 4 ? BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.amber.withOpacity(0.1),
-                            ) : null,
-                            child: Icon(
-                              index < 4 ? Icons.star_rounded : Icons.star_border_rounded,
-                              color: index < 4 ? Colors.amber : Colors.grey.withOpacity(0.5),
-                              size: MCPDimension.iconSizeXXLarge + 4,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    
-                    SizedBox(height: MCPDimension.spacingXXLarge),
-                    
-                    // 评论文本区 - 更现代的UI
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.edit_note, 
-                          color: AppTheme.buttonColor, 
-                          size: MCPDimension.iconSizeLarge
-                        ),
-                        SizedBox(width: MCPDimension.spacingSmall),
-                        Text(
-                          '评论内容',
-                          style: TextStyle(
-                            fontSize: MCPDimension.fontSizeLarge,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.primaryTextColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: MCPDimension.spacingMedium),
-                    TextField(
-                      decoration: InputDecoration(
-                        hintText: '这里的风景如何？服务怎么样？分享你的真实体验...',
-                        hintStyle: TextStyle(
-                          color: AppTheme.secondaryTextColor.withOpacity(0.6),
-                          fontSize: MCPDimension.fontSizeMedium,
-                        ),
-                        filled: true,
-                        fillColor: AppTheme.cardColor,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: MCPDimension.paddingLarge,
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
-                          borderSide: BorderSide(
-                            color: AppTheme.secondaryTextColor.withOpacity(0.1),
-                            width: 1,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
-                          borderSide: BorderSide(
-                            color: AppTheme.buttonColor.withOpacity(0.5),
-                            width: 1.5,
-                          ),
-                        ),
-                      ),
-                      style: TextStyle(
-                        color: AppTheme.primaryTextColor,
-                        fontSize: MCPDimension.fontSizeMedium,
-                      ),
-                      maxLines: 5,
-                    ),
-                    
-                    SizedBox(height: MCPDimension.spacingXXLarge),
-                    
-                    // 上传照片区 - 更现代的UI
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.photo_library_outlined, 
-                          color: AppTheme.buttonColor, 
-                          size: MCPDimension.iconSizeLarge
-                        ),
-                        SizedBox(width: MCPDimension.spacingSmall),
-                        Text(
-                          '添加照片',
-                          style: TextStyle(
-                            fontSize: MCPDimension.fontSizeLarge,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.primaryTextColor,
-                          ),
-                        ),
-                        Text(
-                          '（可选）',
-                          style: TextStyle(
-                            fontSize: MCPDimension.fontSizeSmall,
-                            color: AppTheme.secondaryTextColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: MCPDimension.spacingMedium),
-                    
-                    // 照片上传区 - 网格布局
-                    Container(
-                      padding: MCPDimension.paddingLarge,
-                      decoration: BoxDecoration(
-                        color: AppTheme.cardColor,
-                        borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
-                        border: Border.all(
-                          color: AppTheme.buttonColor.withOpacity(0.3),
-                          width: 1.5,
-                          style: BorderStyle.solid,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '美照让评论更生动',
-                            style: TextStyle(
-                              fontSize: MCPDimension.fontSizeSmall,
-                              color: AppTheme.secondaryTextColor,
-                            ),
-                          ),
-                          SizedBox(height: MCPDimension.spacingMedium),
-                          // 照片网格
-                          Row(
-                            children: [
-                              // 添加照片按钮
-                              Container(
-                                width: 80,
-                                height: 80,
-                                decoration: BoxDecoration(
-                                  color: AppTheme.backgroundColor,
-                                  borderRadius: BorderRadius.circular(MCPDimension.radiusMedium),
-                                  border: Border.all(
-                                    color: AppTheme.buttonColor.withOpacity(0.3),
-                                    width: 1.5,
-                                    style: BorderStyle.solid,
-                                  ),
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.add_photo_alternate,
-                                      color: AppTheme.buttonColor,
-                                      size: MCPDimension.iconSizeLarge + 4,
-                                    ),
-                                    SizedBox(height: MCPDimension.spacingXSmall),
-                                    Text(
-                                      '添加',
-                                      style: TextStyle(
-                                        fontSize: MCPDimension.fontSizeSmall,
-                                        color: AppTheme.buttonColor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(width: MCPDimension.spacingMedium),
-                              // 空照片位置示例
-                              Container(
-                                width: 80,
-                                height: 80,
-                                decoration: BoxDecoration(
-                                  color: AppTheme.backgroundColor.withOpacity(0.5),
-                                  borderRadius: BorderRadius.circular(MCPDimension.radiusMedium),
-                                  border: Border.all(
-                                    color: Colors.grey.withOpacity(0.2),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Icon(
-                                  Icons.photo_outlined,
-                                  color: Colors.grey.withOpacity(0.4),
-                                  size: MCPDimension.iconSizeLarge,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            
-            // 底部按钮区域
-            Container(
-              padding: MCPDimension.paddingLarge,
-              decoration: BoxDecoration(
-                color: AppTheme.backgroundColor,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(MCPDimension.radiusXXLarge),
-                  topRight: Radius.circular(MCPDimension.radiusXXLarge),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: MCPDimension.elevationMedium,
-                    offset: Offset(0, -MCPDimension.elevationSmall),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppTheme.secondaryTextColor,
-                        padding: EdgeInsets.symmetric(vertical: MCPDimension.spacingLarge),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(MCPDimension.radiusMedium),
-                        ),
-                      ),
-                      child: Text(
-                        '取消',
-                        style: TextStyle(
-                          fontSize: MCPDimension.fontSizeLarge,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: MCPDimension.spacingLarge),
-                  Expanded(
-                    flex: 7,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('评论已提交（演示）'),
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(MCPDimension.radiusMedium),
-                            ),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.buttonColor,
-                        padding: EdgeInsets.symmetric(vertical: MCPDimension.spacingLarge),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(MCPDimension.radiusMedium),
-                        ),
-                        elevation: MCPDimension.elevationSmall,
-                      ),
-                      child: Text(
-                        '发布评论',
-                        style: TextStyle(
-                          fontSize: MCPDimension.fontSizeLarge,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // 添加显示所有评论的方法
-  void _showAllReviews() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.9,
-        decoration: BoxDecoration(
-          color: AppTheme.backgroundColor,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 10,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            // 顶部把手和标题
-            Container(
-              padding: EdgeInsets.only(top: 16, bottom: 8),
-              child: Column(
-                children: [
-                  // 顶部把手
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.chat_bubble_outline_rounded,
-                        size: 22,
-                        color: AppTheme.primaryTextColor,
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        '全部评论',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryTextColor,
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppTheme.buttonColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '${_reviews.length}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.buttonColor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            
-            Divider(),
-            
-            // 筛选条件
-            Container(
-              height: 50,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                children: [
-                  _buildFilterChip('全部', isSelected: true),
-                  SizedBox(width: 8),
-                  _buildFilterChip('好评优先'),
-                  SizedBox(width: 8),
-                  _buildFilterChip('有图评论'),
-                  SizedBox(width: 8),
-                  _buildFilterChip('最新'),
-                  SizedBox(width: 8),
-                  _buildFilterChip('推荐'),
-                ],
-              ),
-            ),
-            
-            // 评论列表
-            Expanded(
-              child: ListView.separated(
-                padding: EdgeInsets.all(20),
-                itemCount: _reviews.length,
-                separatorBuilder: (context, index) => SizedBox(height: 16),
-                itemBuilder: (context, index) {
-                  return _buildReviewItem(_reviews[index]);
-                },
-              ),
-            ),
-            
-            // 底部写评论按钮
-            Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.backgroundColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 5,
-                    offset: Offset(0, -3),
-                  ),
-                ],
-              ),
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _addNewReview();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.buttonColor,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.edit_note, size: 20),
-                    SizedBox(width: 8),
-                    Text(
-                      '写评论',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // 评分条
-  Widget _buildRatingBar(String label, double percent) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 20,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: AppTheme.secondaryTextColor,
-            ),
-          ),
-        ),
-        SizedBox(width: 8),
-        Expanded(
-          child: Stack(
-            children: [
-              // 背景条
-              Container(
-                height: 6,
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-              // 前景条
-              Container(
-                height: 6,
-                width: percent * MediaQuery.of(context).size.width * 0.5,
-                decoration: BoxDecoration(
-                  color: Colors.amber,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(width: 8),
-        Text(
-          '${(percent * 100).toInt()}%',
-          style: TextStyle(
-            fontSize: 12,
-            color: AppTheme.secondaryTextColor,
-          ),
-        ),
-      ],
-    );
-  }
-
-  // 构建筛选条件选项
-  Widget _buildFilterChip(String label, {bool isSelected = false}) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? AppTheme.buttonColor : AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
-          color: isSelected ? Colors.white : AppTheme.secondaryTextColor,
-        ),
-      ),
-    );
-  }
-
-  // 动态应用栏 - 使用玻璃态效果
-  Widget _buildAnimatedAppBar(double statusBarHeight) {
-    final double opacity = (_scrollOffset / 200).clamp(0.0, 1.0);
-    
-    return ClipRRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: opacity * 10,
-          sigmaY: opacity * 10,
-        ),
-        child: Container(
-          padding: EdgeInsets.only(top: statusBarHeight),
-          height: 56 + statusBarHeight,
-          decoration: BoxDecoration(
-            color: AppTheme.backgroundColor.withOpacity(opacity * 0.8),
-            boxShadow: opacity > 0.7 
-                ? [BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: MCPDimension.elevationMedium,
-                    offset: Offset(0, MCPDimension.elevationSmall),
-                  )] 
-                : [],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // 返回按钮
-              Container(
-                width: MCPDimension.circleContainerMedium,
-                height: MCPDimension.circleContainerMedium,
-                margin: EdgeInsets.only(left: MCPDimension.spacingSmall),
-                decoration: BoxDecoration(
-                  color: (opacity > 0.5 ? Colors.black : Colors.white).withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: Icon(
-                    Icons.arrow_back,
-                    color: opacity > 0.5 ? AppTheme.primaryTextColor : Colors.white,
-                    size: MCPDimension.iconSizeMedium,
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-              
-              // 标题
-              if (opacity > 0.5)
-                Expanded(
-                  child: Text(
-                    _getSpotName(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: MCPDimension.fontSizeXLarge,
-                      color: AppTheme.primaryTextColor,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                )
-              else
-                Spacer(),
-              
-              // 收藏按钮
-              Container(
-                width: MCPDimension.circleContainerMedium,
-                height: MCPDimension.circleContainerMedium,
-                margin: EdgeInsets.only(right: MCPDimension.spacingSmall),
-                decoration: BoxDecoration(
-                  color: (opacity > 0.5 ? Colors.black : Colors.white).withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: Icon(
-                    _isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: _isFavorite 
-                        ? AppTheme.neonPink
-                        : (opacity > 0.5 ? AppTheme.primaryTextColor : Colors.white),
-                    size: MCPDimension.iconSizeMedium,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _isFavorite = !_isFavorite;
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(_isFavorite ? '已添加到收藏' : '已取消收藏'),
-                        duration: Duration(seconds: 1),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(MCPDimension.radiusMedium),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // 获取景点名称
-  String _getSpotName() {
-    final name = widget.spotData['name'];
-    if (name == null || name.toString().trim().isEmpty) {
-      return '景点';
-    }
-    return name.toString();
-  }
-  
-  // 辅助方法：获取景点地址
-  String _getSpotLocation() {
-    final location = widget.spotData['location'];
-    if (location == null || location.toString().trim().isEmpty) {
-      return '地址未知';
-    }
-    return location.toString();
-  }
-  
-  // 辅助方法：获取景点价格
-  String _getSpotPrice() {
-    final price = widget.spotData['price'];
-    if (price == null || price.toString().trim().isEmpty) {
-      return '88';
-    }
-    return price.toString();
-  }
-
-  // 辅助方法：获取景点标签列表
-  List<String> _getSpotTags() {
-    final tags = widget.spotData['tags'];
-    if (tags == null) {
-      return ['景点', '旅游', '推荐'];
-    }
-    
-    try {
-      return (tags as List).map((tag) => tag.toString()).toList();
-    } catch (e) {
-      // 如果转换失败，返回默认标签
-      return ['景点', '旅游', '推荐'];
-    }
-  }
-
-  // 获取景点图片URL
-  String _getSpotImage() {
-    final image = widget.spotData['image'];
-    if (image == null || image.toString().trim().isEmpty) {
-      // 返回一个可靠的默认图片URL
-      return 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80';
-    }
-    return image.toString();
-  }
-
-  // 辅助方法：获取景点开放时间
-  String _getSpotHours() {
-    final hours = widget.spotData['hours'];
-    if (hours == null || hours.toString().trim().isEmpty) {
-      return '全天开放';
-    }
-    return hours.toString();
-  }
-  
-  // 辅助方法：获取景点游览时长建议
-  String _getSpotDuration() {
-    final duration = widget.spotData['duration'];
-    if (duration == null || duration.toString().trim().isEmpty) {
-      return '1-2小时';
-    }
-    return duration.toString();
-  }
-
-  // 辅助方法：获取景点评分
-  String _getSpotRating() {
-    final rating = widget.spotData['rating'];
-    if (rating == null) {
-      return '4.5';
-    }
-    return rating.toString();
-  }
-
-  // 获取景点描述，处理空值或空字符串的情况
-  String _getSpotDescription() {
-    final description = widget.spotData['description'];
-    if (description == null || description.toString().trim().isEmpty) {
-      return '这个神奇的地方拥有壮观的自然景观和丰富的文化历史。无论是徒步爱好者、摄影师还是历史爱好者，这里都能满足您的需求。清新的空气、美丽的风景和友好的当地人将为您的旅行增添难忘的回忆。';
-    }
-    return description.toString();
-  }
-
-  // 打开地图应用
-  void _launchMaps() {
-    _closeBottomDrawer();
-    // 尝试打开Apple地图
-    String spotName = _getSpotName();
-    String location = _getSpotLocation();
-    launchUrl(Uri.parse('maps://?q=$spotName&address=$location'));
-  }
-
-  // 构建底部抽屉 - 改为更多服务
-  Widget _buildBottomDrawer(BuildContext context, double bottomPadding) {
-    final drawerHeight = MediaQuery.of(context).size.height * 0.6;
-
-    return Positioned(
-      bottom: -drawerHeight + _dragExtent,
-      left: 0,
-      right: 0,
-      child: AnimatedBuilder(
-      animation: _drawerAnimController,
-      builder: (context, child) {
-        final slideHeight = (1 - _drawerAnimation.value) * drawerHeight;
-        final scale = 0.9 + (0.1 * _drawerAnimation.value); // 缩放效果
-        final opacity = _drawerAnimation.value; // 透明度效果
-
-          return Opacity(
-            opacity: opacity,
-            child: Transform.scale(
-              scale: scale,
-              alignment: Alignment.bottomCenter,
-              child: child!,
-          ),
-        );
-      },
-      child: GestureDetector(
-        onVerticalDragUpdate: (details) {
-          // 跟踪拖拽的位置变化
-          if (details.delta.dy > 0) {
-            // 向下拖动时，根据拖动距离调整抽屉位置
-            setState(() {
-              _dragExtent += details.delta.dy; // 累加拖拽距离
-            });
-          }
-        },
-        onVerticalDragEnd: (details) {
-          // 根据拖拽速度决定是否关闭抽屉
-          if (details.primaryVelocity! > 300) {
-            _closeBottomDrawer();
-          } else if (_dragExtent > MediaQuery.of(context).size.height * 0.2) {
-            // 拖拽超过屏幕高度的20%也关闭抽屉
-            _closeBottomDrawer();
-          } else {
-            // 重置拖拽距离，抽屉回弹到原位
-            setState(() {
-              _dragExtent = 0;
-            });
-          }
-        },
-        child: Container(
-          height: drawerHeight,
-          decoration: BoxDecoration(
-            color: AppTheme.backgroundColor,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(30),
-              topRight: Radius.circular(30),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 16),
-              // 抽屉顶部把手
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppTheme.secondaryTextColor.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              SizedBox(height: 16),
-              // 抽屉标题
+              SizedBox(height: MCPDimension.spacingXXSmall),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: EdgeInsets.only(left: MCPDimension.spacingXXLarge),
                 child: Text(
-                    "服务与工具",
+                  content,
                   style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                    fontSize: MCPDimension.fontSizeMedium,
                     color: AppTheme.primaryTextColor,
                   ),
                 ),
               ),
-              SizedBox(height: 20),
-              // 抽屉选项列表
+            ],
+          )
+        : Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: EdgeInsets.all(MCPDimension.spacingXSmall),
+                decoration: BoxDecoration(
+                  color: AppTheme.neonBlue.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  color: AppTheme.neonBlue,
+                  size: MCPDimension.iconSizeSmall,
+                ),
+              ),
+              SizedBox(width: MCPDimension.spacingMedium),
               Expanded(
-                child: SingleChildScrollView(
-                  physics: BouncingScrollPhysics(),
-                  child: Column(
-                    children: [
-                      // 地图导航选项
-                      _buildDrawerOption(
-                        icon: Icons.map_outlined,
-                        title: "地图导航",
-                        subtitle: "打开地图应用进行导航",
-                        onTap: () {
-                          _launchMaps();
-                        },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: MCPDimension.fontSizeSmall,
+                        color: AppTheme.secondaryTextColor,
                       ),
-                      // 浏览器搜索选项
-                      _buildDrawerOption(
-                        icon: Icons.search_outlined,
-                          title: "查询更多信息",
-                          subtitle: "打开浏览器搜索更多景点信息",
-                        onTap: () {
-                          _launchBrowser();
-                        },
+                    ),
+                    SizedBox(height: MCPDimension.spacingXXSmall),
+                    Text(
+                      content,
+                      style: TextStyle(
+                        fontSize: MCPDimension.fontSizeMedium,
+                        color: AppTheme.primaryTextColor,
                       ),
-                        // 分享选项
-                      _buildDrawerOption(
-                          icon: Icons.share_outlined,
-                          title: "分享景点",
-                          subtitle: "将景点信息分享给好友",
-                        onTap: () {
-                            _shareSpot();
-                        },
-                      ),
-                        // 旅游攻略选项
-                      _buildDrawerOption(
-                        icon: Icons.travel_explore,
-                          title: "旅游攻略",
-                          subtitle: "查看更多相关旅游攻略",
-                        onTap: () {
-                            _launchTravelAppOrBrowser();
-                        },
-                        showDivider: false,
-                      ),
-                      SizedBox(height: 20),
-                      // 取消按钮
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: ElevatedButton(
-                          onPressed: () => _closeBottomDrawer(),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.cardColor,
-                            foregroundColor: AppTheme.buttonColor,
-                            minimumSize: Size(double.infinity, 56),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              side: BorderSide(
-                                color: AppTheme.secondaryTextColor.withOpacity(
-                                  0.3,
-                                ),
-                              ),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: Text(
-                              "关闭",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 40),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ],
+          );
+  }
+
+  // 构建描述部分
+  Widget _buildDescriptionSection() {
+    final horizontalPadding = Platform.isIOS ? MCPDimension.spacingLarge : MCPDimension.spacingMedium;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 340;
+    
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      margin: EdgeInsets.only(bottom: MCPDimension.spacingXXLarge),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '景点详情',
+            style: TextStyle(
+              fontSize: isSmallScreen ? MCPDimension.fontSizeLarge : MCPDimension.fontSizeXLarge,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primaryTextColor,
             ),
           ),
-        ),
+          SizedBox(height: MCPDimension.spacingLarge),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge),
+            decoration: BoxDecoration(
+              color: AppTheme.cardColor,
+              borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: MCPDimension.elevationLarge,
+                  spreadRadius: 0,
+                  offset: Offset(0, MCPDimension.elevationSmall),
+                ),
+              ],
+            ),
+            child: Text(
+              _getSpotDescription(),
+              style: TextStyle(
+                fontSize: isSmallScreen ? MCPDimension.fontSizeSmall : MCPDimension.fontSizeMedium,
+                color: AppTheme.primaryTextColor,
+                height: 1.6,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // 构建抽屉选项
-  Widget _buildDrawerOption({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-    bool showDivider = true,
-  }) {
-    return Column(
-      children: [
-        InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24.0,
-              vertical: 16.0,
+  // 构建评论部分
+  Widget _buildReviewSection() {
+    final horizontalPadding = Platform.isIOS ? MCPDimension.spacingLarge : MCPDimension.spacingMedium;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 340;
+    
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      margin: EdgeInsets.only(bottom: MCPDimension.spacingXXLarge),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '游客评论',
+                style: TextStyle(
+                  fontSize: isSmallScreen ? MCPDimension.fontSizeLarge : MCPDimension.fontSizeXLarge,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryTextColor,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  // 查看全部评论
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('查看全部评论')),
+                  );
+                },
+                child: Text(
+                  '查看全部 >',
+                  style: TextStyle(
+                    color: AppTheme.buttonColor,
+                    fontWeight: FontWeight.w500,
+                    fontSize: isSmallScreen ? MCPDimension.fontSizeSmall : MCPDimension.fontSizeMedium,
+                  ),
+                ),
+                style: TextButton.styleFrom(
+                  padding: isSmallScreen 
+                      ? EdgeInsets.symmetric(horizontal: MCPDimension.spacingSmall, vertical: MCPDimension.spacingXSmall)
+                      : null,
+                  minimumSize: Size.zero,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: MCPDimension.spacingMedium),
+          // 评论列表
+          ..._reviews.map((review) => _buildReviewCard(review)).toList(),
+        ],
+      ),
+    );
+  }
+
+  // 构建推荐部分
+  Widget _buildRecommendationSection() {
+    final horizontalPadding = Platform.isIOS ? MCPDimension.spacingLarge : MCPDimension.spacingMedium;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 340;
+    
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      margin: EdgeInsets.only(bottom: MCPDimension.spacingLarge),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '附近景点推荐',
+            style: TextStyle(
+              fontSize: isSmallScreen ? MCPDimension.fontSizeLarge : MCPDimension.fontSizeXLarge,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primaryTextColor,
             ),
-            child: Row(
+          ),
+          SizedBox(height: MCPDimension.spacingLarge),
+          // 推荐景点列表
+          Container(
+            height: isSmallScreen ? 180 : 200, // 在小屏幕上略微减小高度
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              physics: BouncingScrollPhysics(),
+              padding: EdgeInsets.symmetric(horizontal: MCPDimension.spacingXSmall),
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: AppTheme.buttonColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: AppTheme.buttonColor, size: 24),
+                _buildRecommendationCard(
+                  'https://picsum.photos/id/1061/300/200',
+                  '山水风景区',
+                  '距离: 5.2 公里',
+                  4.7,
                 ),
-                SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryTextColor,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.secondaryTextColor,
-                        ),
-                      ),
-                    ],
-                  ),
+                _buildRecommendationCard(
+                  'https://picsum.photos/id/1058/300/200',
+                  '历史博物馆',
+                  '距离: 3.8 公里',
+                  4.5,
                 ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  color: AppTheme.secondaryTextColor,
-                  size: 16,
+                _buildRecommendationCard(
+                  'https://picsum.photos/id/1050/300/200',
+                  '城市公园',
+                  '距离: 2.1 公里',
+                  4.8,
                 ),
               ],
             ),
           ),
-        ),
-        if (showDivider)
-          Padding(
-            padding: const EdgeInsets.only(left: 88.0),
-            child: Divider(
-              height: 1,
-              color: AppTheme.cardColor.withOpacity(0.2),
-            ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 
-  // 添加分享景点方法
+  // 构建动画AppBar
+  Widget _buildAnimatedAppBar(double statusBarHeight) {
+    // 计算透明度 - 基于滚动位置
+    final double opacity = (_scrollOffset / 150).clamp(0.0, 1.0);
+    final Color titleColor = Color.lerp(
+      Colors.transparent, 
+      AppTheme.primaryTextColor,
+      opacity,
+    ) ?? Colors.white;
+    
+    final Color backgroundColor = Color.lerp(
+      Colors.transparent,
+      AppTheme.backgroundColor,
+      opacity,
+    ) ?? Colors.transparent;
+    
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        boxShadow: opacity > 0.8 ? [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            spreadRadius: 0,
+            offset: Offset(0, 2),
+          ),
+        ] : [],
+      ),
+      padding: EdgeInsets.only(top: statusBarHeight),
+      alignment: Alignment.center,
+      child: Container(
+        height: kToolbarHeight,
+        padding: EdgeInsets.symmetric(
+          horizontal: screenWidth < 340 ? MCPDimension.spacingMedium : MCPDimension.spacingLarge
+        ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Center(
+                child: AnimatedOpacity(
+                  duration: Duration(milliseconds: 200),
+                  opacity: opacity,
+                  child: Text(
+                    _getSpotName(),
+                    style: TextStyle(
+                      color: titleColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: screenWidth < 340 ? MCPDimension.fontSizeMedium : MCPDimension.fontSizeLarge,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // 返回按钮
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: opacity < 0.5 ? 
+                      Colors.black.withOpacity(0.3) : 
+                      Colors.transparent,
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.arrow_back_ios_rounded, 
+                      color: opacity < 0.5 ? 
+                        Colors.white : 
+                        AppTheme.primaryTextColor,
+                      size: screenWidth < 340 ? 18 : 20,
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                    padding: EdgeInsets.all(screenWidth < 340 ? 8 : 12),
+                    constraints: BoxConstraints(),
+                  ),
+                ),
+                // 收藏按钮
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: opacity < 0.5 ? 
+                      Colors.black.withOpacity(0.3) : 
+                      Colors.transparent,
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      _isFavorite ? 
+                        Icons.favorite_rounded : 
+                        Icons.favorite_border_rounded,
+                      color: _isFavorite ? 
+                        AppTheme.neonPink : 
+                        (opacity < 0.5 ? Colors.white : AppTheme.primaryTextColor),
+                      size: screenWidth < 340 ? 18 : 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isFavorite = !_isFavorite;
+                      });
+                      // 添加触觉反馈
+                      HapticFeedback.lightImpact();
+                      
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(_isFavorite ? '已添加到收藏' : '已取消收藏'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                    padding: EdgeInsets.all(screenWidth < 340 ? 8 : 12),
+                    constraints: BoxConstraints(),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  // 获取景点名称
+  String _getSpotName() {
+    return widget.spotData['name'] ?? '景点名称';
+  }
+  
+  // 获取景点位置
+  String _getSpotLocation() {
+    return widget.spotData['location'] ?? '景点位置';
+  }
+  
+  // 获取景点评分
+  String _getSpotRating() {
+    return widget.spotData['rating']?.toString() ?? '4.8';
+  }
+  
+  // 获取景点价格
+  String _getSpotPrice() {
+    return widget.spotData['price']?.toString() ?? '88';
+  }
+
+  // 获取景点开放时间
+  String _getSpotHours() {
+    return widget.spotData['hours'] ?? '09:00-18:00';
+  }
+  
+  // 获取建议游览时间
+  String _getSpotDuration() {
+    return widget.spotData['duration'] ?? '2-3小时';
+  }
+
+  // 获取景点标签
+  List<String> _getSpotTags() {
+    return List<String>.from(widget.spotData['tags'] ?? ['自然', '风景', '文化', '热门']);
+  }
+
+  // 获取景点描述
+  String _getSpotDescription() {
+    return widget.spotData['description'] ?? 
+    '这是一个令人惊叹的自然景观，周围环绕着壮丽的山脉和清澈的湖泊。这里的空气清新，植被茂盛，是户外活动和放松身心的理想场所。不论是徒步、摄影还是简单地欣赏自然美景，这里都能给您带来独特的体验。\n\n历史上，这里曾是多个古代文明的交汇点，留下了丰富的文化遗产。现在，这里保留着原始的自然风貌，同时也提供了现代化的设施，确保游客在探索过程中既舒适又安全。'
+    '根据季节的不同，这里呈现出完全不同的景观：春天百花齐放，夏天绿意盎然，秋天色彩斑斓，冬天银装素裹。每个季节都有其独特的魅力，值得多次造访。\n\n游客可以在这里参加各种活动，包括导游带领的徒步旅行、文化体验、品尝当地美食等。周边还有多家风格各异的餐厅和商店，可以满足不同游客的需求。';
+  }
+
+  // 获取最佳游览时间
+  String _getSpotBestTime() {
+    return widget.spotData['bestTime'] ?? '春季和秋季 (3-5月, 9-11月)';
+  }
+
+  // 获取适合人群
+  String _getSpotSuitableFor() {
+    return widget.spotData['suitableFor'] ?? '摄影爱好者和自然探索者';
+  }
+
+  // 获取联系电话
+  String _getSpotContact() {
+    return widget.spotData['contact'] ?? '0571-88888888';
+  }
+
+  // 启动导航
+  void _launchMaps() {
+    final location = _getSpotLocation();
+    final name = _getSpotName();
+    
+    // 尝试使用平台特定的地图应用进行导航
+    String url;
+    if (Platform.isIOS) {
+      // iOS使用Apple Maps
+      url = 'https://maps.apple.com/?q=$name&address=$location';
+    } else {
+      // Android使用Google Maps
+      url = 'https://www.google.com/maps/search/?api=1&query=$location';
+    }
+    
+    _launchExternalApp(url);
+  }
+
+  // 分享景点
   void _shareSpot() {
-    _closeBottomDrawer();
     final spotName = _getSpotName();
     final location = _getSpotLocation();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('正在分享: $spotName - $location'))
+    final rating = _getSpotRating();
+    
+    final String shareText = 
+      '📍我发现了一个很棒的地方: $spotName\n'
+      '⭐评分: $rating\n'
+      '📌位置: $location\n'
+      '快来和我一起探索吧!\n'
+      '来自Travel Joy旅行应用';
+    
+    Share.share(
+      shareText,
+      subject: '分享景点: $spotName',
     );
-    // 实际项目中应调用分享插件
-  }
-
-  // 修改打开浏览器搜索功能
-  void _launchBrowser() {
-    _closeBottomDrawer();
-    // 打开搜索，不再强调票务信息
-    String spotName = _getSpotName();
-    launchUrl(Uri.parse('https://www.google.com/search?q=$spotName+旅游+攻略'));
-  }
-
-  // 打开旅游应用或浏览器
-  void _launchTravelAppOrBrowser() {
-    _closeBottomDrawer();
-    // 尝试打开旅游应用或后备打开浏览器
-    try {
-    launchUrl(Uri.parse('ctrip://'));
-    } catch (e) {
-      // 如果打不开应用，则打开网页版
-      launchUrl(Uri.parse('https://www.ctrip.com/'));
-    }
   }
 
   // 构建图片加载指示器
@@ -2519,179 +1710,567 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     );
   }
   
-  // 构建信息项
-  Widget _buildInfoItem({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return Column(
-      children: [
-        Icon(
-          icon,
-          color: AppThemeExtension.secondaryColor,
-          size: 22,
-        ),
-        SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: AppTheme.secondaryTextColor,
-          ),
-        ),
-        SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: AppTheme.primaryTextColor,
-          ),
-        ),
-      ],
-    );
-  }
-
-  // 添加回周边推荐区方法
-  Widget _buildRecommendationSection() {
-    // 简单模拟一些周边景点数据
-    final nearbySpots = [
-      {
-        'name': '${_getSpotName()}附近景点1',
-        'image': 'https://images.unsplash.com/photo-1544194215-541c2d3561a4?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
-        'distance': '500m',
-        'rating': '4.6',
-      },
-      {
-        'name': '${_getSpotName()}附近景点2',
-        'image': 'https://images.unsplash.com/photo-1526392060635-9d6019884377?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
-        'distance': '1.2km',
-        'rating': '4.3',
-      },
-      {
-        'name': '${_getSpotName()}附近景点3',
-        'image': 'https://images.unsplash.com/photo-1534512900-8ef06ef6307e?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
-        'distance': '2.5km',
-        'rating': '4.8',
-      },
-    ];
+  // 构建评论卡片
+  Widget _buildReviewCard(Map<String, dynamic> review) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 340;
     
     return Container(
-      margin: EdgeInsets.only(top: 16, bottom: 16),
+      width: double.infinity,
+      margin: EdgeInsets.only(bottom: MCPDimension.spacingLarge),
+      padding: EdgeInsets.all(isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge),
+      decoration: BoxDecoration(
+        color: AppTheme.cardColor,
+        borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: MCPDimension.elevationLarge,
+            spreadRadius: 0,
+            offset: Offset(0, MCPDimension.elevationSmall),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              '周边推荐',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.primaryTextColor,
-              ),
-            ),
-          ),
-          SizedBox(height: 8),
-          Container(
-            height: 180,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              itemCount: nearbySpots.length,
-              itemBuilder: (context, index) {
-                final spot = nearbySpots[index];
-                return Container(
-                  width: 160,
-                  margin: EdgeInsets.symmetric(horizontal: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 5,
-                        spreadRadius: 1,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 图片
-                      ClipRRect(
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(12),
-                          topRight: Radius.circular(12),
+          // 用户信息行
+          isSmallScreen
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 头像和名称
+                    Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
+                          child: Image.network(
+                            review['avatar'],
+                            width: 36,
+                            height: 36,
+                            fit: BoxFit.cover,
+                          ),
                         ),
-                        child: Image.network(
-                          spot['image']!,
-                          height: 100,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: 100,
-                              color: Colors.grey[300],
-                              child: Center(
-                                child: Icon(Icons.image, color: Colors.grey[400], size: 30),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      // 信息
-                      Padding(
-                        padding: EdgeInsets.all(8),
-                        child: Column(
+                        SizedBox(width: MCPDimension.spacingMedium),
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              spot['name']!,
+                              review['userName'],
                               style: TextStyle(
+                                fontSize: MCPDimension.fontSizeMedium,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 13,
+                                color: AppTheme.primaryTextColor,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
-                            SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Icon(Icons.location_on, size: 12, color: Colors.grey),
-                                SizedBox(width: 2),
-                                Text(
-                                  spot['distance']!,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                Spacer(),
-                                Icon(Icons.star, size: 12, color: Colors.amber),
-                                SizedBox(width: 2),
-                                Text(
-                                  spot['rating']!,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
+                            Text(
+                              review['date'],
+                              style: TextStyle(
+                                fontSize: MCPDimension.fontSizeSmall,
+                                color: AppTheme.secondaryTextColor,
+                              ),
                             ),
                           ],
                         ),
+                      ],
+                    ),
+                    SizedBox(height: MCPDimension.spacingSmall),
+                    // 评分
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: MCPDimension.spacingMedium,
+                        vertical: MCPDimension.spacingXSmall,
                       ),
-                    ],
-                  ),
-                );
-              },
+                      decoration: BoxDecoration(
+                        color: AppTheme.neonOrange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.star,
+                            color: AppTheme.neonOrange,
+                            size: MCPDimension.iconSizeSmall,
+                          ),
+                          SizedBox(width: 2),
+                          Text(
+                            review['rating'].toString(),
+                            style: TextStyle(
+                              fontSize: MCPDimension.fontSizeSmall,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.neonOrange,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // 头像和名称
+                    Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
+                          child: Image.network(
+                            review['avatar'],
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        SizedBox(width: MCPDimension.spacingMedium),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              review['userName'],
+                              style: TextStyle(
+                                fontSize: MCPDimension.fontSizeMedium,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryTextColor,
+                              ),
+                            ),
+                            Text(
+                              review['date'],
+                              style: TextStyle(
+                                fontSize: MCPDimension.fontSizeSmall,
+                                color: AppTheme.secondaryTextColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    // 评分
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: MCPDimension.spacingMedium,
+                        vertical: MCPDimension.spacingXSmall,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.neonOrange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.star,
+                            color: AppTheme.neonOrange,
+                            size: MCPDimension.iconSizeSmall,
+                          ),
+                          SizedBox(width: 2),
+                          Text(
+                            review['rating'].toString(),
+                            style: TextStyle(
+                              fontSize: MCPDimension.fontSizeSmall,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.neonOrange,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+          // 评论内容
+          SizedBox(height: MCPDimension.spacingMedium),
+          Text(
+            review['comment'],
+            style: TextStyle(
+              fontSize: isSmallScreen ? MCPDimension.fontSizeSmall : MCPDimension.fontSizeMedium,
+              color: AppTheme.primaryTextColor,
+              height: 1.5,
+            ),
+          ),
+          // 操作按钮
+          SizedBox(height: MCPDimension.spacingMedium),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              _buildReviewActionButton(Icons.thumb_up_outlined, '有用'),
+              SizedBox(width: MCPDimension.spacingLarge),
+              _buildReviewActionButton(Icons.reply_outlined, '回复'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 评论操作按钮
+  Widget _buildReviewActionButton(IconData icon, String label) {
+    return InkWell(
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(label)),
+        );
+      },
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: MCPDimension.iconSizeSmall,
+            color: AppTheme.secondaryTextColor,
+          ),
+          SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: MCPDimension.fontSizeSmall,
+              color: AppTheme.secondaryTextColor,
             ),
           ),
         ],
       ),
     );
+  }
+
+  // 构建推荐卡片
+  Widget _buildRecommendationCard(
+    String imageUrl,
+    String name,
+    String distance,
+    double rating,
+  ) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = screenWidth < 340 ? 140.0 : 160.0;
+    
+    return Container(
+      width: cardWidth,
+      margin: EdgeInsets.only(right: MCPDimension.spacingLarge),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: AppTheme.cardColor,
+        borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: MCPDimension.elevationLarge,
+            spreadRadius: 0,
+            offset: Offset(0, MCPDimension.elevationSmall),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 图片
+          Image.network(
+            imageUrl,
+            height: 100,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+          Padding(
+            padding: EdgeInsets.all(screenWidth < 340 ? MCPDimension.spacingSmall : MCPDimension.spacingMedium),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 名称
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontSize: screenWidth < 340 ? MCPDimension.fontSizeSmall : MCPDimension.fontSizeMedium,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryTextColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                // 距离
+                SizedBox(height: 4),
+                Text(
+                  distance,
+                  style: TextStyle(
+                    fontSize: MCPDimension.fontSizeSmall,
+                    color: AppTheme.secondaryTextColor,
+                  ),
+                ),
+                // 评分
+                SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.star,
+                      size: MCPDimension.iconSizeSmall,
+                      color: AppTheme.neonOrange,
+                    ),
+                    SizedBox(width: 4),
+                    Text(
+                      rating.toString(),
+                      style: TextStyle(
+                        fontSize: MCPDimension.fontSizeSmall,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.neonOrange,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 构建底部抽屉
+  Widget _buildBottomDrawer(BuildContext context, double bottomPadding) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 340;
+    final drawerHeight = MediaQuery.of(context).size.height * (isSmallScreen ? 0.7 : 0.6);
+    final isIOS = Platform.isIOS;
+
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: AnimatedBuilder(
+        animation: _drawerAnimController,
+        builder: (context, child) {
+          final slideHeight = (1 - _drawerAnimation.value) * drawerHeight;
+          return Transform.translate(
+            offset: Offset(0, slideHeight),
+            child: child,
+          );
+        },
+        child: GestureDetector(
+          onVerticalDragUpdate: (details) {
+            if (_isClosingDrawer) return;
+            
+            if (details.delta.dy > 0) {
+              setState(() {
+                _dragExtent += details.delta.dy;
+              });
+            }
+          },
+          onVerticalDragEnd: (details) {
+            if (_isClosingDrawer) return;
+            
+            if (details.primaryVelocity! > 300 || _dragExtent > 150) {
+              _closeBottomDrawer();
+            } else {
+              setState(() {
+                _dragExtent = 0;
+              });
+            }
+          },
+          child: Container(
+            height: drawerHeight,
+            decoration: BoxDecoration(
+              color: AppTheme.backgroundColor,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(MCPDimension.radiusXXLarge),
+                topRight: Radius.circular(MCPDimension.radiusXXLarge),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: MCPDimension.elevationXLarge,
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 顶部把手和标题
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    vertical: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge
+                  ),
+                  alignment: Alignment.center,
+                  child: Column(
+                    children: [
+                      // 顶部把手
+                      Container(
+                        width: 40,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: AppTheme.secondaryTextColor.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(MCPDimension.radiusXXSmall),
+                        ),
+                      ),
+                      SizedBox(height: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge),
+                      Text(
+                        '更多服务',
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? MCPDimension.fontSizeLarge : MCPDimension.fontSizeXLarge,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryTextColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                
+                Divider(color: Colors.grey.withOpacity(0.2)),
+                
+                // 服务选项列表
+                Expanded(
+                  child: ListView(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isIOS ? (isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge) : MCPDimension.spacingMedium,
+                      vertical: isSmallScreen ? MCPDimension.spacingSmall : MCPDimension.spacingMedium,
+                    ),
+                    children: [
+                      _buildServiceOption(
+                        icon: Icons.map_outlined,
+                        title: '地图导航',
+                        subtitle: '获取前往景点的导航路线',
+                        onTap: () => _launchMaps(),
+                        isSmallScreen: isSmallScreen,
+                      ),
+                      _buildServiceOption(
+                        icon: Icons.share_outlined,
+                        title: '分享景点',
+                        subtitle: '与朋友分享这个景点',
+                        onTap: () => _shareSpot(),
+                        isSmallScreen: isSmallScreen,
+                      ),
+                      _buildServiceOption(
+                        icon: Icons.camera_alt_outlined,
+                        title: '拍摄照片',
+                        subtitle: '记录美好瞬间',
+                        onTap: () {
+                          _closeBottomDrawer();
+                          _openCamera();
+                        },
+                        isSmallScreen: isSmallScreen,
+                      ),
+                      _buildServiceOption(
+                        icon: Icons.bookmark_outline,
+                        title: _isFavorite ? '取消收藏' : '收藏景点',
+                        subtitle: '保存到您的收藏列表',
+                        onTap: () {
+                          setState(() {
+                            _isFavorite = !_isFavorite;
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(_isFavorite ? '已添加到收藏' : '已取消收藏'),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                          _closeBottomDrawer();
+                        },
+                        isSmallScreen: isSmallScreen,
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // 底部关闭按钮
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isIOS ? (isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge) : MCPDimension.spacingMedium,
+                    vertical: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge,
+                  ),
+                  child: ElevatedButton(
+                    onPressed: _closeBottomDrawer,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.buttonColor,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(
+                        vertical: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
+                      ),
+                    ),
+                    child: Text(
+                      '关闭',
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? MCPDimension.fontSizeMedium : MCPDimension.fontSizeLarge,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                
+                // 底部安全区域
+                SizedBox(height: bottomPadding),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 服务选项项目
+  Widget _buildServiceOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool isSmallScreen = false,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(MCPDimension.radiusMedium),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          vertical: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge,
+          horizontal: isSmallScreen ? MCPDimension.spacingSmall : MCPDimension.spacingMedium,
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: isSmallScreen ? MCPDimension.paddingSmall : MCPDimension.paddingMedium,
+              decoration: BoxDecoration(
+                color: AppTheme.neonBlue.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: AppTheme.neonBlue,
+                size: isSmallScreen ? MCPDimension.iconSizeSmall : MCPDimension.iconSizeMedium,
+              ),
+            ),
+            SizedBox(width: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: isSmallScreen ? MCPDimension.fontSizeSmall : MCPDimension.fontSizeMedium,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryTextColor,
+                    ),
+                  ),
+                  SizedBox(height: isSmallScreen ? 2 : 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: isSmallScreen ? MCPDimension.fontSizeXSmall : MCPDimension.fontSizeSmall,
+                      color: AppTheme.secondaryTextColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: AppTheme.secondaryTextColor,
+              size: isSmallScreen ? MCPDimension.iconSizeSmall/2 : MCPDimension.iconSizeSmall,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 获取景点图片 URL
+  String _getSpotImage() {
+    return widget.spotData['imageUrl'] ?? 'https://picsum.photos/id/1031/800/600';
   }
 }
