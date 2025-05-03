@@ -2000,114 +2000,177 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     final screenWidth = MediaQuery.of(context).size.width;
     final cardWidth = screenWidth < 340 ? 140.0 : 160.0;
     
-    return Container(
-      width: cardWidth,
-      margin: EdgeInsets.only(right: MCPDimension.spacingLarge),
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: MCPDimension.elevationLarge,
-            spreadRadius: 0,
-            offset: Offset(0, MCPDimension.elevationSmall),
+    // 创建模拟景点数据，实际应用中应该从API获取
+    final recommendedSpotData = {
+      'id': '${name.hashCode}',  // 生成唯一ID
+      'name': name,
+      'location': '杭州市西湖区',
+      'rating': rating,
+      'price': (rating * 20).toInt(),
+      'imageUrl': imageUrl,
+      'hours': '09:00-18:00',
+      'duration': '2-3小时',
+      'tags': ['自然', '景观', '热门'],
+      'description': '这是$name的详细介绍。这里环境优美，景色宜人，是休闲娱乐的好去处。',
+      'bestTime': '春季和秋季',
+      'suitableFor': '所有年龄段游客',
+      'contact': '0571-88888888',
+    };
+    
+    return GestureDetector(
+      onTap: () {
+        // 点击时添加触觉反馈
+        HapticFeedback.lightImpact();
+        
+        // 导航到新的详情页面
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SpotDetailScreen(spotData: recommendedSpotData),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 图片
-          Container(
-            height: 100,
-            width: double.infinity,
-            child: Image.network(
-              imageUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 100,
-                  width: double.infinity,
-                  color: AppTheme.secondaryTextColor.withOpacity(0.1),
-                  child: Center(
-                    child: Icon(
-                      Icons.image,
-                      color: AppTheme.secondaryTextColor,
-                      size: MCPDimension.iconSizeLarge,
-                    ),
-                  ),
-                );
-              },
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Container(
-                  height: 100,
-                  width: double.infinity,
-                  color: AppTheme.secondaryTextColor.withOpacity(0.1),
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppTheme.buttonColor,
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                          : null,
-                    ),
-                  ),
-                );
-              },
+        );
+      },
+      child: Hero(
+        tag: 'spot_card_${recommendedSpotData['id']}',
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: cardWidth,
+            margin: EdgeInsets.only(right: MCPDimension.spacingLarge),
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: AppTheme.cardColor,
+              borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: MCPDimension.elevationLarge,
+                  spreadRadius: 0,
+                  offset: Offset(0, MCPDimension.elevationSmall),
+                ),
+              ],
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.all(screenWidth < 340 ? MCPDimension.spacingSmall : MCPDimension.spacingMedium),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 名称
-                Text(
-                  name,
-                  style: TextStyle(
-                    fontSize: screenWidth < 340 ? MCPDimension.fontSizeSmall : MCPDimension.fontSizeMedium,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryTextColor,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                // 距离
-                SizedBox(height: 4),
-                Text(
-                  distance,
-                  style: TextStyle(
-                    fontSize: MCPDimension.fontSizeSmall,
-                    color: AppTheme.secondaryTextColor,
-                  ),
-                ),
-                // 评分
-                SizedBox(height: 8),
-                Row(
+                // 图片
+                Stack(
                   children: [
-                    Icon(
-                      Icons.star,
-                      size: MCPDimension.iconSizeSmall,
-                      color: AppTheme.neonOrange,
+                    Container(
+                      height: 100,
+                      width: double.infinity,
+                      child: Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            height: 100,
+                            width: double.infinity,
+                            color: AppTheme.secondaryTextColor.withOpacity(0.1),
+                            child: Center(
+                              child: Icon(
+                                Icons.image,
+                                color: AppTheme.secondaryTextColor,
+                                size: MCPDimension.iconSizeLarge,
+                              ),
+                            ),
+                          );
+                        },
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            height: 100,
+                            width: double.infinity,
+                            color: AppTheme.secondaryTextColor.withOpacity(0.1),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppTheme.buttonColor,
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
-                    SizedBox(width: 4),
-                    Text(
-                      rating.toString(),
-                      style: TextStyle(
-                        fontSize: MCPDimension.fontSizeSmall,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.neonOrange,
+                    // 添加点击提示蒙层
+                    Positioned.fill(
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          splashColor: AppTheme.buttonColor.withOpacity(0.2),
+                          highlightColor: Colors.transparent,
+                          onTap: () {}, // 空函数，实际点击由外层GestureDetector处理
+                        ),
                       ),
                     ),
                   ],
                 ),
+                Padding(
+                  padding: EdgeInsets.all(screenWidth < 340 ? MCPDimension.spacingSmall : MCPDimension.spacingMedium),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 名称
+                      Text(
+                        name,
+                        style: TextStyle(
+                          fontSize: screenWidth < 340 ? MCPDimension.fontSizeSmall : MCPDimension.fontSizeMedium,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryTextColor,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      // 距离
+                      SizedBox(height: 4),
+                      Text(
+                        distance,
+                        style: TextStyle(
+                          fontSize: MCPDimension.fontSizeSmall,
+                          color: AppTheme.secondaryTextColor,
+                        ),
+                      ),
+                      // 评分
+                      SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.star,
+                                size: MCPDimension.iconSizeSmall,
+                                color: AppTheme.neonOrange,
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                rating.toString(),
+                                style: TextStyle(
+                                  fontSize: MCPDimension.fontSizeSmall,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.neonOrange,
+                                ),
+                              ),
+                            ],
+                          ),
+                          // 添加箭头提示可点击查看详情
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: MCPDimension.iconSizeXSmall,
+                            color: AppTheme.secondaryTextColor.withOpacity(0.7),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -2162,9 +2225,10 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withOpacity(0.15),
                   blurRadius: MCPDimension.elevationXLarge,
                   spreadRadius: 0,
+                  offset: Offset(0, -2),
                 ),
               ],
             ),
@@ -2173,8 +2237,16 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
               children: [
                 // 顶部把手和标题
                 Container(
+                  width: double.infinity,
                   padding: EdgeInsets.symmetric(
                     vertical: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardColor.withOpacity(0.4),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(MCPDimension.radiusXXLarge),
+                      topRight: Radius.circular(MCPDimension.radiusXXLarge),
+                    ),
                   ),
                   alignment: Alignment.center,
                   child: Column(
@@ -2202,8 +2274,6 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                   ),
                 ),
                 
-                Divider(color: Colors.grey.withOpacity(0.2)),
-                
                 // 服务选项列表
                 Expanded(
                   child: ListView(
@@ -2219,6 +2289,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                         onTap: () => _launchMaps(),
                         isSmallScreen: isSmallScreen,
                       ),
+                      Divider(height: 1, color: Colors.grey.withOpacity(0.1)),
                       _buildServiceOption(
                         icon: Icons.share_outlined,
                         title: '分享景点',
@@ -2226,6 +2297,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                         onTap: () => _shareSpot(),
                         isSmallScreen: isSmallScreen,
                       ),
+                      Divider(height: 1, color: Colors.grey.withOpacity(0.1)),
                       _buildServiceOption(
                         icon: Icons.camera_alt_outlined,
                         title: '拍摄照片',
@@ -2236,6 +2308,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                         },
                         isSmallScreen: isSmallScreen,
                       ),
+                      Divider(height: 1, color: Colors.grey.withOpacity(0.1)),
                       _buildServiceOption(
                         icon: Icons.bookmark_outline,
                         title: _isFavorite ? '取消收藏' : '收藏景点',
@@ -2265,25 +2338,60 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                     horizontal: screenWidth < 360 ? MCPDimension.spacingMedium : MCPDimension.spacingLarge,
                     vertical: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge,
                   ),
-                  child: ElevatedButton(
-                    onPressed: _closeBottomDrawer,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.buttonColor,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(
-                        vertical: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
-                      ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppTheme.backgroundColor.withOpacity(0),
+                        AppTheme.backgroundColor,
+                      ],
+                      stops: [0.0, 0.3],
                     ),
-                    child: Text(
-                      '关闭',
-                      style: TextStyle(
-                        fontSize: isSmallScreen ? MCPDimension.fontSizeMedium : MCPDimension.fontSizeLarge,
-                        fontWeight: FontWeight.bold,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _closeBottomDrawer,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.buttonColor,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(
+                              vertical: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            '关闭',
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? MCPDimension.fontSizeMedium : MCPDimension.fontSizeLarge,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                      SizedBox(width: MCPDimension.spacingMedium),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppTheme.cardColor.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
+                        ),
+                        child: IconButton(
+                          icon: Icon(Icons.more_horiz, color: AppTheme.secondaryTextColor),
+                          onPressed: () {
+                            // 显示更多选项的菜单
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('更多选项'), behavior: SnackBarBehavior.floating)
+                            );
+                          },
+                          padding: EdgeInsets.all(isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 
@@ -2305,58 +2413,71 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     required VoidCallback onTap,
     bool isSmallScreen = false,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(MCPDimension.radiusMedium),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          vertical: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge,
-          horizontal: isSmallScreen ? MCPDimension.spacingSmall : MCPDimension.spacingMedium,
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: isSmallScreen ? MCPDimension.paddingSmall : MCPDimension.paddingMedium,
-              decoration: BoxDecoration(
-                color: AppTheme.neonBlue.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                color: AppTheme.neonBlue,
-                size: isSmallScreen ? MCPDimension.iconSizeSmall : MCPDimension.iconSizeMedium,
-              ),
-            ),
-            SizedBox(width: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: isSmallScreen ? MCPDimension.fontSizeSmall : MCPDimension.fontSizeMedium,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryTextColor,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(MCPDimension.radiusMedium),
+        splashColor: AppTheme.neonBlue.withOpacity(0.08),
+        highlightColor: AppTheme.neonBlue.withOpacity(0.05),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            vertical: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge,
+            horizontal: isSmallScreen ? MCPDimension.spacingSmall : MCPDimension.spacingMedium,
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: isSmallScreen ? MCPDimension.paddingSmall : MCPDimension.paddingMedium,
+                decoration: BoxDecoration(
+                  color: AppTheme.neonBlue.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.neonBlue.withOpacity(0.12),
+                      blurRadius: 8,
+                      spreadRadius: 0,
+                      offset: Offset(0, 2),
                     ),
-                  ),
-                  SizedBox(height: isSmallScreen ? 2 : 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: isSmallScreen ? MCPDimension.fontSizeXSmall : MCPDimension.fontSizeSmall,
-                      color: AppTheme.secondaryTextColor,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
+                child: Icon(
+                  icon,
+                  color: AppTheme.neonBlue,
+                  size: isSmallScreen ? MCPDimension.iconSizeSmall : MCPDimension.iconSizeMedium,
+                ),
               ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: AppTheme.secondaryTextColor,
-              size: isSmallScreen ? MCPDimension.iconSizeSmall/2 : MCPDimension.iconSizeSmall,
-            ),
-          ],
+              SizedBox(width: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? MCPDimension.fontSizeSmall : MCPDimension.fontSizeMedium,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryTextColor,
+                      ),
+                    ),
+                    SizedBox(height: isSmallScreen ? 2 : 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? MCPDimension.fontSizeXSmall : MCPDimension.fontSizeSmall,
+                        color: AppTheme.secondaryTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: AppTheme.secondaryTextColor,
+                size: isSmallScreen ? MCPDimension.iconSizeSmall/2 : MCPDimension.iconSizeSmall,
+              ),
+            ],
+          ),
         ),
       ),
     );
