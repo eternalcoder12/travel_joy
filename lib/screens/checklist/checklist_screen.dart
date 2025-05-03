@@ -8,12 +8,14 @@ class ChecklistItem {
   final String name;
   final String category;
   final bool isEssential;
+  final String description;
   bool isChecked;
 
   ChecklistItem({
     required this.id,
     required this.name,
     required this.category,
+    this.description = '',
     this.isEssential = false,
     this.isChecked = false,
   });
@@ -101,6 +103,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
 
   // 文本控制器
   final TextEditingController _newItemController = TextEditingController();
+  final TextEditingController _newItemDescController = TextEditingController();
 
   // 新添加的项目分类
   String _newItemCategory = 'clothing';
@@ -146,6 +149,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
         id: '1',
         name: 'T恤',
         category: 'clothing',
+        description: '舒适透气的短袖T恤',
         isEssential: true,
         isChecked: false,
       ),
@@ -153,6 +157,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
         id: '2',
         name: '裤子',
         category: 'clothing',
+        description: '适合旅行的休闲裤',
         isEssential: true,
         isChecked: false,
       ),
@@ -160,6 +165,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
         id: '3',
         name: '袜子',
         category: 'clothing',
+        description: '每天至少一双干净袜子',
         isEssential: true,
         isChecked: false,
       ),
@@ -167,6 +173,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
         id: '4',
         name: '内衣',
         category: 'clothing',
+        description: '每天至少一套干净内衣',
         isEssential: true,
         isChecked: false,
       ),
@@ -174,6 +181,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
         id: '5',
         name: '外套',
         category: 'clothing',
+        description: '根据目的地气候选择合适的外套',
         isEssential: false,
         isChecked: false,
       ),
@@ -181,6 +189,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
         id: '6',
         name: '牙刷',
         category: 'toiletries',
+        description: '保持口腔卫生必备',
         isEssential: true,
         isChecked: false,
       ),
@@ -188,6 +197,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
         id: '7',
         name: '牙膏',
         category: 'toiletries',
+        description: '旅行装牙膏',
         isEssential: true,
         isChecked: false,
       ),
@@ -195,6 +205,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
         id: '8',
         name: '洗发水',
         category: 'toiletries',
+        description: '旅行装洗发水或干洗喷雾',
         isEssential: false,
         isChecked: false,
       ),
@@ -202,6 +213,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
         id: '9',
         name: '护肤品',
         category: 'toiletries',
+        description: '基础护肤品套装',
         isEssential: false,
         isChecked: false,
       ),
@@ -209,6 +221,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
         id: '10',
         name: '手机充电器',
         category: 'electronics',
+        description: '与手机匹配的充电器和数据线',
         isEssential: true,
         isChecked: false,
       ),
@@ -216,6 +229,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
         id: '11',
         name: '相机',
         category: 'electronics',
+        description: '记录美好时刻',
         isEssential: false,
         isChecked: false,
       ),
@@ -223,6 +237,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
         id: '12',
         name: '身份证',
         category: 'documents',
+        description: '重要身份证明文件',
         isEssential: true,
         isChecked: false,
       ),
@@ -230,6 +245,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
         id: '13',
         name: '护照',
         category: 'documents',
+        description: '国际旅行必备证件',
         isEssential: true,
         isChecked: false,
       ),
@@ -237,6 +253,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
         id: '14',
         name: '银行卡',
         category: 'documents',
+        description: '支付手段，建议带备用卡',
         isEssential: true,
         isChecked: false,
       ),
@@ -244,6 +261,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
         id: '15',
         name: '感冒药',
         category: 'medicine',
+        description: '常用药物以防不适',
         isEssential: false,
         isChecked: false,
       ),
@@ -251,6 +269,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
         id: '16',
         name: '创可贴',
         category: 'medicine',
+        description: '处理小伤口',
         isEssential: false,
         isChecked: false,
       ),
@@ -258,6 +277,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
         id: '17',
         name: '太阳镜',
         category: 'others',
+        description: '保护眼睛，增添造型',
         isEssential: false,
         isChecked: false,
       ),
@@ -265,6 +285,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
         id: '18',
         name: '防晒霜',
         category: 'others',
+        description: '防止紫外线伤害',
         isEssential: true,
         isChecked: false,
       ),
@@ -297,6 +318,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
     _animationController.dispose();
     _backgroundAnimController.dispose();
     _newItemController.dispose();
+    _newItemDescController.dispose();
     super.dispose();
   }
 
@@ -670,15 +692,28 @@ class _ChecklistScreenState extends State<ChecklistScreen>
                       item.isEssential ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
-              subtitle: Text(
-                item.isEssential ? '必备物品' : category.name,
-                style: TextStyle(
-                  color:
-                      item.isEssential
-                          ? AppTheme.neonYellow
-                          : AppTheme.secondaryTextColor,
-                  fontSize: 12,
-                ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (item.description.isNotEmpty)
+                    Text(
+                      item.description,
+                      style: TextStyle(
+                        color: AppTheme.secondaryTextColor,
+                        fontSize: 12,
+                      ),
+                    ),
+                  Text(
+                    item.isEssential ? '必备物品' : category.name,
+                    style: TextStyle(
+                      color:
+                          item.isEssential
+                              ? AppTheme.neonYellow
+                              : AppTheme.secondaryTextColor,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ),
               trailing: Checkbox(
                 value: item.isChecked,
@@ -726,161 +761,266 @@ class _ChecklistScreenState extends State<ChecklistScreen>
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      '添加物品',
-                      style: TextStyle(
-                        color: AppTheme.primaryTextColor,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    // 标题栏带图标
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.luggage_outlined,
+                          color: AppTheme.neonGreen,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 10),
+                        const Text(
+                          '添加行李物品',
+                          style: TextStyle(
+                            color: AppTheme.primaryTextColor,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                    TextField(
-                      controller: _newItemController,
-                      decoration: InputDecoration(
-                        hintText: '输入物品名称',
-                        hintStyle: TextStyle(
-                          color: AppTheme.secondaryTextColor,
+                    const SizedBox(height: 24),
+
+                    // 物品名称输入框
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.cardColor,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: TextField(
+                        controller: _newItemController,
+                        decoration: const InputDecoration(
+                          hintText: '物品名称',
+                          hintStyle: TextStyle(
+                            color: AppTheme.secondaryTextColor,
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 18,
+                          ),
                         ),
-                        filled: true,
-                        fillColor: AppTheme.cardColor.withOpacity(0.3),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        prefixIcon: const Icon(
-                          Icons.shopping_bag_outlined,
+                        style: const TextStyle(
                           color: AppTheme.primaryTextColor,
                         ),
                       ),
-                      style: const TextStyle(color: AppTheme.primaryTextColor),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      '选择分类',
-                      style: TextStyle(
-                        color: AppTheme.primaryTextColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+
+                    // 物品描述
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.cardColor,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: TextField(
+                        controller: _newItemDescController,
+                        decoration: const InputDecoration(
+                          hintText: '物品描述',
+                          hintStyle: TextStyle(
+                            color: AppTheme.secondaryTextColor,
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 18,
+                          ),
+                        ),
+                        style: const TextStyle(
+                          color: AppTheme.primaryTextColor,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    Container(
-                      height: 60,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: _categories.length - 1, // 排除"全部"选项
-                        itemBuilder: (context, index) {
-                          final category = _categories[index + 1]; // 跳过"全部"
-                          final isSelected = category.id == _newItemCategory;
+                    const SizedBox(height: 16),
 
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _newItemCategory = category.id;
-                              });
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.only(right: 10),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
+                    // 物品分类
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.cardColor,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(top: 8, bottom: 4),
+                            child: Text(
+                              '物品分类',
+                              style: TextStyle(
+                                color: AppTheme.secondaryTextColor,
+                                fontSize: 14,
                               ),
-                              decoration: BoxDecoration(
-                                color:
-                                    isSelected
-                                        ? category.color.withOpacity(0.2)
-                                        : AppTheme.cardColor.withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(30),
-                                border: Border.all(
-                                  color:
-                                      isSelected
-                                          ? category.color
-                                          : Colors.transparent,
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    category.icon,
-                                    color:
-                                        isSelected
-                                            ? category.color
-                                            : AppTheme.primaryTextColor,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    category.name,
-                                    style: TextStyle(
+                            ),
+                          ),
+                          SizedBox(
+                            height: 50,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: _categories.length - 1, // 排除"全部"选项
+                              itemBuilder: (context, index) {
+                                final category =
+                                    _categories[index + 1]; // 跳过"全部"
+                                final isSelected =
+                                    category.id == _newItemCategory;
+
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _newItemCategory = category.id;
+                                    });
+                                  },
+                                  child: Container(
+                                    margin: const EdgeInsets.only(
+                                      right: 10,
+                                      bottom: 8,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
                                       color:
                                           isSelected
-                                              ? category.color
-                                              : AppTheme.primaryTextColor,
+                                              ? category.color.withOpacity(0.2)
+                                              : AppTheme.backgroundColor
+                                                  .withOpacity(0.3),
+                                      borderRadius: BorderRadius.circular(30),
+                                      border: Border.all(
+                                        color:
+                                            isSelected
+                                                ? category.color
+                                                : Colors.transparent,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          category.icon,
+                                          color:
+                                              isSelected
+                                                  ? category.color
+                                                  : AppTheme.primaryTextColor,
+                                          size: 18,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          category.name,
+                                          style: TextStyle(
+                                            color:
+                                                isSelected
+                                                    ? category.color
+                                                    : AppTheme.primaryTextColor,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ],
-                              ),
+                                );
+                              },
                             ),
-                          );
-                        },
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
+
+                    // 推荐选项
                     Row(
                       children: [
-                        Checkbox(
-                          value: _newItemIsEssential,
-                          onChanged: (value) {
-                            setState(() {
-                              _newItemIsEssential = value ?? false;
-                            });
-                          },
-                          activeColor: AppTheme.neonYellow,
-                          checkColor: AppTheme.backgroundColor,
+                        SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: Checkbox(
+                            value: _newItemIsEssential,
+                            onChanged: (value) {
+                              setState(() {
+                                _newItemIsEssential = value ?? false;
+                              });
+                            },
+                            activeColor: AppTheme.neonBlue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
                         ),
+                        const SizedBox(width: 8),
                         const Text(
-                          '标记为必备物品',
-                          style: TextStyle(color: AppTheme.primaryTextColor),
+                          '我向其他用户推荐这个物品',
+                          style: TextStyle(
+                            color: AppTheme.primaryTextColor,
+                            fontSize: 14,
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppTheme.primaryTextColor,
-                              side: BorderSide(
-                                color: AppTheme.primaryTextColor.withOpacity(
-                                  0.3,
-                                ),
+                    const SizedBox(height: 16),
+
+                    // 奖励提示
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: AppTheme.neonYellow.withOpacity(0.5),
+                          width: 1,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.emoji_events,
+                            color: AppTheme.neonYellow,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '提供真实有效的行李物品信息将获得5积分奖励!',
+                              style: TextStyle(
+                                color: AppTheme.neonYellow,
+                                fontSize: 13,
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
                             ),
-                            child: const Text('取消'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // 提交按钮
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _addNewItem();
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.neonGreen,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              _addNewItem();
-                              Navigator.pop(context);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.buttonColor,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                            child: const Text('添加'),
+                        child: const Text(
+                          '提交行李物品',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
@@ -896,10 +1036,13 @@ class _ChecklistScreenState extends State<ChecklistScreen>
     final name = _newItemController.text.trim();
     if (name.isEmpty) return;
 
+    final desc = _newItemDescController.text.trim();
+
     final newItem = ChecklistItem(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: name,
       category: _newItemCategory,
+      description: desc,
       isEssential: _newItemIsEssential,
       isChecked: false,
     );
@@ -909,6 +1052,7 @@ class _ChecklistScreenState extends State<ChecklistScreen>
       _updateFilteredItems();
       _updateProgress();
       _newItemController.clear();
+      _newItemDescController.clear();
       _newItemIsEssential = false;
     });
   }
