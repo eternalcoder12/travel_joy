@@ -134,12 +134,8 @@ class _TravelTimelineScreenState extends State<TravelTimelineScreen>
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.transparent,
-              border: Border.all(
-                color: AppTheme.neonBlue.withOpacity(0.3),
-                width: 1,
-              ),
-              borderRadius: BorderRadius.circular(8),
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.arrow_back,
