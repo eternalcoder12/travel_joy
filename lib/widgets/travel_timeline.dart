@@ -53,7 +53,12 @@ class TravelTimeline extends StatelessWidget {
               duration: 800 + index * 100,
               child: Container(
                 width: double.infinity,
-                margin: const EdgeInsets.fromLTRB(16, 12, 0, 8), // 添加左侧间距16像素
+                margin: const EdgeInsets.fromLTRB(
+                  12,
+                  12,
+                  0,
+                  8,
+                ), // 减小左侧间距，从16改为12
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.centerLeft,
@@ -72,20 +77,20 @@ class TravelTimeline extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ), // 增加内边距
+                        horizontal: 14, // 减小水平内边距，从16改为14
+                        vertical: 6, // 减小垂直内边距，从8改为6
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.neonBlue.withOpacity(0.3),
                         borderRadius: const BorderRadius.only(
-                          topRight: Radius.circular(12), // 减小圆角
-                          bottomRight: Radius.circular(12),
+                          topRight: Radius.circular(10), // 减小圆角，从12改为10
+                          bottomRight: Radius.circular(10), // 减小圆角，从12改为10
                         ),
                       ),
                       child: Text(
                         year,
                         style: const TextStyle(
-                          fontSize: 16, // 略微增大字体
+                          fontSize: 14, // 减小字体大小，从16改为14
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -162,34 +167,27 @@ class TravelTimeline extends StatelessWidget {
     final travelMood = _getRandomTravelMood(index);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 8, 4), // 减少左侧间距，原来是24
+      padding: const EdgeInsets.fromLTRB(12, 4, 8, 4), // 再次减少左侧间距，从16改为12
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 左侧时间线 - 进一步精简
           SizedBox(
-            width: 30, // 再次减小宽度，原来是36
+            width: 26, // 再次减小宽度，从30改为26
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // 日期显示 - 更加现代化
                 Container(
-                  width: 28, // 减小宽度，原来是32
-                  height: 28, // 减小高度，原来是32
+                  width: 24, // 减小宽度，从28改为24
+                  height: 24, // 减小高度，从28改为24
                   decoration: BoxDecoration(
                     color: AppTheme.backgroundColor.withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(6), // 减小圆角，从8改为6
                     border: Border.all(
                       color: dotColor.withOpacity(0.3),
                       width: 1,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: dotColor.withOpacity(0.15),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -198,7 +196,7 @@ class TravelTimeline extends StatelessWidget {
                         _getMonth(event.date),
                         style: TextStyle(
                           color: dotColor,
-                          fontSize: 10, // 减小字号，原来是没有明确指定
+                          fontSize: 8, // 减小字号，从10改为8
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -206,7 +204,7 @@ class TravelTimeline extends StatelessWidget {
                         _getDay(event.date),
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 14,
+                          fontSize: 12, // 减小字号，从14改为12
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -216,8 +214,8 @@ class TravelTimeline extends StatelessWidget {
                 // 线条
                 if (!isLast)
                   Container(
-                    width: 1.5,
-                    height: 50,
+                    width: 1, // 减小宽度，从1.5改为1
+                    height: 46, // 减小高度，从50改为46
                     margin: const EdgeInsets.only(top: 4),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -427,6 +425,12 @@ class TravelTimeline extends StatelessWidget {
       final parts = date.split('年');
       final monthParts = parts[1].split('月');
       return '${monthParts[0]}月';
+    }
+    // 直接返回月份数字，不带"月"字
+    if (date.contains('-')) {
+      return date.split('-')[1];
+    } else if (date.contains('年') && date.contains('月')) {
+      return date.split('年')[1].split('月')[0];
     }
     return '';
   }
