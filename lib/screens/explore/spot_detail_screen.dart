@@ -589,38 +589,38 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                     ],
                   )
                 : Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildInfoCard(
-                        icon: Icons.attach_money_rounded,
-                        title: '门票',
-                        value: '¥${_getSpotPrice()}',
-                        color: AppTheme.neonTeal,
-                      ),
-                      Container(
-                        height: MCPDimension.cardHeightSmall * 0.5,
-                        width: 1,
-                        color: AppTheme.secondaryTextColor.withOpacity(0.2),
-                      ),
-                      _buildInfoCard(
-                        icon: Icons.access_time_rounded,
-                        title: '开放时间',
-                        value: _getSpotHours(),
-                        color: AppTheme.neonOrange,
-                      ),
-                      Container(
-                        height: MCPDimension.cardHeightSmall * 0.5,
-                        width: 1,
-                        color: AppTheme.secondaryTextColor.withOpacity(0.2),
-                      ),
-                      _buildInfoCard(
-                        icon: Icons.timelapse_rounded,
-                        title: '建议游览',
-                        value: _getSpotDuration(),
-                        color: AppTheme.neonPurple,
-                      ),
-                    ],
-                  ),
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildInfoCard(
+                  icon: Icons.attach_money_rounded,
+                  title: '门票',
+                  value: '¥${_getSpotPrice()}',
+                  color: AppTheme.neonTeal,
+                ),
+                Container(
+                  height: MCPDimension.cardHeightSmall * 0.5,
+                  width: 1,
+                  color: AppTheme.secondaryTextColor.withOpacity(0.2),
+                ),
+                _buildInfoCard(
+                  icon: Icons.access_time_rounded,
+                  title: '开放时间',
+                  value: _getSpotHours(),
+                  color: AppTheme.neonOrange,
+                ),
+                Container(
+                  height: MCPDimension.cardHeightSmall * 0.5,
+                  width: 1,
+                  color: AppTheme.secondaryTextColor.withOpacity(0.2),
+                ),
+                _buildInfoCard(
+                  icon: Icons.timelapse_rounded,
+                  title: '建议游览',
+                  value: _getSpotDuration(),
+                  color: AppTheme.neonPurple,
+                ),
+              ],
+            ),
           ),
 
           SizedBox(height: MCPDimension.spacingLarge),
@@ -630,21 +630,21 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
             height: MCPDimension.cardHeightSmall * 0.45,
             width: double.infinity,
             child: Center(
-              child: ListView(
-                scrollDirection: Axis.horizontal,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
                 padding: EdgeInsets.symmetric(horizontal: MCPDimension.spacingXSmall),
                 children: _getSpotTags().map((tag) {
                   // 创建固定高度的容器确保所有标签高度一致
                   return Container(
                     height: 32, // 固定高度
-                    margin: EdgeInsets.only(right: MCPDimension.spacingMedium),
-                    decoration: BoxDecoration(
-                      color: AppTheme.neonBlue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
-                      border: Border.all(
-                        color: AppTheme.neonBlue.withOpacity(0.3),
-                        width: 1,
-                      ),
+                margin: EdgeInsets.only(right: MCPDimension.spacingMedium),
+                decoration: BoxDecoration(
+                  color: AppTheme.neonBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
+                  border: Border.all(
+                    color: AppTheme.neonBlue.withOpacity(0.3),
+                    width: 1,
+                  ),
                     ),
                     // 使用Align确保内容垂直居中
                     child: Align(
@@ -653,14 +653,14 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                         padding: EdgeInsets.symmetric(
                           horizontal: MCPDimension.spacingLarge,
                           vertical: MCPDimension.spacingXSmall,
-                        ),
-                        child: Text(
-                          tag,
-                          style: TextStyle(
-                            fontSize: MCPDimension.fontSizeSmall,
-                            fontWeight: FontWeight.w500,
-                            color: AppTheme.neonBlue,
-                          ),
+                ),
+                child: Text(
+                  tag,
+                  style: TextStyle(
+                    fontSize: MCPDimension.fontSizeSmall,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.neonBlue,
+                  ),
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -800,44 +800,44 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
             )
           : Row(
               mainAxisAlignment: buttonSpacing,
-              children: [
-                _buildActionButton(
-                  Icons.map_rounded,
-                  '导航',
-                  AppTheme.neonBlue,
-                  () => _launchMaps(),
+        children: [
+          _buildActionButton(
+            Icons.map_rounded,
+            '导航',
+            AppTheme.neonBlue,
+            () => _launchMaps(),
+          ),
+          _buildActionButton(
+            Icons.share_rounded,
+            '分享',
+            AppTheme.neonPurple,
+            () => _shareSpot(),
+          ),
+          _buildActionButton(
+            Icons.favorite_rounded,
+            _isFavorite ? '已收藏' : '收藏',
+            _isFavorite ? AppTheme.neonPink : AppTheme.secondaryTextColor,
+            () {
+              setState(() {
+                _isFavorite = !_isFavorite;
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(_isFavorite ? '已添加到收藏' : '已取消收藏'),
+                  behavior: SnackBarBehavior.floating,
+                  duration: Duration(seconds: 1),
                 ),
-                _buildActionButton(
-                  Icons.share_rounded,
-                  '分享',
-                  AppTheme.neonPurple,
-                  () => _shareSpot(),
-                ),
-                _buildActionButton(
-                  Icons.favorite_rounded,
-                  _isFavorite ? '已收藏' : '收藏',
-                  _isFavorite ? AppTheme.neonPink : AppTheme.secondaryTextColor,
-                  () {
-                    setState(() {
-                      _isFavorite = !_isFavorite;
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(_isFavorite ? '已添加到收藏' : '已取消收藏'),
-                        behavior: SnackBarBehavior.floating,
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
-                  },
-                ),
-                _buildActionButton(
-                  Icons.camera_alt_rounded,
-                  '拍照',
-                  AppTheme.neonGreen,
-                  () => _openCamera(),
-                ),
-              ],
-            ),
+              );
+            },
+          ),
+          _buildActionButton(
+            Icons.camera_alt_rounded,
+            '拍照',
+            AppTheme.neonGreen,
+            () => _openCamera(),
+          ),
+        ],
+      ),
     );
   }
   
@@ -886,7 +886,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
       ),
     );
   }
-
+  
   // 添加打开相机的方法
   Future<void> _openCamera() async {
     try {
@@ -907,10 +907,10 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
         _showPhotoOptionsDialog(photo);
       } else {
         // 用户取消了拍照
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
             content: Text('已取消拍照'),
-            behavior: SnackBarBehavior.floating,
+        behavior: SnackBarBehavior.floating,
             duration: Duration(seconds: 1),
           )
         );
@@ -940,23 +940,23 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
       context: context,
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
-        return Container(
+    return Container(
           padding: EdgeInsets.all(20),
-          decoration: BoxDecoration(
+      decoration: BoxDecoration(
             color: AppTheme.backgroundColor,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
-            ),
-            boxShadow: [
-              BoxShadow(
+        ),
+        boxShadow: [
+          BoxShadow(
                 color: Colors.black.withOpacity(0.2),
-                blurRadius: 10,
-                spreadRadius: 0,
-              ),
-            ],
+            blurRadius: 10,
+            spreadRadius: 0,
           ),
-          child: Column(
+        ],
+      ),
+      child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
@@ -986,14 +986,14 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+              Text(
                           '拍摄成功!',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryTextColor,
-                          ),
-                        ),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryTextColor,
+                ),
+              ),
                         SizedBox(height: 8),
                         Text(
                           '你想要怎么处理这张照片?',
@@ -1034,9 +1034,9 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                     onTap: () {
                       Navigator.pop(context);
                     },
-                  ),
-                ],
               ),
+            ],
+          ),
               SizedBox(height: 16),
             ],
           ),
@@ -1058,28 +1058,28 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
         width: 85,
         padding: EdgeInsets.symmetric(vertical: 12),
         child: Column(
-          children: [
-            Container(
-              padding: EdgeInsets.all(10),
-              decoration: BoxDecoration(
+      children: [
+        Container(
+          padding: EdgeInsets.all(10),
+          decoration: BoxDecoration(
                 color: AppTheme.neonBlue.withOpacity(0.1),
                 shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
+          ),
+          child: Icon(
+            icon,
                 color: AppTheme.neonBlue,
                 size: 24,
-              ),
-            ),
+          ),
+        ),
             SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
                 color: AppTheme.primaryTextColor,
-              ),
-            ),
-          ],
+          ),
+        ),
+      ],
         ),
       ),
     );
@@ -1234,24 +1234,24 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
         ? Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
+                Row(
+                  children: [
+                    Container(
                     padding: EdgeInsets.all(MCPDimension.spacingXSmall),
-                    decoration: BoxDecoration(
+                      decoration: BoxDecoration(
                       color: AppTheme.neonBlue.withOpacity(0.1),
                       shape: BoxShape.circle,
-                    ),
-                    child: Icon(
+                      ),
+                      child: Icon(
                       icon,
                       color: AppTheme.neonBlue,
                       size: MCPDimension.iconSizeSmall,
                     ),
                   ),
                   SizedBox(width: MCPDimension.spacingSmall),
-                  Text(
+                    Text(
                     title,
-                    style: TextStyle(
+                      style: TextStyle(
                       fontSize: MCPDimension.fontSizeSmall,
                       color: AppTheme.secondaryTextColor,
                     ),
@@ -1261,26 +1261,26 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
               SizedBox(height: MCPDimension.spacingXXSmall),
               Padding(
                 padding: EdgeInsets.only(left: MCPDimension.spacingXXLarge),
-                child: Text(
+                      child: Text(
                   content,
-                  style: TextStyle(
+                        style: TextStyle(
                     fontSize: MCPDimension.fontSizeMedium,
                     color: AppTheme.primaryTextColor,
-                  ),
-                ),
-              ),
-            ],
+                        ),
+                      ),
+                    ),
+                  ],
           )
         : Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
+                  children: [
+                    Container(
                 padding: EdgeInsets.all(MCPDimension.spacingXSmall),
-                decoration: BoxDecoration(
+                      decoration: BoxDecoration(
                   color: AppTheme.neonBlue.withOpacity(0.1),
                   shape: BoxShape.circle,
-                ),
-                child: Icon(
+                      ),
+                      child: Icon(
                   icon,
                   color: AppTheme.neonBlue,
                   size: MCPDimension.iconSizeSmall,
@@ -1301,7 +1301,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                     SizedBox(height: MCPDimension.spacingXXSmall),
                     Text(
                       content,
-                      style: TextStyle(
+                        style: TextStyle(
                         fontSize: MCPDimension.fontSizeMedium,
                         color: AppTheme.primaryTextColor,
                       ),
@@ -1321,17 +1321,17 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     final isSmallScreen = screenWidth < 340;
     
     return Container(
-      width: double.infinity,
+        width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
       margin: EdgeInsets.only(bottom: MCPDimension.spacingXXLarge),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
+          children: [
+            Text(
             '景点详情',
-            style: TextStyle(
+              style: TextStyle(
               fontSize: isSmallScreen ? MCPDimension.fontSizeLarge : MCPDimension.fontSizeXLarge,
-              fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.bold,
               color: AppTheme.primaryTextColor,
             ),
           ),
@@ -1339,13 +1339,13 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
           Container(
             width: double.infinity,
             padding: EdgeInsets.all(isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge),
-            decoration: BoxDecoration(
-              color: AppTheme.cardColor,
-              borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
-              boxShadow: [
-                BoxShadow(
+      decoration: BoxDecoration(
+        color: AppTheme.cardColor,
+        borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
+        boxShadow: [
+          BoxShadow(
                   color: Colors.black.withOpacity(0.05),
-                  blurRadius: MCPDimension.elevationLarge,
+            blurRadius: MCPDimension.elevationLarge,
                   spreadRadius: 0,
                   offset: Offset(0, MCPDimension.elevationSmall),
                 ),
@@ -1353,15 +1353,15 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
             ),
             child: Text(
               _getSpotDescription(),
-              style: TextStyle(
+                      style: TextStyle(
                 fontSize: isSmallScreen ? MCPDimension.fontSizeSmall : MCPDimension.fontSizeMedium,
-                color: AppTheme.primaryTextColor,
+                        color: AppTheme.primaryTextColor,
                 height: 1.6,
-              ),
+                      ),
+                    ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -1373,20 +1373,20 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     final isSmallScreen = screenWidth < 340;
     
     return Container(
-      width: double.infinity,
+                width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
       margin: EdgeInsets.only(bottom: MCPDimension.spacingXXLarge),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+                  children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+                    Text(
                 '游客评论',
-                style: TextStyle(
+                      style: TextStyle(
                   fontSize: isSmallScreen ? MCPDimension.fontSizeLarge : MCPDimension.fontSizeXLarge,
-                  fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                   color: AppTheme.primaryTextColor,
                 ),
               ),
@@ -1478,7 +1478,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
       ),
     );
   }
-
+  
   // 构建动画AppBar
   Widget _buildAnimatedAppBar(double statusBarHeight) {
     // 计算透明度 - 基于滚动位置
@@ -1511,14 +1511,14 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
         ] : [],
       ),
       padding: EdgeInsets.only(top: statusBarHeight),
-      alignment: Alignment.center,
+                alignment: Alignment.center,
       child: Container(
         height: kToolbarHeight,
         padding: EdgeInsets.symmetric(
           horizontal: screenWidth < 340 ? MCPDimension.spacingMedium : MCPDimension.spacingLarge
         ),
         child: Stack(
-          children: [
+                children: [
             Positioned.fill(
               child: Center(
                 child: AnimatedOpacity(
@@ -1540,7 +1540,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+                  children: [
                 // 返回按钮
                 Container(
                   decoration: BoxDecoration(
@@ -1563,8 +1563,8 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                   ),
                 ),
                 // 收藏按钮
-                Container(
-                  decoration: BoxDecoration(
+              Container(
+                decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: opacity < 0.5 ? 
                       Colors.black.withOpacity(0.3) : 
@@ -1596,12 +1596,12 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                     },
                     padding: EdgeInsets.all(screenWidth < 340 ? 8 : 12),
                     constraints: BoxConstraints(),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+                      ),
+                    ),
+                  ],
+              ),
+            ],
+          ),
       ),
     );
   }
@@ -1701,26 +1701,26 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+          mainAxisSize: MainAxisSize.min,
+          children: [
           CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(AppTheme.buttonColor),
             strokeWidth: 3,
           ),
           SizedBox(height: 12),
-          Text(
+              Text(
             '加载图片中...',
-            style: TextStyle(
+                style: TextStyle(
               color: AppTheme.primaryTextColor,
               fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+          ],
       ),
     );
   }
-  
+
   // 构建评论卡片
   Widget _buildReviewCard(Map<String, dynamic> review) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -1730,56 +1730,56 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
       width: double.infinity,
       margin: EdgeInsets.only(bottom: MCPDimension.spacingLarge),
       padding: EdgeInsets.all(isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge),
-      decoration: BoxDecoration(
+        decoration: BoxDecoration(
         color: AppTheme.cardColor,
         borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
-        boxShadow: [
-          BoxShadow(
+          boxShadow: [
+            BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: MCPDimension.elevationLarge,
-            spreadRadius: 0,
+              spreadRadius: 0,
             offset: Offset(0, MCPDimension.elevationSmall),
-          ),
-        ],
-      ),
-      child: Column(
+            ),
+          ],
+        ),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+          children: [
           // 用户信息行
           isSmallScreen
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                children: [
                     // 头像和名称
                     Row(
-                      children: [
+                    children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
                           child: _buildAvatarImage(review['avatar']),
                         ),
                         SizedBox(width: MCPDimension.spacingMedium),
                         Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
                               review['userName'],
-                              style: TextStyle(
+                                  style: TextStyle(
                                 fontSize: MCPDimension.fontSizeMedium,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.primaryTextColor,
-                              ),
-                            ),
-                            Text(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.primaryTextColor,
+                                  ),
+                                ),
+                                Text(
                               review['date'],
-                              style: TextStyle(
-                                fontSize: MCPDimension.fontSizeSmall,
-                                color: AppTheme.secondaryTextColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                                  style: TextStyle(
+                                    fontSize: MCPDimension.fontSizeSmall,
+                                    color: AppTheme.secondaryTextColor,
+                                  ),
+                                ),
+                              ],
+                          ),
+                        ],
+                      ),
                     SizedBox(height: MCPDimension.spacingSmall),
                     // 评分
                     Container(
@@ -1793,23 +1793,23 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
+                      children: [
+                        Icon(
                             Icons.star,
                             color: AppTheme.neonOrange,
                             size: MCPDimension.iconSizeSmall,
                           ),
                           SizedBox(width: 2),
-                          Text(
+                        Text(
                             review['rating'].toString(),
-                            style: TextStyle(
+                          style: TextStyle(
                               fontSize: MCPDimension.fontSizeSmall,
                               fontWeight: FontWeight.bold,
                               color: AppTheme.neonOrange,
-                            ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
+                    ),
                     ),
                   ],
                 )
@@ -1827,54 +1827,54 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                        Text(
                               review['userName'],
-                              style: TextStyle(
+                          style: TextStyle(
                                 fontSize: MCPDimension.fontSizeMedium,
                                 fontWeight: FontWeight.bold,
-                                color: AppTheme.primaryTextColor,
-                              ),
-                            ),
-                            Text(
+                            color: AppTheme.primaryTextColor,
+                          ),
+                        ),
+                        Text(
                               review['date'],
-                              style: TextStyle(
-                                fontSize: MCPDimension.fontSizeSmall,
-                                color: AppTheme.secondaryTextColor,
-                              ),
-                            ),
-                          ],
+                          style: TextStyle(
+                            fontSize: MCPDimension.fontSizeSmall,
+                            color: AppTheme.secondaryTextColor,
+                          ),
                         ),
                       ],
                     ),
+                      ],
+                    ),
                     // 评分
-                    Container(
+                              Container(
                       padding: EdgeInsets.symmetric(
                         horizontal: MCPDimension.spacingMedium,
                         vertical: MCPDimension.spacingXSmall,
                       ),
-                      decoration: BoxDecoration(
+                                decoration: BoxDecoration(
                         color: AppTheme.neonOrange.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
                       ),
                       child: Row(
-                        children: [
-                          Icon(
+                                  children: [
+                                    Icon(
                             Icons.star,
                             color: AppTheme.neonOrange,
                             size: MCPDimension.iconSizeSmall,
                           ),
                           SizedBox(width: 2),
-                          Text(
+                                    Text(
                             review['rating'].toString(),
-                            style: TextStyle(
-                              fontSize: MCPDimension.fontSizeSmall,
+                                      style: TextStyle(
+                                        fontSize: MCPDimension.fontSizeSmall,
                               fontWeight: FontWeight.bold,
                               color: AppTheme.neonOrange,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                   ],
                 ),
           // 评论内容
@@ -1895,10 +1895,10 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
               _buildReviewActionButton(Icons.thumb_up_outlined, '有用'),
               SizedBox(width: MCPDimension.spacingLarge),
               _buildReviewActionButton(Icons.reply_outlined, '回复'),
-            ],
-          ),
-        ],
-      ),
+                            ],
+                          ),
+                        ],
+                      ),
     );
   }
   
@@ -1907,7 +1907,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     return Container(
       width: 40,
       height: 40,
-      decoration: BoxDecoration(
+              decoration: BoxDecoration(
         color: AppTheme.secondaryTextColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
       ),
@@ -1966,7 +1966,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   Widget _buildReviewActionButton(IconData icon, String label) {
     return InkWell(
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
+                        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(label)),
         );
       },
@@ -1980,12 +1980,12 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
           SizedBox(width: 4),
           Text(
             label,
-            style: TextStyle(
+                        style: TextStyle(
               fontSize: MCPDimension.fontSizeSmall,
               color: AppTheme.secondaryTextColor,
-            ),
-          ),
-        ],
+                    ),
+                  ),
+                ],
       ),
     );
   }
@@ -2041,22 +2041,22 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
             decoration: BoxDecoration(
               color: AppTheme.cardColor,
               borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
-              boxShadow: [
-                BoxShadow(
+          boxShadow: [
+            BoxShadow(
                   color: Colors.black.withOpacity(0.05),
                   blurRadius: MCPDimension.elevationLarge,
-                  spreadRadius: 0,
+              spreadRadius: 0,
                   offset: Offset(0, MCPDimension.elevationSmall),
-                ),
-              ],
             ),
-            child: Column(
+          ],
+        ),
+        child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          children: [
                 // 图片
                 Stack(
-                  children: [
-                    Container(
+                children: [
+                  Container(
                       height: 100,
                       width: double.infinity,
                       child: Image.network(
@@ -2103,16 +2103,16 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                           splashColor: AppTheme.buttonColor.withOpacity(0.2),
                           highlightColor: Colors.transparent,
                           onTap: () {}, // 空函数，实际点击由外层GestureDetector处理
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
                 Padding(
                   padding: EdgeInsets.all(screenWidth < 340 ? MCPDimension.spacingSmall : MCPDimension.spacingMedium),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                children: [
                       // 名称
                       Text(
                         name,
@@ -2137,25 +2137,25 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                       SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                      children: [
                           Row(
-                            children: [
+                children: [
                               Icon(
                                 Icons.star,
                                 size: MCPDimension.iconSizeSmall,
                                 color: AppTheme.neonOrange,
                               ),
                               SizedBox(width: 4),
-                              Text(
+                    Text(
                                 rating.toString(),
-                                style: TextStyle(
+                      style: TextStyle(
                                   fontSize: MCPDimension.fontSizeSmall,
-                                  fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                                   color: AppTheme.neonOrange,
-                                ),
-                              ),
-                            ],
-                          ),
+                      ),
+                    ),
+                  ],
+                ),
                           // 添加箭头提示可点击查看详情
                           Icon(
                             Icons.arrow_forward_ios_rounded,
@@ -2163,10 +2163,10 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                             color: AppTheme.secondaryTextColor.withOpacity(0.7),
                           ),
                         ],
-                      ),
-                    ],
-                  ),
-                ),
+              ),
+            ],
+          ),
+        ),
               ],
             ),
           ),
@@ -2225,10 +2225,10 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: MCPDimension.elevationXLarge,
+                  color: Colors.black.withOpacity(0.18),
+                  blurRadius: MCPDimension.elevationXLarge * 1.5,
                   spreadRadius: 0,
-                  offset: Offset(0, -2),
+                  offset: Offset(0, -3),
                 ),
               ],
             ),
@@ -2238,15 +2238,31 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                 // 顶部把手和标题
                 Container(
                   width: double.infinity,
-                  padding: EdgeInsets.symmetric(
-                    vertical: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge
+                  padding: EdgeInsets.only(
+                    top: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge,
+                    bottom: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge,
                   ),
                   decoration: BoxDecoration(
-                    color: AppTheme.cardColor.withOpacity(0.4),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppTheme.cardColor.withOpacity(0.7),
+                        AppTheme.cardColor.withOpacity(0.1),
+                      ],
+                    ),
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(MCPDimension.radiusXXLarge),
                       topRight: Radius.circular(MCPDimension.radiusXXLarge),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 4,
+                        spreadRadius: 0,
+                        offset: Offset(0, 1),
+                      ),
+                    ],
                   ),
                   alignment: Alignment.center,
                   child: Column(
@@ -2261,14 +2277,25 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                         ),
                       ),
                       SizedBox(height: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge),
-                      Text(
-                        '更多服务',
-                        style: TextStyle(
-                          fontSize: isSmallScreen ? MCPDimension.fontSizeLarge : MCPDimension.fontSizeXLarge,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryTextColor,
-                        ),
-                        textAlign: TextAlign.center,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.apps_rounded,
+                            color: AppTheme.neonBlue,
+                            size: MCPDimension.iconSizeMedium,
+                          ),
+                          SizedBox(width: MCPDimension.spacingSmall),
+                          Text(
+                            '更多服务',
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? MCPDimension.fontSizeLarge : MCPDimension.fontSizeXLarge,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.primaryTextColor,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -2288,6 +2315,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                         subtitle: '获取前往景点的导航路线',
                         onTap: () => _launchMaps(),
                         isSmallScreen: isSmallScreen,
+                        iconColor: AppTheme.neonTeal,
                       ),
                       Divider(height: 1, color: Colors.grey.withOpacity(0.1)),
                       _buildServiceOption(
@@ -2296,6 +2324,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                         subtitle: '与朋友分享这个景点',
                         onTap: () => _shareSpot(),
                         isSmallScreen: isSmallScreen,
+                        iconColor: AppTheme.neonPurple,
                       ),
                       Divider(height: 1, color: Colors.grey.withOpacity(0.1)),
                       _buildServiceOption(
@@ -2307,6 +2336,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                           _openCamera();
                         },
                         isSmallScreen: isSmallScreen,
+                        iconColor: AppTheme.neonGreen,
                       ),
                       Divider(height: 1, color: Colors.grey.withOpacity(0.1)),
                       _buildServiceOption(
@@ -2317,6 +2347,9 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                           setState(() {
                             _isFavorite = !_isFavorite;
                           });
+                          // 添加触觉反馈
+                          HapticFeedback.mediumImpact();
+                          
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(_isFavorite ? '已添加到收藏' : '已取消收藏'),
@@ -2326,6 +2359,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                           _closeBottomDrawer();
                         },
                         isSmallScreen: isSmallScreen,
+                        iconColor: _isFavorite ? AppTheme.neonPink : AppTheme.neonBlue,
                       ),
                     ],
                   ),
@@ -2353,7 +2387,11 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                     children: [
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: _closeBottomDrawer,
+                          onPressed: () {
+                            // 添加触觉反馈
+                            HapticFeedback.lightImpact();
+                            _closeBottomDrawer();
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.buttonColor,
                             foregroundColor: Colors.white,
@@ -2375,20 +2413,44 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                         ),
                       ),
                       SizedBox(width: MCPDimension.spacingMedium),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppTheme.cardColor.withOpacity(0.6),
-                          borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
-                        ),
-                        child: IconButton(
-                          icon: Icon(Icons.more_horiz, color: AppTheme.secondaryTextColor),
-                          onPressed: () {
+                      // 更多按钮，使用Material设计
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            // 添加触觉反馈
+                            HapticFeedback.lightImpact();
+                            
                             // 显示更多选项的菜单
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('更多选项'), behavior: SnackBarBehavior.floating)
+                              SnackBar(
+                                content: Text('更多选项'), 
+                                behavior: SnackBarBehavior.floating,
+                              )
                             );
                           },
-                          padding: EdgeInsets.all(isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge),
+                          borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
+                          splashColor: AppTheme.buttonColor.withOpacity(0.1),
+                          child: Container(
+                            padding: EdgeInsets.all(isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge),
+                            decoration: BoxDecoration(
+                              color: AppTheme.cardColor.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(MCPDimension.radiusLarge),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.primaryTextColor.withOpacity(0.05),
+                                  blurRadius: 4,
+                                  spreadRadius: 0,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.more_horiz, 
+                              color: AppTheme.buttonColor,
+                              size: MCPDimension.iconSizeMedium,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -2412,13 +2474,18 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     required String subtitle,
     required VoidCallback onTap,
     bool isSmallScreen = false,
+    Color iconColor = AppTheme.neonBlue,
   }) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          // 添加触觉反馈
+          HapticFeedback.selectionClick();
+          onTap();
+        },
         borderRadius: BorderRadius.circular(MCPDimension.radiusMedium),
-        splashColor: AppTheme.neonBlue.withOpacity(0.08),
+        splashColor: iconColor.withOpacity(0.1),
         highlightColor: AppTheme.neonBlue.withOpacity(0.05),
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -2427,15 +2494,16 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
           ),
           child: Row(
             children: [
+              // 图标容器 - 使用不同颜色
               Container(
                 padding: isSmallScreen ? MCPDimension.paddingSmall : MCPDimension.paddingMedium,
                 decoration: BoxDecoration(
-                  color: AppTheme.neonBlue.withOpacity(0.1),
+                  color: iconColor.withOpacity(0.15),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.neonBlue.withOpacity(0.12),
-                      blurRadius: 8,
+                      color: iconColor.withOpacity(0.15),
+                      blurRadius: 10,
                       spreadRadius: 0,
                       offset: Offset(0, 2),
                     ),
@@ -2443,11 +2511,12 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                 ),
                 child: Icon(
                   icon,
-                  color: AppTheme.neonBlue,
+                  color: iconColor,
                   size: isSmallScreen ? MCPDimension.iconSizeSmall : MCPDimension.iconSizeMedium,
                 ),
               ),
               SizedBox(width: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge),
+              // 标题和副标题
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2471,10 +2540,13 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                   ],
                 ),
               ),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: AppTheme.secondaryTextColor,
-                size: isSmallScreen ? MCPDimension.iconSizeSmall/2 : MCPDimension.iconSizeSmall,
+              // 右箭头图标
+              Container(
+                child: Icon(
+                  Icons.arrow_forward_ios,
+                  color: iconColor.withOpacity(0.5),
+                  size: isSmallScreen ? MCPDimension.iconSizeSmall/2 : MCPDimension.iconSizeSmall,
+                ),
               ),
             ],
           ),

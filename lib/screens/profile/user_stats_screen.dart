@@ -20,7 +20,7 @@ class _UserStatsScreenState extends State<UserStatsScreen>
   late AnimationController _backgroundAnimController;
   late Animation<double> _backgroundAnimation;
   late Animation<double> _contentAnimation;
-
+ 
   // 用户旅行统计数据
   final int citiesVisited = 4;
   final int countriesVisited = 0;
