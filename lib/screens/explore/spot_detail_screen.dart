@@ -1744,12 +1744,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
-                          child: Image.network(
-                            review['avatar'],
-                            width: 36,
-                            height: 36,
-                            fit: BoxFit.cover,
-                          ),
+                          child: _buildAvatarImage(review['avatar']),
                         ),
                         SizedBox(width: MCPDimension.spacingMedium),
                         Column(
@@ -1815,12 +1810,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
-                          child: Image.network(
-                            review['avatar'],
-                            width: 40,
-                            height: 40,
-                            fit: BoxFit.cover,
-                          ),
+                          child: _buildAvatarImage(review['avatar']),
                         ),
                         SizedBox(width: MCPDimension.spacingMedium),
                         Column(
@@ -1900,6 +1890,66 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
       ),
     );
   }
+  
+  // 新添加的方法来处理头像加载及错误处理
+  Widget _buildAvatarImage(String url) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: AppTheme.secondaryTextColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
+        child: Image.network(
+          url,
+          width: 40,
+          height: 40,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            // 错误处理 - 显示备用头像
+            return Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppTheme.secondaryTextColor.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
+              ),
+              child: Icon(
+                Icons.person,
+                color: AppTheme.secondaryTextColor,
+                size: MCPDimension.iconSizeLarge,
+              ),
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppTheme.secondaryTextColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
+              ),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppTheme.buttonColor,
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                      : null,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
 
   // 评论操作按钮
   Widget _buildReviewActionButton(IconData icon, String label) {
@@ -1959,11 +2009,44 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 图片
-          Image.network(
-            imageUrl,
+          Container(
             height: 100,
             width: double.infinity,
-            fit: BoxFit.cover,
+            child: Image.network(
+              imageUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 100,
+                  width: double.infinity,
+                  color: AppTheme.secondaryTextColor.withOpacity(0.1),
+                  child: Center(
+                    child: Icon(
+                      Icons.image,
+                      color: AppTheme.secondaryTextColor,
+                      size: MCPDimension.iconSizeLarge,
+                    ),
+                  ),
+                );
+              },
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  height: 100,
+                  width: double.infinity,
+                  color: AppTheme.secondaryTextColor.withOpacity(0.1),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppTheme.buttonColor,
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
           Padding(
             padding: EdgeInsets.all(screenWidth < 340 ? MCPDimension.spacingSmall : MCPDimension.spacingMedium),
