@@ -516,12 +516,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                         icon: Icons.local_dining_outlined,
                         title: '美食',
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('查看附近美食'),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
+                          _showFoodServiceOptions(context);
                         },
                         color: AppTheme.neonPink,
                       ),
@@ -529,14 +524,17 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                         icon: Icons.hotel_outlined,
                         title: '住宿',
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('查看附近住宿'),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
+                          _showAccommodationOptions(context);
                         },
                         color: AppTheme.neonBlue.withOpacity(0.8),
+                      ),
+                      _buildCompactGridServiceOption(
+                        icon: Icons.directions_car_outlined,
+                        title: '交通',
+                        onTap: () {
+                          _showTransportationOptions(context);
+                        },
+                        color: AppTheme.neonGreen.withOpacity(0.8),
                       ),
                       _buildCompactGridServiceOption(
                         icon: Icons.close,
@@ -1432,6 +1430,691 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     );
   }
 
+  // 显示美食服务选项
+  void _showFoodServiceOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (context, scrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: AppTheme.backgroundColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: Offset(0, -3),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 顶部把手和标题栏
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.cardColor,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        // 把手示意
+                        Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.restaurant,
+                              color: AppTheme.neonPink,
+                              size: 18,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              '周边美食推荐',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryTextColor,
+                              ),
+                            ),
+                            Spacer(),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.neonPink.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '用户提供',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppTheme.neonPink,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // 美食列表
+                  Expanded(
+                    child: ListView(
+                      controller: scrollController,
+                      padding: EdgeInsets.all(16),
+                      children: [
+                        // 暂无数据提示
+                        Container(
+                          padding: EdgeInsets.all(16),
+                          margin: EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: AppTheme.cardColor,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.no_food,
+                                color: Colors.grey.withOpacity(0.5),
+                                size: 48,
+                              ),
+                              SizedBox(height: 12),
+                              Text(
+                                '暂无周边美食信息',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: AppTheme.secondaryTextColor,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                '您可以分享您发现的美食信息，帮助其他游客',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.secondaryTextColor
+                                      .withOpacity(0.7),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // 添加美食信息按钮
+                        ElevatedButton.icon(
+                          icon: Icon(Icons.add, size: 16),
+                          label: Text('添加美食信息'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.buttonColor,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _showAddFoodInfoDialog(context);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // 显示住宿服务选项
+  void _showAccommodationOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (context, scrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: AppTheme.backgroundColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: Offset(0, -3),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 顶部把手和标题栏
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.cardColor,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        // 把手示意
+                        Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.hotel,
+                              color: AppTheme.neonBlue,
+                              size: 18,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              '周边住宿推荐',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryTextColor,
+                              ),
+                            ),
+                            Spacer(),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.neonBlue.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '第三方推荐',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppTheme.neonBlue,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // 外部API集成示意(实际项目中这里需要接入真实API)
+                  Expanded(
+                    child: ListView(
+                      controller: scrollController,
+                      padding: EdgeInsets.all(16),
+                      children: [
+                        // 第三方服务集成提示
+                        Container(
+                          padding: EdgeInsets.all(16),
+                          margin: EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: AppTheme.cardColor,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.integration_instructions,
+                                    color: AppTheme.neonBlue,
+                                    size: 18,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    '第三方服务集成',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryTextColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 12),
+                              Text(
+                                '该功能将集成携程、去哪儿等住宿预订平台的API，显示景点周边住宿信息。用户可以查看详情并跳转至对应平台完成预订。',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.secondaryTextColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // 选择跳转平台
+                        Container(
+                          padding: EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppTheme.cardColor,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '选择住宿预订平台',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryTextColor,
+                                ),
+                              ),
+                              SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  _buildPlatformButton(
+                                    '携程',
+                                    AppTheme.neonBlue,
+                                    () => _launchExternalApp('ctrip://'),
+                                  ),
+                                  _buildPlatformButton(
+                                    '去哪儿',
+                                    Colors.green,
+                                    () => _launchExternalApp('qunar://'),
+                                  ),
+                                  _buildPlatformButton(
+                                    '美团',
+                                    Colors.amber,
+                                    () => _launchExternalApp('imeituan://'),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // 显示交通服务选项
+  void _showTransportationOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (context, scrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: AppTheme.backgroundColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: Offset(0, -3),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 顶部把手和标题栏
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.cardColor,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        // 把手示意
+                        Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.directions,
+                              color: AppTheme.neonGreen,
+                              size: 18,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              '交通出行指南',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryTextColor,
+                              ),
+                            ),
+                            Spacer(),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.neonGreen.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '官方信息',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppTheme.neonGreen,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // 交通指南内容
+                  Expanded(
+                    child: ListView(
+                      controller: scrollController,
+                      padding: EdgeInsets.all(16),
+                      children: [
+                        // 官方交通信息
+                        Container(
+                          padding: EdgeInsets.all(16),
+                          margin: EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: AppTheme.cardColor,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.directions_bus,
+                                    color: AppTheme.neonGreen,
+                                    size: 16,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    '公共交通',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryTextColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                '杭州市区至西湖景区：\n乘坐公交K599路、Y2路、Y9路等可直达西湖景区。',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.primaryTextColor,
+                                ),
+                              ),
+                              Divider(height: 24),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.train,
+                                    color: AppTheme.neonGreen,
+                                    size: 16,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    '地铁路线',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryTextColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                '地铁1号线：龙翔桥站、定安路站下车后步行可达\n地铁2号线：凤起路站换乘公交车可达',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.primaryTextColor,
+                                ),
+                              ),
+                              Divider(height: 24),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.directions_car,
+                                    color: AppTheme.neonGreen,
+                                    size: 16,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    '自驾导航',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryTextColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                '导航至"西湖风景区"，可停车场：\n· 湖滨停车场（收费）\n· 断桥停车场（收费）\n· 岳庙停车场（收费）',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.primaryTextColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // 地图导航按钮
+                        ElevatedButton.icon(
+                          icon: Icon(Icons.map, size: 16),
+                          label: Text('打开地图导航'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.neonGreen,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _launchMaps();
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // 平台选择按钮
+  Widget _buildPlatformButton(String name, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          name,
+          style: TextStyle(
+            color: color,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 添加美食信息对话框
+  void _showAddFoodInfoDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('添加美食信息'),
+            content: Container(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '美食信息将由管理员审核后显示',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.secondaryTextColor,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: '美食店名',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: '地址',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: '推荐菜品',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                child: Text('取消'),
+                onPressed: () => Navigator.pop(context),
+              ),
+              ElevatedButton(
+                child: Text('提交'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.buttonColor,
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('信息已提交，等待审核'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+    );
+  }
+
   // 整体优化UI界面
   @override
   Widget build(BuildContext context) {
@@ -2109,15 +2792,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                                             title: '美食',
                                             color: AppTheme.neonPink,
                                             onTap: () {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text('查看附近美食'),
-                                                  behavior:
-                                                      SnackBarBehavior.floating,
-                                                ),
-                                              );
+                                              _showFoodServiceOptions(context);
                                             },
                                           ),
                                           _buildServiceItem(
@@ -2126,14 +2801,8 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                                             color: AppTheme.neonBlue
                                                 .withOpacity(0.8),
                                             onTap: () {
-                                              ScaffoldMessenger.of(
+                                              _showAccommodationOptions(
                                                 context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text('查看附近住宿'),
-                                                  behavior:
-                                                      SnackBarBehavior.floating,
-                                                ),
                                               );
                                             },
                                           ),
@@ -2143,66 +2812,8 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                                             color: AppTheme.neonGreen
                                                 .withOpacity(0.8),
                                             onTap: () {
-                                              ScaffoldMessenger.of(
+                                              _showTransportationOptions(
                                                 context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text('查看交通信息'),
-                                                  behavior:
-                                                      SnackBarBehavior.floating,
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                          _buildServiceItem(
-                                            icon: Icons.payment_outlined,
-                                            title: '购票',
-                                            color: AppTheme.neonTeal
-                                                .withOpacity(0.8),
-                                            onTap: () {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text('景点门票预订'),
-                                                  behavior:
-                                                      SnackBarBehavior.floating,
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                          _buildServiceItem(
-                                            icon: Icons.history_outlined,
-                                            title: '历史',
-                                            color: Colors.amber.withOpacity(
-                                              0.8,
-                                            ),
-                                            onTap: () {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text('查看历史背景'),
-                                                  behavior:
-                                                      SnackBarBehavior.floating,
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                          _buildServiceItem(
-                                            icon: Icons.tour_outlined,
-                                            title: '导游',
-                                            color: AppTheme.neonPurple
-                                                .withOpacity(0.8),
-                                            onTap: () {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text('预约导游服务'),
-                                                  behavior:
-                                                      SnackBarBehavior.floating,
-                                                ),
                                               );
                                             },
                                           ),
