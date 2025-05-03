@@ -688,15 +688,8 @@ class _ActivityScreenState extends State<ActivityScreen>
             ),
           ),
 
-          // 搜索按钮
-          CircleButton(
-            icon: Icons.search_rounded,
-            onPressed: () {
-              // 搜索活动
-            },
-            size: 38,
-            iconSize: 16,
-          ),
+          // 保持UI平衡的占位元素
+          SizedBox(width: 38),
         ],
       ),
     );
@@ -706,9 +699,7 @@ class _ActivityScreenState extends State<ActivityScreen>
     return Card(
       margin: const EdgeInsets.only(bottom: 16.0),
       elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -725,9 +716,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                   width: double.infinity,
                   height: 160,
                   fit: BoxFit.cover,
-                  placeholder: const Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                  placeholder: const Center(child: CircularProgressIndicator()),
                   errorWidget: const Icon(Icons.error, size: 50),
                 ),
               ),
@@ -977,11 +966,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.stars,
-                          color: AppTheme.neonPurple,
-                          size: 16,
-                        ),
+                        Icon(Icons.stars, color: AppTheme.neonPurple, size: 16),
                         const SizedBox(width: 5),
                         Text(
                           '+${activity.points}',
@@ -1079,11 +1064,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                 ),
                 Row(
                   children: [
-                    _buildIconButton(
-                      Icons.share,
-                      AppTheme.neonBlue,
-                      () {},
-                    ),
+                    _buildIconButton(Icons.share, AppTheme.neonBlue, () {}),
                     const SizedBox(width: 8),
                     _buildIconButton(
                       Icons.favorite_border,
