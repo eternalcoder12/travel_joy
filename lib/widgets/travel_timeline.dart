@@ -166,56 +166,58 @@ class TravelTimeline extends StatelessWidget {
     final travelType = _getRandomTravelType(index);
     final travelMood = _getRandomTravelMood(index);
 
+    // 提取日期数字，不带月份
+    final day = _getDay(event.date);
+    final month = _extractMonthNumber(event.date); // 只获取月份数字
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 4, 8, 4), // 再次减少左侧间距，从16改为12
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 4), // 再次减少左侧间距，从12改为8
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 左侧时间线 - 进一步精简
+          // 左侧时间线 - 完全重新设计为更紧凑的垂直布局
           SizedBox(
-            width: 26, // 再次减小宽度，从30改为26
+            width: 20, // 进一步减小宽度，从26改为20
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // 日期显示 - 更加现代化
+                // 日期点 - 改为点+数字的组合布局
                 Container(
-                  width: 24, // 减小宽度，从28改为24
-                  height: 24, // 减小高度，从28改为24
+                  width: 18, // 减小宽度，从24改为18
+                  height: 18, // 减小高度，从24改为18
                   decoration: BoxDecoration(
-                    color: AppTheme.backgroundColor.withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(6), // 减小圆角，从8改为6
+                    color: dotColor.withOpacity(0.2),
+                    shape: BoxShape.circle,
                     border: Border.all(
                       color: dotColor.withOpacity(0.3),
                       width: 1,
                     ),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _getMonth(event.date),
-                        style: TextStyle(
-                          color: dotColor,
-                          fontSize: 8, // 减小字号，从10改为8
-                          fontWeight: FontWeight.bold,
-                        ),
+                  child: Center(
+                    child: Text(
+                      month, // 只显示月份数字
+                      style: TextStyle(
+                        color: dotColor,
+                        fontSize: 8, // 保持最小字号
+                        fontWeight: FontWeight.bold,
                       ),
-                      Text(
-                        _getDay(event.date),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12, // 减小字号，从14改为12
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                    ),
+                  ),
+                ),
+                // 日期文本 - 外置
+                Text(
+                  day,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10, // 再次减小字号，从12改为10
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 // 线条
                 if (!isLast)
                   Container(
-                    width: 1, // 减小宽度，从1.5改为1
-                    height: 46, // 减小高度，从50改为46
+                    width: 1, // 保持较细的线条
+                    height: 40, // 减小高度，从46改为40
                     margin: const EdgeInsets.only(top: 4),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -235,7 +237,7 @@ class TravelTimeline extends StatelessWidget {
           // 右侧内容
           Expanded(
             child: Container(
-              margin: const EdgeInsets.only(left: 8),
+              margin: const EdgeInsets.only(left: 6), // 减少左侧边距，从8改为6
               decoration: BoxDecoration(
                 color: AppTheme.cardColor.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(12),
@@ -416,21 +418,23 @@ class TravelTimeline extends StatelessWidget {
     );
   }
 
-  // 提取月份
-  String _getMonth(String date) {
+  // 提取月份数字（不含"月"字）
+  String _extractMonthNumber(String date) {
     if (date.contains('-')) {
       final parts = date.split('-');
-      return '${parts[1]}月';
+      if (parts.length >= 2) {
+        // 移除前导零，例如"05"变为"5"
+        return parts[1].replaceFirst(RegExp('^0+'), '');
+      }
     } else if (date.contains('年') && date.contains('月')) {
       final parts = date.split('年');
-      final monthParts = parts[1].split('月');
-      return '${monthParts[0]}月';
-    }
-    // 直接返回月份数字，不带"月"字
-    if (date.contains('-')) {
-      return date.split('-')[1];
-    } else if (date.contains('年') && date.contains('月')) {
-      return date.split('年')[1].split('月')[0];
+      if (parts.length >= 2) {
+        final monthParts = parts[1].split('月');
+        if (monthParts.isNotEmpty) {
+          // 移除前导零
+          return monthParts[0].replaceFirst(RegExp('^0+'), '');
+        }
+      }
     }
     return '';
   }
