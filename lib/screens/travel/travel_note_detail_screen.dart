@@ -1,38 +1,139 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:video_player/video_player.dart';
-import 'package:chewie/chewie.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:ui';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:travel_joy/models/travel_note.dart';
-import 'package:travel_joy/models/content_item.dart';
-import 'package:travel_joy/widgets/custom_app_bar.dart';
-import 'package:travel_joy/widgets/error_view.dart';
-import 'package:travel_joy/widgets/loading_indicator.dart';
-import 'package:travel_joy/widgets/user_avatar.dart';
-import 'package:travel_joy/widgets/video_player_widget.dart';
-import 'package:travel_joy/widgets/comment_item.dart';
-import 'package:travel_joy/widgets/custom_icon_button.dart';
-import 'package:travel_joy/widgets/tag_chip.dart';
-import 'package:travel_joy/theme/app_colors.dart';
-import 'package:travel_joy/services/travel_notes_service.dart';
-import 'package:travel_joy/bloc/travel_note/travel_note_bloc.dart';
-import 'package:travel_joy/utils/date_formatter.dart';
-import 'package:travel_joy/utils/snackbar_utils.dart';
-
+import '../../models/travel_note.dart';
 import '../../app_theme.dart';
 import '../../widgets/glass_card.dart';
 
+// 添加缺失的ContentType枚举
+enum ContentType { text, image, video, location }
+
+// 添加缺失的Comment类
+class Comment {
+  final String id;
+  final String authorId;
+  final String authorName;
+  final String? authorAvatar;
+  final String content;
+  final DateTime createdAt;
+  final int likeCount;
+  final bool isLiked;
+  final List<CommentReply> replies;
+
+  Comment({
+    required this.id,
+    required this.authorId,
+    required this.authorName,
+    this.authorAvatar,
+    required this.content,
+    required this.createdAt,
+    this.likeCount = 0,
+    this.isLiked = false,
+    this.replies = const [],
+  });
+}
+
+// 添加缺失的CommentReply类
+class CommentReply {
+  final String id;
+  final String authorId;
+  final String authorName;
+  final String? authorAvatar;
+  final String content;
+  final DateTime createdAt;
+
+  CommentReply({
+    required this.id,
+    required this.authorId,
+    required this.authorName,
+    this.authorAvatar,
+    required this.content,
+    required this.createdAt,
+  });
+}
+
+// 添加缺失的ContentItem类
+class ContentItem {
+  final ContentType type;
+  final String content;
+  final String? caption;
+
+  ContentItem({required this.type, required this.content, this.caption});
+}
+
+// 添加缺失的LoadingIndicator组件
+class LoadingIndicator extends StatelessWidget {
+  const LoadingIndicator({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return CircularProgressIndicator(
+      valueColor: AlwaysStoppedAnimation<Color>(AppTheme.buttonColor),
+    );
+  }
+}
+
+// 添加缺失的CustomIconButton组件
+class CustomIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+  final Color? color;
+  final int? count;
+  final bool isActive;
+
+  const CustomIconButton({
+    Key? key,
+    required this.icon,
+    required this.onPressed,
+    this.color,
+    this.count,
+    this.isActive = false,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color:
+                  isActive
+                      ? AppTheme.buttonColor
+                      : (color ?? AppTheme.secondaryTextColor),
+              size: 18,
+            ),
+            if (count != null) ...[
+              const SizedBox(width: 4),
+              Text(
+                count.toString(),
+                style: TextStyle(
+                  color: AppTheme.secondaryTextColor,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class TravelNoteDetailScreen extends StatefulWidget {
   final String noteId;
-  final TravelNote? initialData;
+  final TravelNote initialData;
 
   const TravelNoteDetailScreen({
     Key? key,
     required this.noteId,
-    this.initialData,
+    required this.initialData,
   }) : super(key: key);
 
   @override
@@ -43,18 +144,14 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _commentController = TextEditingController();
-  
+  late TravelNote travelNote;
+  bool isLoading = false;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    
-    // 如果没有初始数据，加载游记详情
-    if (widget.initialData == null) {
-      context.read<TravelNoteBloc>().add(
-        LoadTravelNoteDetail(noteId: widget.noteId),
-      );
-    }
+    travelNote = widget.initialData;
   }
 
   @override
@@ -64,94 +161,52 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
     super.dispose();
   }
 
+  // 显示提示信息的辅助方法
+  void showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  // 格式化日期的辅助方法
+  String formatDate(DateTime date) {
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<TravelNoteBloc, TravelNoteState>(
-      builder: (context, state) {
-        // 如果有初始数据，使用它，否则从状态中获取
-        final travelNote = widget.initialData ?? 
-            (state is TravelNoteDetailLoaded ? state.travelNote : null);
-            
-        // 如果正在加载，显示加载指示器
-        if (travelNote == null && state is TravelNoteLoading) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('游记详情')),
-            body: const Center(child: LoadingIndicator()),
-          );
-        }
-        
-        // 如果加载失败，显示错误信息
-        if (travelNote == null && state is TravelNoteError) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('游记详情')),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 60, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    '加载失败: ${state.message}',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      context.read<TravelNoteBloc>().add(
-                        LoadTravelNoteDetail(noteId: widget.noteId),
-                      );
-                    },
-                    child: const Text('重试'),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-        
-        // 如果没有游记数据，显示默认信息
-        if (travelNote == null) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('游记详情')),
-            body: const Center(child: Text('游记信息不可用')),
-          );
-        }
-        
-        // 显示游记详情
-        return Scaffold(
-          body: NestedScrollView(
-            headerSliverBuilder: (context, innerBoxIsScrolled) {
-              return [
-                _buildAppBar(context, travelNote),
-                SliverPersistentHeader(
-                  delegate: _SliverTabBarDelegate(
-                    TabBar(
-                      controller: _tabController,
-                      labelColor: Theme.of(context).primaryColor,
-                      unselectedLabelColor: Colors.grey,
-                      tabs: const [
-                        Tab(text: '内容'),
-                        Tab(text: '图片'),
-                        Tab(text: '评论'),
-                      ],
-                    ),
-                  ),
-                  pinned: true,
+    return Scaffold(
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            _buildAppBar(context, travelNote),
+            SliverPersistentHeader(
+              delegate: _SliverTabBarDelegate(
+                TabBar(
+                  controller: _tabController,
+                  labelColor: Theme.of(context).primaryColor,
+                  unselectedLabelColor: Colors.grey,
+                  tabs: const [
+                    Tab(text: '内容'),
+                    Tab(text: '图片'),
+                    Tab(text: '评论'),
+                  ],
                 ),
-              ];
-            },
-            body: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildContentTab(context, travelNote),
-                _buildGalleryTab(context, travelNote),
-                _buildCommentsTab(context, travelNote),
-              ],
+              ),
+              pinned: true,
             ),
-          ),
-          bottomNavigationBar: _buildBottomBar(context, travelNote),
-        );
-      },
+          ];
+        },
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildContentTab(context, travelNote),
+            _buildGalleryTab(context, travelNote),
+            _buildCommentsTab(context, travelNote),
+          ],
+        ),
+      ),
+      bottomNavigationBar: _buildBottomBar(context, travelNote),
     );
   }
 
@@ -180,15 +235,16 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
           children: [
             // 封面图片
             CachedNetworkImage(
-              imageUrl: travelNote.coverImage ?? 
-                'https://via.placeholder.com/800x600?text=暂无封面图',
+              imageUrl:
+                  travelNote.coverImage ??
+                  'https://via.placeholder.com/800x600?text=暂无封面图',
               fit: BoxFit.cover,
-              placeholder: (context, url) => const Center(
-                child: CircularProgressIndicator(),
-              ),
-              errorWidget: (context, url, error) => const Center(
-                child: Icon(Icons.error),
-              ),
+              placeholder:
+                  (context, url) =>
+                      const Center(child: CircularProgressIndicator()),
+              errorWidget:
+                  (context, url, error) =>
+                      const Center(child: Icon(Icons.error)),
             ),
             // 渐变遮罩
             Container(
@@ -196,10 +252,7 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.7),
-                  ],
+                  colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
                   stops: const [0.6, 1.0],
                 ),
               ),
@@ -211,8 +264,11 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
               bottom: 48,
               child: Row(
                 children: [
-                  const Icon(Icons.location_on, 
-                    color: Colors.white70, size: 16),
+                  const Icon(
+                    Icons.location_on,
+                    color: Colors.white70,
+                    size: 16,
+                  ),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
@@ -233,10 +289,7 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
                   const SizedBox(width: 4),
                   Text(
                     _getStatusText(travelNote.status),
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                 ],
               ),
@@ -273,12 +326,14 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
                   children: [
                     CircleAvatar(
                       radius: 24,
-                      backgroundImage: travelNote.authorAvatar != null
-                          ? NetworkImage(travelNote.authorAvatar!)
-                          : null,
-                      child: travelNote.authorAvatar == null
-                          ? Text(travelNote.authorName[0])
-                          : null,
+                      backgroundImage:
+                          travelNote.authorAvatar != null
+                              ? NetworkImage(travelNote.authorAvatar!)
+                              : null,
+                      child:
+                          travelNote.authorAvatar == null
+                              ? Text(travelNote.authorName[0])
+                              : null,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -314,51 +369,53 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
                   ],
                 ),
               ),
-              
+
               // 标签栏
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
-                  children: travelNote.tags.map((tag) {
-                    return Container(
-                      margin: const EdgeInsets.only(right: 8.0),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12.0, vertical: 6.0),
-                      decoration: BoxDecoration(
-                        color: tag.color?.withOpacity(0.1) ?? 
-                            Theme.of(context).primaryColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16.0),
-                      ),
-                      child: Text(
-                        '#${tag.name}',
-                        style: TextStyle(
-                          color: tag.color ?? Theme.of(context).primaryColor,
-                          fontSize: 12,
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                  children:
+                      travelNote.tags.map((tag) {
+                        return Container(
+                          margin: const EdgeInsets.only(right: 8.0),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0,
+                            vertical: 6.0,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                tag.color?.withOpacity(0.1) ??
+                                Theme.of(context).primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(16.0),
+                          ),
+                          child: Text(
+                            '#${tag.name}',
+                            style: TextStyle(
+                              color:
+                                  tag.color ?? Theme.of(context).primaryColor,
+                              fontSize: 12,
+                            ),
+                          ),
+                        );
+                      }).toList(),
                 ),
               ),
-              
+
               // 游记摘要
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
                   travelNote.summary,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    height: 1.6,
-                  ),
+                  style: const TextStyle(fontSize: 16, height: 1.6),
                 ),
               ),
-              
+
               // 游记内容项
               ...travelNote.contentItems.map((item) {
                 return _buildContentItem(context, item);
               }).toList(),
-              
+
               const SizedBox(height: 24),
             ],
           ),
@@ -371,18 +428,17 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
     switch (item.type) {
       case ContentType.text:
         return Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16.0, vertical: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Text(
             item.content,
             style: TextStyle(
-              fontSize: 16, 
+              fontSize: 16,
               height: 1.6,
               color: AppTheme.primaryTextColor,
             ),
           ),
         );
-        
+
       case ContentType.image:
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -390,20 +446,16 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               GestureDetector(
-                onTap: () => _openGalleryViewer(
-                  context, 
-                  [item.content], 
-                  0
-                ),
+                onTap: () => _openGalleryViewer(context, [item.content], 0),
                 child: CachedNetworkImage(
                   imageUrl: item.content,
                   fit: BoxFit.cover,
-                  placeholder: (context, url) => const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                  errorWidget: (context, url, error) => const Center(
-                    child: Icon(Icons.error),
-                  ),
+                  placeholder:
+                      (context, url) =>
+                          const Center(child: CircularProgressIndicator()),
+                  errorWidget:
+                      (context, url, error) =>
+                          const Center(child: Icon(Icons.error)),
                 ),
               ),
               if (item.caption != null)
@@ -421,7 +473,7 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
             ],
           ),
         );
-        
+
       case ContentType.video:
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -439,14 +491,15 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
                       CachedNetworkImage(
                         imageUrl: '${item.content}_thumbnail.jpg',
                         fit: BoxFit.cover,
-                        errorWidget: (context, url, error) => Container(
-                          color: Colors.grey[300],
-                          child: const Icon(
-                            Icons.videocam,
-                            size: 50,
-                            color: Colors.white,
-                          ),
-                        ),
+                        errorWidget:
+                            (context, url, error) => Container(
+                              color: Colors.grey[300],
+                              child: const Icon(
+                                Icons.videocam,
+                                size: 50,
+                                color: Colors.white,
+                              ),
+                            ),
                       ),
                       // 播放按钮
                       IconButton(
@@ -479,7 +532,7 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
             ],
           ),
         );
-        
+
       case ContentType.location:
         return Padding(
           padding: const EdgeInsets.all(16.0),
@@ -523,19 +576,20 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
             ),
           ),
         );
-        
+
       default:
         return const SizedBox.shrink();
     }
   }
-  
+
   Widget _buildGalleryTab(BuildContext context, TravelNote travelNote) {
     // 提取所有图片
-    final images = travelNote.contentItems
-        .where((item) => item.type == ContentType.image)
-        .map((item) => item.content)
-        .toList();
-        
+    final images =
+        travelNote.contentItems
+            .where((item) => item.type == ContentType.image)
+            .map((item) => item.content)
+            .toList();
+
     if (images.isEmpty) {
       return Center(
         child: Column(
@@ -545,16 +599,13 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
             const SizedBox(height: 16.0),
             const Text(
               '暂无图片',
-              style: TextStyle(
-                fontSize: 18.0,
-                color: Colors.grey,
-              ),
+              style: TextStyle(fontSize: 18.0, color: Colors.grey),
             ),
           ],
         ),
       );
     }
-    
+
     return GridView.builder(
       padding: const EdgeInsets.all(8.0),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -571,16 +622,16 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
             child: CachedNetworkImage(
               imageUrl: images[index],
               fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                color: Colors.grey[300],
-                child: const Center(
-                  child: CircularProgressIndicator(),
-                ),
-              ),
-              errorWidget: (context, url, error) => Container(
-                color: Colors.grey[300],
-                child: const Icon(Icons.error),
-              ),
+              placeholder:
+                  (context, url) => Container(
+                    color: Colors.grey[300],
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+              errorWidget:
+                  (context, url, error) => Container(
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.error),
+                  ),
             ),
           ),
         );
@@ -598,10 +649,7 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
             const SizedBox(height: 16.0),
             const Text(
               '还没有评论',
-              style: TextStyle(
-                fontSize: 18.0,
-                color: Colors.grey,
-              ),
+              style: TextStyle(fontSize: 18.0, color: Colors.grey),
             ),
             const SizedBox(height: 16.0),
             ElevatedButton(
@@ -689,23 +737,37 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
 
   // 辅助方法
   void _shareNote(TravelNote note) {
-    Share.share('查看这篇精彩的游记：${note.title} 👉 https://traveljoy.app/note/${note.id}');
+    Share.share(
+      '查看这篇精彩的游记：${note.title} 👉 https://traveljoy.app/note/${note.id}',
+    );
   }
 
   void _toggleFavorite(TravelNote note) {
-    context.read<TravelNoteBloc>().add(ToggleFavoriteTravelNote(noteId: note.id));
-    showSnackBar(
-      context,
-      note.isFavorited ? '已从收藏中移除' : '已添加到收藏',
-    );
+    setState(() {
+      // 直接在本地修改状态，实际应用中应该调用API
+      note.isFavorited = !note.isFavorited;
+      if (note.isFavorited) {
+        note.favoriteCount += 1;
+      } else if (note.favoriteCount > 0) {
+        note.favoriteCount -= 1;
+      }
+    });
+
+    showSnackBar(context, note.isFavorited ? '已添加到收藏' : '已从收藏中移除');
   }
 
   void _toggleLike(TravelNote note) {
-    context.read<TravelNoteBloc>().add(ToggleLikeTravelNote(noteId: note.id));
-    showSnackBar(
-      context,
-      note.isLiked ? '已取消点赞' : '已点赞',
-    );
+    setState(() {
+      // 直接在本地修改状态，实际应用中应该调用API
+      note.isLiked = !note.isLiked;
+      if (note.isLiked) {
+        note.likeCount += 1;
+      } else if (note.likeCount > 0) {
+        note.likeCount -= 1;
+      }
+    });
+
+    showSnackBar(context, note.isLiked ? '已点赞' : '已取消点赞');
   }
 
   void _followAuthor(String authorId) {
@@ -719,7 +781,11 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
     showSnackBar(context, '打开地图: $location');
   }
 
-  void _openGalleryViewer(BuildContext context, List<String> images, int initialIndex) {
+  void _openGalleryViewer(
+    BuildContext context,
+    List<String> images,
+    int initialIndex,
+  ) {
     // 打开图片查看器
     // 这里可以导航到单独的图片查看页面
     showSnackBar(context, '查看图片 ${initialIndex + 1} / ${images.length}');
@@ -755,16 +821,24 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
       return;
     }
 
-    // 提交评论
-    context.read<TravelNoteBloc>().add(AddTravelNoteComment(
-      noteId: noteId,
-      content: content,
-    ));
+    // 提交评论 - 这里只是模拟添加评论
+    setState(() {
+      final newComment = Comment(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        authorId: 'current_user_id',
+        authorName: '当前用户',
+        content: content,
+        createdAt: DateTime.now(),
+      );
+
+      travelNote.comments.add(newComment);
+      travelNote.commentCount += 1;
+    });
 
     _commentController.clear();
     showSnackBar(context, '评论已发布');
   }
-  
+
   IconData _getTravelStatusIcon(TravelStatus status) {
     switch (status) {
       case TravelStatus.planning:
@@ -779,7 +853,7 @@ class _TravelNoteDetailScreenState extends State<TravelNoteDetailScreen>
         return Icons.help_outline;
     }
   }
-  
+
   String _getStatusText(TravelStatus status) {
     switch (status) {
       case TravelStatus.planning:
@@ -809,7 +883,11 @@ class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => tabBar.preferredSize.height;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
       child: tabBar,
@@ -844,12 +922,14 @@ class CommentItem extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundImage: comment.authorAvatar != null
-                ? NetworkImage(comment.authorAvatar!)
-                : null,
-            child: comment.authorAvatar == null
-                ? Text(comment.authorName[0])
-                : null,
+            backgroundImage:
+                comment.authorAvatar != null
+                    ? NetworkImage(comment.authorAvatar!)
+                    : null,
+            child:
+                comment.authorAvatar == null
+                    ? Text(comment.authorName[0])
+                    : null,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -860,17 +940,12 @@ class CommentItem extends StatelessWidget {
                   children: [
                     Text(
                       comment.authorName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const Spacer(),
                     Text(
-                      formatDate(comment.createdAt),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                      _formatDate(comment.createdAt),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                   ],
                 ),
@@ -886,9 +961,10 @@ class CommentItem extends StatelessWidget {
                           Icon(
                             Icons.thumb_up,
                             size: 16,
-                            color: comment.isLiked
-                                ? Theme.of(context).primaryColor
-                                : Colors.grey[400],
+                            color:
+                                comment.isLiked
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.grey[400],
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -924,7 +1000,7 @@ class CommentItem extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 // 回复列表
                 if (comment.replies.isNotEmpty)
                   Container(
@@ -936,40 +1012,41 @@ class CommentItem extends StatelessWidget {
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: comment.replies.map((reply) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                      children:
+                          comment.replies.map((reply) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    reply.authorName,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        reply.authorName,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      Text(
+                                        _formatDate(reply.createdAt),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const Spacer(),
+                                  const SizedBox(height: 4),
                                   Text(
-                                    formatDate(reply.createdAt),
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.grey[600],
-                                    ),
+                                    reply.content,
+                                    style: const TextStyle(fontSize: 12),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                reply.content,
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
+                            );
+                          }).toList(),
                     ),
                   ),
               ],
@@ -979,4 +1056,9 @@ class CommentItem extends StatelessWidget {
       ),
     );
   }
-} 
+
+  // 日期格式化辅助方法
+  String _formatDate(DateTime date) {
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
+}

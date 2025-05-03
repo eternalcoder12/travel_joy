@@ -5,8 +5,49 @@ import 'package:intl/intl.dart';
 import '../../app_theme.dart';
 import '../../models/travel_note.dart';
 import '../../widgets/glass_card.dart';
-import '../../utils/mock_data_generator.dart';
 import 'travel_note_detail_screen.dart';
+
+// 添加简单的MockDataGenerator代替缺失的工具类
+class MockDataGenerator {
+  static List<TravelNote> generateTravelNotes(int count) {
+    List<TravelNote> notes = [];
+
+    for (int i = 0; i < count; i++) {
+      final id = 'note_${DateTime.now().millisecondsSinceEpoch}_$i';
+      notes.add(
+        TravelNote(
+          id: id,
+          title: '精彩旅行记录 #$i',
+          summary: '这是一段关于旅行的精彩回忆和见闻分享，记录了沿途的风景和感受...',
+          location: '杭州西湖',
+          coverImage: 'https://picsum.photos/seed/$i/600/400',
+          authorId: 'user_1',
+          authorName: '旅行者',
+          authorAvatar:
+              'https://randomuser.me/api/portraits/men/${i % 100}.jpg',
+          createdAt: DateTime.now().subtract(Duration(days: i)),
+          updatedAt: DateTime.now(),
+          status: TravelStatus.completed,
+          type: TravelNoteType.public,
+          isPrivate: false,
+          tags: [
+            TravelTag(name: '风景', color: Colors.blue),
+            TravelTag(name: '美食', color: Colors.orange),
+          ],
+          likeCount: 50 - i,
+          commentCount: 20 - i,
+          favoriteCount: 10 - i,
+          isLiked: false,
+          isFavorited: false,
+          contentItems: [],
+          comments: [],
+        ),
+      );
+    }
+
+    return notes;
+  }
+}
 
 class TravelNoteListScreen extends StatefulWidget {
   final String title;
@@ -29,35 +70,35 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
   late List<TravelNote> _travelNotes;
   late ScrollController _scrollController;
   late AnimationController _fadeAnimController;
-  
+
   bool _isLoading = false;
   bool _hasMoreData = true;
   String? _filterTag;
   String _sortBy = 'newest'; // newest, popular, oldest
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     // 初始化数据
     _travelNotes = widget.initialNotes ?? [];
     if (_travelNotes.isEmpty) {
       _loadInitialData();
     }
-    
+
     // 初始化滚动控制器
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
-    
+
     // 初始化动画控制器
     _fadeAnimController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    
+
     _fadeAnimController.forward();
   }
-  
+
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
@@ -65,23 +106,23 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
     _fadeAnimController.dispose();
     super.dispose();
   }
-  
+
   // 初始加载数据
   Future<void> _loadInitialData() async {
     if (_isLoading) return;
-    
+
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       // 模拟网络请求延迟
       await Future.delayed(const Duration(seconds: 1));
-      
+
       // TODO: 实际的API调用
       // 这里使用模拟数据
       final mockNotes = MockDataGenerator.generateTravelNotes(10);
-      
+
       setState(() {
         _travelNotes = mockNotes;
         _isLoading = false;
@@ -90,7 +131,7 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
       setState(() {
         _isLoading = false;
       });
-      
+
       // 显示错误消息
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -100,26 +141,26 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
       );
     }
   }
-  
+
   // 加载更多数据
   Future<void> _loadMoreData() async {
     if (_isLoading || !_hasMoreData) return;
-    
+
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       // 模拟网络请求延迟
       await Future.delayed(const Duration(seconds: 1));
-      
+
       // TODO: 实际的API调用
       // 这里使用模拟数据
       final mockNotes = MockDataGenerator.generateTravelNotes(5);
-      
+
       // 模拟没有更多数据的情况
       final hasMore = _travelNotes.length < 30;
-      
+
       setState(() {
         if (mockNotes.isNotEmpty && hasMore) {
           _travelNotes.addAll(mockNotes);
@@ -132,7 +173,7 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
       setState(() {
         _isLoading = false;
       });
-      
+
       // 显示错误消息
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -142,26 +183,27 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
       );
     }
   }
-  
+
   // 刷新数据
   Future<void> _refreshData() async {
     setState(() {
       _hasMoreData = true;
     });
-    
+
     await _loadInitialData();
     return Future.value();
   }
-  
+
   // 滚动监听
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
         !_isLoading &&
         _hasMoreData) {
       _loadMoreData();
     }
   }
-  
+
   // 设置筛选标签
   void _setFilterTag(String? tag) {
     setState(() {
@@ -171,18 +213,18 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
         _filterTag = tag;
       }
     });
-    
+
     // 重新加载数据
     _refreshData();
   }
-  
+
   // 设置排序方式
   void _setSortBy(String sortBy) {
     if (_sortBy == sortBy) return;
-    
+
     setState(() {
       _sortBy = sortBy;
-      
+
       // 排序当前列表
       switch (sortBy) {
         case 'newest':
@@ -197,7 +239,19 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
       }
     });
   }
-  
+
+  // 修改TravelNoteDetailScreen的导航方法
+  void _navigateToDetailScreen(TravelNote note) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) =>
+                TravelNoteDetailScreen(noteId: note.id, initialData: note),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -234,77 +288,84 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
           PopupMenuButton<String>(
             icon: Icon(Icons.filter_list, color: AppTheme.primaryTextColor),
             onSelected: _setSortBy,
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'newest',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.access_time,
-                      color: _sortBy == 'newest'
-                          ? AppTheme.buttonColor
-                          : AppTheme.secondaryTextColor,
-                      size: 18,
+            itemBuilder:
+                (context) => [
+                  PopupMenuItem(
+                    value: 'newest',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          color:
+                              _sortBy == 'newest'
+                                  ? AppTheme.buttonColor
+                                  : AppTheme.secondaryTextColor,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '最新发布',
+                          style: TextStyle(
+                            color:
+                                _sortBy == 'newest'
+                                    ? AppTheme.buttonColor
+                                    : AppTheme.primaryTextColor,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '最新发布',
-                      style: TextStyle(
-                        color: _sortBy == 'newest'
-                            ? AppTheme.buttonColor
-                            : AppTheme.primaryTextColor,
-                      ),
+                  ),
+                  PopupMenuItem(
+                    value: 'popular',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.trending_up,
+                          color:
+                              _sortBy == 'popular'
+                                  ? AppTheme.buttonColor
+                                  : AppTheme.secondaryTextColor,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '热门优先',
+                          style: TextStyle(
+                            color:
+                                _sortBy == 'popular'
+                                    ? AppTheme.buttonColor
+                                    : AppTheme.primaryTextColor,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'popular',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.trending_up,
-                      color: _sortBy == 'popular'
-                          ? AppTheme.buttonColor
-                          : AppTheme.secondaryTextColor,
-                      size: 18,
+                  ),
+                  PopupMenuItem(
+                    value: 'oldest',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.history,
+                          color:
+                              _sortBy == 'oldest'
+                                  ? AppTheme.buttonColor
+                                  : AppTheme.secondaryTextColor,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '最早发布',
+                          style: TextStyle(
+                            color:
+                                _sortBy == 'oldest'
+                                    ? AppTheme.buttonColor
+                                    : AppTheme.primaryTextColor,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '热门优先',
-                      style: TextStyle(
-                        color: _sortBy == 'popular'
-                            ? AppTheme.buttonColor
-                            : AppTheme.primaryTextColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'oldest',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.history,
-                      color: _sortBy == 'oldest'
-                          ? AppTheme.buttonColor
-                          : AppTheme.secondaryTextColor,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '最早发布',
-                      style: TextStyle(
-                        color: _sortBy == 'oldest'
-                            ? AppTheme.buttonColor
-                            : AppTheme.primaryTextColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+                ],
           ),
         ],
       ),
@@ -312,22 +373,23 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
         children: [
           // 标签筛选栏
           _buildTagFilterBar(),
-          
+
           // 游记列表
           Expanded(
             child: RefreshIndicator(
               onRefresh: _refreshData,
               color: AppTheme.buttonColor,
-              child: _isLoading && _travelNotes.isEmpty
-                  ? _buildLoadingIndicator()
-                  : _buildNoteList(),
+              child:
+                  _isLoading && _travelNotes.isEmpty
+                      ? _buildLoadingIndicator()
+                      : _buildNoteList(),
             ),
           ),
         ],
       ),
     );
   }
-  
+
   // 构建标签筛选栏
   Widget _buildTagFilterBar() {
     // 获取所有标签
@@ -339,10 +401,10 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
         }
       }
     }
-    
+
     // 热门标签（取前10个）
     final popularTags = allTags.take(10).toList();
-    
+
     return Container(
       height: 50,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -369,7 +431,7 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
       ),
     );
   }
-  
+
   // 构建标签Chip
   Widget _buildTagChip({
     required String label,
@@ -396,13 +458,13 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
       ),
     );
   }
-  
+
   // 构建游记列表
   Widget _buildNoteList() {
     if (_travelNotes.isEmpty) {
       return _buildEmptyState();
     }
-    
+
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.all(16),
@@ -411,13 +473,13 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
         if (index == _travelNotes.length) {
           return _buildLoadingIndicator();
         }
-        
+
         final note = _travelNotes[index];
         return _buildNoteCard(note, index);
       },
     );
   }
-  
+
   // 构建游记卡片
   Widget _buildNoteCard(TravelNote note, int index) {
     return FadeTransition(
@@ -430,27 +492,16 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
         ),
       ),
       child: GestureDetector(
-        onTap: () {
-          // 导航到游记详情页
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TravelNoteDetailScreen(
-                travelNote: note,
-                source: widget.source,
-              ),
-            ),
-          );
-        },
+        onTap: () => _navigateToDetailScreen(note),
         child: Container(
-          margin: const EdgeInsets.only(bottom: 16),
+          margin: const EdgeInsets.only(bottom: 12), // 减小底部边距
           decoration: BoxDecoration(
             color: AppTheme.cardColor,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12), // 减小圆角
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
+                color: Colors.black.withOpacity(0.08), // 减小阴影
+                blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
             ],
@@ -458,47 +509,49 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 封面图
+              // 封面图 - 减小高度
               ClipRRect(
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
                 ),
                 child: Stack(
                   children: [
                     // 图片
                     CachedNetworkImage(
                       imageUrl: note.coverImage!,
-                      height: 180,
+                      height: 160, // 减小高度
                       width: double.infinity,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: AppTheme.cardColor,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: AppTheme.buttonColor,
+                      placeholder:
+                          (context, url) => Container(
+                            color: AppTheme.cardColor,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: AppTheme.buttonColor,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: AppTheme.cardColor,
-                        child: Center(
-                          child: Icon(
-                            Icons.broken_image,
-                            color: AppTheme.secondaryTextColor,
-                            size: 50,
+                      errorWidget:
+                          (context, url, error) => Container(
+                            color: AppTheme.cardColor,
+                            child: Center(
+                              child: Icon(
+                                Icons.broken_image,
+                                color: AppTheme.secondaryTextColor,
+                                size: 40, // 减小图标大小
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
                     ),
-                    
+
                     // 半透明渐变
                     Positioned(
                       bottom: 0,
                       left: 0,
                       right: 0,
                       child: Container(
-                        height: 60,
+                        height: 50, // 减小高度
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
@@ -511,34 +564,36 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
                         ),
                       ),
                     ),
-                    
+
                     // 地点和日期
                     Positioned(
-                      bottom: 12,
-                      left: 12,
-                      right: 12,
+                      bottom: 8, // 减小底部边距
+                      left: 10,
+                      right: 10,
                       child: Row(
                         children: [
                           Icon(
                             Icons.location_on,
                             color: Colors.white,
-                            size: 14,
+                            size: 12, // 减小图标大小
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            note.location,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                          Expanded(
+                            child: Text(
+                              note.location,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11, // 减小字体大小
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const Spacer(),
                           Text(
                             DateFormat('yyyy年MM月dd日').format(note.createdAt),
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 12,
+                              fontSize: 10, // 减小字体大小
                             ),
                           ),
                         ],
@@ -547,10 +602,10 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
                   ],
                 ),
               ),
-              
-              // 内容区域
+
+              // 内容区域 - 减小内边距
               Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10), // 减小内边距
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -559,61 +614,77 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
                       note.title,
                       style: TextStyle(
                         color: AppTheme.primaryTextColor,
-                        fontSize: 18,
+                        fontSize: 16, // 减小字体大小
                         fontWeight: FontWeight.bold,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),
-                    
+                    const SizedBox(height: 6), // 减小间距
                     // 摘要
                     Text(
                       note.summary,
                       style: TextStyle(
                         color: AppTheme.secondaryTextColor,
-                        fontSize: 14,
+                        fontSize: 13, // 减小字体大小
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 12),
-                    
+                    const SizedBox(height: 10), // 减小间距
                     // 作者信息和互动数据
                     Row(
                       children: [
                         // 作者头像
                         CircleAvatar(
-                          radius: 14,
-                          backgroundImage: note.authorAvatar != null
-                              ? NetworkImage(note.authorAvatar!)
-                              : null,
-                          child: note.authorAvatar == null
-                              ? Icon(Icons.person, color: AppTheme.primaryTextColor, size: 14)
-                              : null,
+                          radius: 12, // 减小头像大小
+                          backgroundImage:
+                              note.authorAvatar != null
+                                  ? NetworkImage(note.authorAvatar!)
+                                  : null,
+                          child:
+                              note.authorAvatar == null
+                                  ? Icon(
+                                    Icons.person,
+                                    color: AppTheme.primaryTextColor,
+                                    size: 12,
+                                  )
+                                  : null,
                         ),
-                        const SizedBox(width: 8),
-                        
+                        const SizedBox(width: 6), // 减小间距
                         // 作者名称
                         Text(
                           note.authorName,
                           style: TextStyle(
                             color: AppTheme.secondaryTextColor,
-                            fontSize: 12,
+                            fontSize: 11, // 减小字体大小
                           ),
                         ),
                         const Spacer(),
-                        
-                        // 点赞数
-                        _buildStat(Icons.thumb_up_outlined, note.likeCount.toString()),
-                        const SizedBox(width: 12),
-                        
-                        // 评论数
-                        _buildStat(Icons.comment_outlined, note.commentCount.toString()),
-                        const SizedBox(width: 12),
-                        
-                        // 收藏数
-                        _buildStat(Icons.bookmark_outline, note.favoriteCount.toString()),
+
+                        // 使用Flex布局确保图标区域合理布局
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // 点赞数
+                            _buildStat(
+                              Icons.thumb_up_outlined,
+                              note.likeCount.toString(),
+                            ),
+                            const SizedBox(width: 10), // 减小间距
+                            // 评论数
+                            _buildStat(
+                              Icons.comment_outlined,
+                              note.commentCount.toString(),
+                            ),
+                            const SizedBox(width: 10), // 减小间距
+                            // 收藏数
+                            _buildStat(
+                              Icons.bookmark_outline,
+                              note.favoriteCount.toString(),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ],
@@ -625,39 +696,37 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
       ),
     );
   }
-  
-  // 构建统计数据
+
+  // 构建统计数据 - 减小尺寸
   Widget _buildStat(IconData icon, String count) {
     return Row(
       children: [
         Icon(
           icon,
           color: AppTheme.secondaryTextColor,
-          size: 14,
+          size: 12, // 减小图标大小
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: 2), // 减小间距
         Text(
           count,
           style: TextStyle(
             color: AppTheme.secondaryTextColor,
-            fontSize: 12,
+            fontSize: 10, // 减小字体大小
           ),
         ),
       ],
     );
   }
-  
+
   // 构建加载指示器
   Widget _buildLoadingIndicator() {
     return Container(
       padding: const EdgeInsets.all(16),
       alignment: Alignment.center,
-      child: CircularProgressIndicator(
-        color: AppTheme.buttonColor,
-      ),
+      child: CircularProgressIndicator(color: AppTheme.buttonColor),
     );
   }
-  
+
   // 构建空状态
   Widget _buildEmptyState() {
     return Center(
@@ -681,10 +750,7 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
           const SizedBox(height: 8),
           Text(
             '去发现更多精彩旅程吧',
-            style: TextStyle(
-              color: AppTheme.secondaryTextColor,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: AppTheme.secondaryTextColor, fontSize: 14),
           ),
           const SizedBox(height: 24),
           ElevatedButton(
@@ -703,4 +769,4 @@ class _TravelNoteListScreenState extends State<TravelNoteListScreen>
       ),
     );
   }
-} 
+}

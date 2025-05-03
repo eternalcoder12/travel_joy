@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../app_theme.dart';
-import '../widgets/travel_timeline.dart'; 
+import '../widgets/travel_timeline.dart';
 import '../utils/navigation_utils.dart';
 
 class TravelTimelinePreview extends StatelessWidget {
@@ -37,11 +37,7 @@ class TravelTimelinePreview extends StatelessWidget {
   // 顶部标题区域
   Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(
-        left: 20.0,
-        right: 20.0,
-        bottom: 16.0,
-      ),
+      padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 16.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -121,11 +117,7 @@ class TravelTimelinePreview extends StatelessWidget {
     final dotColor = event.dotColor ?? AppTheme.neonBlue;
 
     return Padding(
-      padding: const EdgeInsets.only(
-        left: 20.0,
-        right: 20.0,
-        bottom: 16.0,
-      ),
+      padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 16.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -331,10 +323,7 @@ class TravelTimelinePreview extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Icon(
-                Icons.flight,
-                color: AppTheme.secondaryTextColor,
-              ),
+              Icon(Icons.flight, color: AppTheme.secondaryTextColor),
             ],
           ),
           const SizedBox(height: 20.0),
@@ -387,9 +376,7 @@ class TravelTimelinePreview extends StatelessWidget {
                   ),
                   child: Text(
                     '添加旅行',
-                    style: TextStyle(
-                      color: AppTheme.buttonColor,
-                    ),
+                    style: TextStyle(color: AppTheme.buttonColor),
                   ),
                 ),
               ],
@@ -425,7 +412,7 @@ class TravelTimelinePreview extends StatelessWidget {
       final month = date.split('年')[1].split('月')[0];
       return month;
     }
-    
+
     // 默认返回短格式
     return date.length > 5 ? date.substring(5, 7) : date;
   }
