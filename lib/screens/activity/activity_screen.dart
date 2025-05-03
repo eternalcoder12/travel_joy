@@ -700,7 +700,7 @@ class _ActivityScreenState extends State<ActivityScreen>
       margin: const EdgeInsets.only(bottom: 16.0),
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      color: Colors.white,
+      color: AppTheme.cardColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -729,7 +729,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.25),
+                    color: AppTheme.backgroundColor.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: activity.getStatusColor().withOpacity(0.5),
@@ -770,10 +770,10 @@ class _ActivityScreenState extends State<ActivityScreen>
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.25),
+                    color: AppTheme.backgroundColor.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(15),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.2),
+                      color: AppTheme.primaryTextColor.withOpacity(0.2),
                       width: 1,
                     ),
                   ),
@@ -781,14 +781,14 @@ class _ActivityScreenState extends State<ActivityScreen>
                     children: [
                       Icon(
                         Icons.calendar_today,
-                        color: Colors.white.withOpacity(0.9),
+                        color: AppTheme.primaryTextColor,
                         size: 12,
                       ),
                       const SizedBox(width: 5),
                       Text(
                         '${activity.startDate.month}/${activity.startDate.day}',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
+                          color: AppTheme.primaryTextColor,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -806,10 +806,10 @@ class _ActivityScreenState extends State<ActivityScreen>
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.25),
+                    color: AppTheme.backgroundColor.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(15),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.2),
+                      color: AppTheme.primaryTextColor.withOpacity(0.2),
                       width: 1,
                     ),
                   ),
@@ -817,7 +817,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                     children: [
                       Icon(
                         Icons.location_on,
-                        color: Colors.white.withOpacity(0.9),
+                        color: AppTheme.primaryTextColor,
                         size: 12,
                       ),
                       const SizedBox(width: 5),
@@ -826,7 +826,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                             ? '${activity.location.substring(0, 8)}...'
                             : activity.location,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
+                          color: AppTheme.primaryTextColor,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -847,8 +847,8 @@ class _ActivityScreenState extends State<ActivityScreen>
                     Expanded(
                       child: Text(
                         activity.title,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: AppTheme.primaryTextColor,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -937,14 +937,14 @@ class _ActivityScreenState extends State<ActivityScreen>
                       children: [
                         Icon(
                           Icons.people,
-                          color: Colors.white.withOpacity(0.7),
+                          color: AppTheme.primaryTextColor.withOpacity(0.7),
                           size: 16,
                         ),
                         const SizedBox(width: 5),
                         Text(
                           '${activity.participantsCount}/${activity.maxParticipants}',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: AppTheme.primaryTextColor,
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
@@ -1043,14 +1043,14 @@ class _ActivityScreenState extends State<ActivityScreen>
                             Text(
                               '组织者',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.5),
+                                color: AppTheme.secondaryTextColor,
                                 fontSize: 10,
                               ),
                             ),
                             Text(
                               activity.organizer,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: AppTheme.primaryTextColor,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -1062,72 +1062,55 @@ class _ActivityScreenState extends State<ActivityScreen>
                     ],
                   ),
                 ),
-                Row(
-                  children: [
-                    _buildIconButton(Icons.share, AppTheme.neonBlue, () {}),
-                    const SizedBox(width: 8),
-                    _buildIconButton(
-                      Icons.favorite_border,
-                      AppTheme.neonPink,
-                      () {},
+                // 查看详情按钮
+                InkWell(
+                  onTap: () => _showActivityDetails(context, activity),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
                     ),
-                    const SizedBox(width: 8),
-                    _buildIconButton(
-                      activity.isRegistered
-                          ? Icons.check_circle_outline
-                          : activity.status == '已结束'
-                          ? Icons.event_busy
-                          : Icons.add_circle_outline,
-                      activity.getStatusColor(),
-                      () => _showActivityDetails(context, activity),
-                      isMain: true,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          activity.color.withOpacity(0.7),
+                          activity.color,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: activity.color.withOpacity(0.3),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                  ],
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.visibility_outlined,
+                          color: AppTheme.primaryTextColor,
+                          size: 14,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '查看详情',
+                          style: TextStyle(
+                            color: AppTheme.primaryTextColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildIconButton(
-    IconData icon,
-    Color color,
-    VoidCallback onTap, {
-    bool isMain = false,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: isMain ? 40 : 36,
-        height: isMain ? 40 : 36,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color:
-              isMain ? color.withOpacity(0.2) : Colors.white.withOpacity(0.05),
-          border: Border.all(
-            color:
-                isMain ? color.withOpacity(0.5) : Colors.white.withOpacity(0.2),
-            width: 1,
-          ),
-          boxShadow:
-              isMain
-                  ? [
-                    BoxShadow(
-                      color: color.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                  : null,
-        ),
-        child: Icon(
-          icon,
-          color: isMain ? color : Colors.white.withOpacity(0.7),
-          size: isMain ? 20 : 18,
-        ),
       ),
     );
   }
