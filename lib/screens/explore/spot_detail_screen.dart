@@ -1458,10 +1458,10 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(UIConstants.borderRadiusMedium),
+      borderRadius: BorderRadius.circular(MCPDimension.radiusMedium),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(UIConstants.borderRadiusMedium),
+          borderRadius: BorderRadius.circular(MCPDimension.radiusMedium),
           // 移除边框，用阴影替代
           boxShadow: [
             BoxShadow(
@@ -1493,12 +1493,12 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
               ),
               child: Icon(icon, color: color, size: 24),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: MCPDimension.spacingSmall),
             // 改进标题样式
             Text(
               title,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: MCPDimension.fontSizeSmall,
                 fontWeight: FontWeight.w500,
                 color: AppTheme.primaryTextColor,
               ),
@@ -2437,23 +2437,34 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                         children: [
                           // 价格、时间和标签部分整合为一个更紧凑的容器
                           Container(
-                            margin: EdgeInsets.fromLTRB(12, 12, 12, 8), // 减少边距
+                            margin: EdgeInsets.fromLTRB(
+                              MCPDimension.spacingMedium,
+                              MCPDimension.spacingMedium,
+                              MCPDimension.spacingMedium,
+                              MCPDimension.spacingSmall,
+                            ), // 使用标准间距
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 // 价格与时间卡片
                                 Container(
                                   width: double.infinity,
-                                  padding: EdgeInsets.all(12), // 减少内边距
+                                  padding:
+                                      MCPDimension.paddingMedium, // 使用标准内边距
                                   decoration: BoxDecoration(
                                     color: AppTheme.cardColor,
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(
+                                      MCPDimension.radiusLarge,
+                                    ),
                                     boxShadow: [
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.05),
-                                        blurRadius: 8,
+                                        blurRadius: MCPDimension.elevationLarge,
                                         spreadRadius: 0,
-                                        offset: Offset(0, 2),
+                                        offset: Offset(
+                                          0,
+                                          MCPDimension.elevationSmall,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -2543,24 +2554,32 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                           // 景点信息区 - 更紧凑的设计，将标签整合在这里
                           Container(
                             padding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                            ), // 减少水平内边距
-                            margin: EdgeInsets.only(bottom: 16), // 减少下边距
+                              horizontal: MCPDimension.spacingMedium,
+                            ),
+                            margin: EdgeInsets.only(
+                              bottom: MCPDimension.spacingLarge,
+                            ), // 统一间距
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Container(
                                   width: double.infinity,
-                                  padding: EdgeInsets.all(12), // 减少内边距
+                                  padding:
+                                      MCPDimension.paddingMedium, // 使用标准内边距
                                   decoration: BoxDecoration(
                                     color: AppTheme.cardColor.withOpacity(0.9),
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(
+                                      MCPDimension.radiusLarge,
+                                    ),
                                     boxShadow: [
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.05),
-                                        blurRadius: 8,
+                                        blurRadius: MCPDimension.elevationLarge,
                                         spreadRadius: 0,
-                                        offset: Offset(0, 2),
+                                        offset: Offset(
+                                          0,
+                                          MCPDimension.elevationSmall,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -2710,23 +2729,37 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
 
                           // 修改后的景点服务模块
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 16),
-                            margin: EdgeInsets.symmetric(vertical: 16),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: MCPDimension.spacingLarge,
+                            ),
+                            margin: EdgeInsets.symmetric(
+                              vertical: MCPDimension.spacingLarge,
+                            ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Container(
                                   width: double.infinity,
-                                  padding: EdgeInsets.fromLTRB(18, 16, 18, 14),
+                                  padding: EdgeInsets.fromLTRB(
+                                    MCPDimension.spacingLarge,
+                                    MCPDimension.spacingLarge,
+                                    MCPDimension.spacingLarge,
+                                    MCPDimension.spacingMedium,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: AppTheme.cardColor.withOpacity(0.9),
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(
+                                      MCPDimension.radiusLarge,
+                                    ),
                                     boxShadow: [
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.05),
-                                        blurRadius: 8,
+                                        blurRadius: MCPDimension.elevationLarge,
                                         spreadRadius: 0,
-                                        offset: Offset(0, 2),
+                                        offset: Offset(
+                                          0,
+                                          MCPDimension.elevationSmall,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -2739,13 +2772,16 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                                           Icon(
                                             Icons.grid_view_rounded,
                                             color: AppTheme.neonBlue,
-                                            size: 20,
+                                            size: MCPDimension.iconSizeMedium,
                                           ),
-                                          SizedBox(width: 10),
+                                          SizedBox(
+                                            width: MCPDimension.spacingSmall,
+                                          ),
                                           Text(
                                             '景点服务',
                                             style: TextStyle(
-                                              fontSize: 18,
+                                              fontSize:
+                                                  MCPDimension.fontSizeXLarge,
                                               fontWeight: FontWeight.bold,
                                               color: AppTheme.primaryTextColor,
                                             ),
@@ -2753,17 +2789,23 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                                           Spacer(),
                                         ],
                                       ),
-                                      SizedBox(height: 16),
+                                      SizedBox(
+                                        height: MCPDimension.spacingLarge,
+                                      ),
                                       // 用GridView展示服务选项
                                       GridView.count(
                                         crossAxisCount:
                                             screenWidth < 340 ? 3 : 4,
                                         shrinkWrap: true,
                                         physics: NeverScrollableScrollPhysics(),
-                                        crossAxisSpacing: 12,
-                                        mainAxisSpacing: 16,
-                                        childAspectRatio: 0.9,
-                                        padding: EdgeInsets.only(bottom: 8),
+                                        crossAxisSpacing:
+                                            MCPDimension.spacingMedium,
+                                        mainAxisSpacing:
+                                            MCPDimension.spacingLarge,
+                                        childAspectRatio: 1.0, // 调整为1.0避免负宽度错误
+                                        padding: EdgeInsets.only(
+                                          bottom: MCPDimension.spacingSmall,
+                                        ),
                                         children: [
                                           _buildServiceItem(
                                             icon: Icons.map_outlined,
