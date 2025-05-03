@@ -4498,52 +4498,120 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     final descriptionController = TextEditingController();
     bool isRecommended = true;
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return AlertDialog(
-              title: Text('添加住宿信息'),
-              content: SingleChildScrollView(
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              decoration: BoxDecoration(
+                color: AppTheme.backgroundColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(UIConstants.borderRadiusLarge),
+                  topRight: Radius.circular(UIConstants.borderRadiusLarge),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: Offset(0, -3),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(UIConstants.paddingLarge),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.hotel,
+                          color: AppTheme.neonBlue,
+                          size: UIConstants.iconSizeMedium,
+                        ),
+                        SizedBox(width: UIConstants.paddingSmall),
+                        Text(
+                          '添加住宿信息',
+                          style: TextStyle(
+                            fontSize: UIConstants.fontSizeLarge,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryTextColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: UIConstants.paddingMedium),
+
+                    // 住宿名称输入
                     TextField(
                       controller: nameController,
                       decoration: InputDecoration(
                         labelText: '住宿名称 *',
                         hintText: '例如: 湖畔度假酒店',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            UIConstants.borderRadiusMedium,
+                          ),
+                        ),
                       ),
                     ),
-                    SizedBox(height: 12),
+                    SizedBox(height: UIConstants.paddingMedium),
+
+                    // 地址输入
                     TextField(
                       controller: addressController,
                       decoration: InputDecoration(
                         labelText: '地址',
                         hintText: '例如: 杭州市西湖区湖滨路18号',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            UIConstants.borderRadiusMedium,
+                          ),
+                        ),
                       ),
                     ),
-                    SizedBox(height: 12),
+                    SizedBox(height: UIConstants.paddingMedium),
+
+                    // 参考价格输入
                     TextField(
                       controller: priceController,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
                         labelText: '参考价格 (¥/晚)',
                         hintText: '例如: 388',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            UIConstants.borderRadiusMedium,
+                          ),
+                        ),
                       ),
                     ),
-                    SizedBox(height: 12),
+                    SizedBox(height: UIConstants.paddingMedium),
+
+                    // 描述输入
                     TextField(
                       controller: descriptionController,
                       maxLines: 3,
                       decoration: InputDecoration(
                         labelText: '描述',
                         hintText: '请描述住宿环境、服务等特点',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            UIConstants.borderRadiusMedium,
+                          ),
+                        ),
                       ),
                     ),
-                    SizedBox(height: 16),
+                    SizedBox(height: UIConstants.paddingMedium),
+
+                    // 是否推荐选项
                     Row(
                       children: [
                         Checkbox(
@@ -4553,56 +4621,109 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                               isRecommended = value ?? true;
                             });
                           },
+                          activeColor: AppTheme.neonBlue,
                         ),
-                        Text('我向其他用户推荐这个住宿'),
+                        Text(
+                          '我向其他用户推荐这个住宿',
+                          style: TextStyle(
+                            color: AppTheme.primaryTextColor,
+                            fontSize: UIConstants.fontSizeMedium,
+                          ),
+                        ),
                       ],
+                    ),
+
+                    // 奖励提示
+                    Container(
+                      margin: EdgeInsets.symmetric(
+                        vertical: UIConstants.paddingMedium,
+                      ),
+                      padding: EdgeInsets.all(UIConstants.paddingMedium),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(
+                          UIConstants.borderRadiusMedium,
+                        ),
+                        border: Border.all(
+                          color: Colors.amber.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.emoji_events,
+                            color: Colors.amber,
+                            size: UIConstants.iconSizeMedium,
+                          ),
+                          SizedBox(width: UIConstants.paddingSmall),
+                          Expanded(
+                            child: Text(
+                              '提供真实有效的住宿信息将获得 ${RewardConstants.pointsAddAccommodation} 积分和 ${RewardConstants.expAddAccommodation} 经验值奖励！',
+                              style: TextStyle(
+                                fontSize: UIConstants.fontSizeSmall,
+                                color: Colors.amber.shade800,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // 提交按钮
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // 验证输入
+                          if (nameController.text.isEmpty) {
+                            ScaffoldMessenger.of(
+                              context,
+                            ).showSnackBar(SnackBar(content: Text('请输入住宿名称')));
+                            return;
+                          }
+
+                          // 关闭对话框
+                          Navigator.of(context).pop();
+
+                          // 显示提交成功信息
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('住宿信息提交成功，感谢您的贡献！'),
+                              backgroundColor: Colors.green,
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+
+                          // 显示积分奖励对话框
+                          Future.delayed(Duration(milliseconds: 500), () {
+                            _showRewardDialog(
+                              title: '获得奖励',
+                              content:
+                                  '感谢您的贡献！您获得了：\n'
+                                  '· ${RewardConstants.pointsAddAccommodation} 积分\n'
+                                  '· ${RewardConstants.expAddAccommodation} 经验值',
+                            );
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.neonBlue,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            vertical: UIConstants.paddingMedium,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              UIConstants.borderRadiusMedium,
+                            ),
+                          ),
+                        ),
+                        child: Text('提交住宿信息'),
+                      ),
                     ),
                   ],
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('取消'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    // 验证输入
-                    if (nameController.text.isEmpty) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text('请输入住宿名称')));
-                      return;
-                    }
-
-                    // 关闭对话框
-                    Navigator.of(context).pop();
-
-                    // 显示提交成功信息
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('住宿信息提交成功，感谢您的贡献！'),
-                        backgroundColor: Colors.green,
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-
-                    // 显示积分奖励对话框
-                    Future.delayed(Duration(milliseconds: 500), () {
-                      _showRewardDialog(
-                        title: '获得奖励',
-                        content:
-                            '感谢您的贡献！您获得了：\n'
-                            '· ${RewardConstants.pointsAddAccommodation} 积分\n'
-                            '· ${RewardConstants.expAddAccommodation} 经验值',
-                      );
-                    });
-                  },
-                  child: Text('提交'),
-                ),
-              ],
             );
           },
         );
