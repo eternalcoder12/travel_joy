@@ -162,20 +162,20 @@ class TravelTimeline extends StatelessWidget {
     final travelMood = _getRandomTravelMood(index);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 4, 8, 4), // 增加左侧间距
+      padding: const EdgeInsets.fromLTRB(16, 4, 8, 4), // 减少左侧间距，原来是24
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 左侧时间线 - 进一步精简
           SizedBox(
-            width: 36, // 再次减小宽度
+            width: 30, // 再次减小宽度，原来是36
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // 日期显示 - 更加现代化
                 Container(
-                  width: 32,
-                  height: 32,
+                  width: 28, // 减小宽度，原来是32
+                  height: 28, // 减小高度，原来是32
                   decoration: BoxDecoration(
                     color: AppTheme.backgroundColor.withOpacity(0.7),
                     borderRadius: BorderRadius.circular(8),
@@ -198,7 +198,7 @@ class TravelTimeline extends StatelessWidget {
                         _getMonth(event.date),
                         style: TextStyle(
                           color: dotColor,
-                          fontSize: 9,
+                          fontSize: 10, // 减小字号，原来是没有明确指定
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -270,11 +270,7 @@ class TravelTimeline extends StatelessWidget {
                       child: Row(
                         children: [
                           // 位置图标和文本
-                          Icon(
-                            Icons.place,
-                            color: dotColor,
-                            size: 16,
-                          ),
+                          Icon(Icons.place, color: dotColor, size: 16),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Column(
@@ -299,7 +295,7 @@ class TravelTimeline extends StatelessWidget {
                               ],
                             ),
                           ),
-                          
+
                           // 旅行类型标签
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -327,7 +323,7 @@ class TravelTimeline extends StatelessWidget {
                       ),
                     ),
                   ),
-                  
+
                   // 底部 - 旅行信息
                   Padding(
                     padding: const EdgeInsets.all(10),
@@ -346,7 +342,7 @@ class TravelTimeline extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 8),
-                        
+
                         // 底部信息栏
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -369,7 +365,7 @@ class TravelTimeline extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            
+
                             // 情绪标签
                             Row(
                               children: [
@@ -388,7 +384,7 @@ class TravelTimeline extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            
+
                             // 照片指示器
                             if (event.imageUrl != null)
                               Row(
