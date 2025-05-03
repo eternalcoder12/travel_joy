@@ -2159,7 +2159,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                           // 添加箭头提示可点击查看详情
                           Icon(
                             Icons.arrow_forward_ios_rounded,
-                            size: MCPDimension.iconSizeXSmall,
+                            size: MCPDimension.iconSizeSmall / 2, // 使用iconSizeSmall的一半替换不存在的iconSizeXSmall
                             color: AppTheme.secondaryTextColor.withOpacity(0.7),
                           ),
                         ],
