@@ -1074,14 +1074,9 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     );
   }
 
-  // 启动导航
+  // 启动导航 (修改为调用手机导航应用)
   void _launchMaps() {
-    final location = _getSpotLocation();
-    final name = _getSpotName();
-
-    // 使用通用URL方式，不再区分平台
-    String url = 'https://www.google.com/maps/search/?api=1&query=$location';
-    _launchExternalApp(url);
+    _showNavigationOptions(context);
   }
 
   // 分享景点
@@ -1097,7 +1092,16 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
         '快来和我一起探索吧!\n'
         '来自Travel Joy旅行应用';
 
-    Share.share(shareText, subject: '分享景点: $spotName');
+    // 确保分享功能正确工作
+    try {
+      Share.share(shareText, subject: '分享景点: $spotName');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('分享失败: $e')));
+      }
+    }
   }
 
   // 获取景点评分
@@ -1503,12 +1507,17 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                   // 顶部把手和标题栏
                   Container(
                     width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    padding: EdgeInsets.symmetric(
+                      vertical: UIConstants.paddingMedium,
+                      horizontal: UIConstants.paddingLarge,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.cardColor,
                       borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        topRight: Radius.circular(16),
+                        topLeft: Radius.circular(UIConstants.borderRadiusLarge),
+                        topRight: Radius.circular(
+                          UIConstants.borderRadiusLarge,
+                        ),
                       ),
                     ),
                     child: Column(
@@ -1522,19 +1531,19 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
-                        SizedBox(height: 12),
+                        SizedBox(height: UIConstants.paddingMedium),
                         Row(
                           children: [
                             Icon(
                               Icons.restaurant,
                               color: AppTheme.neonPink,
-                              size: 18,
+                              size: UIConstants.iconSizeMedium,
                             ),
-                            SizedBox(width: 8),
+                            SizedBox(width: UIConstants.paddingSmall),
                             Text(
-                              '周边美食推荐',
+                              '特色美食推荐',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: UIConstants.fontSizeLarge,
                                 fontWeight: FontWeight.bold,
                                 color: AppTheme.primaryTextColor,
                               ),
@@ -1542,19 +1551,32 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                             Spacer(),
                             Container(
                               padding: EdgeInsets.symmetric(
-                                horizontal: 8,
+                                horizontal: UIConstants.paddingSmall,
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
                                 color: AppTheme.neonPink.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                '用户提供',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: AppTheme.neonPink,
+                                borderRadius: BorderRadius.circular(
+                                  UIConstants.borderRadiusMedium,
                                 ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.verified_user,
+                                    size: UIConstants.iconSizeTiny,
+                                    color: AppTheme.neonPink,
+                                  ),
+                                  SizedBox(width: 2),
+                                  Text(
+                                    '数据来源：用户贡献',
+                                    style: TextStyle(
+                                      fontSize: UIConstants.fontSizeTiny,
+                                      color: AppTheme.neonPink,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -1563,65 +1585,105 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                     ),
                   ),
 
-                  // 美食列表
+                  // 内容区域
                   Expanded(
                     child: ListView(
                       controller: scrollController,
-                      padding: EdgeInsets.all(16),
+                      padding: EdgeInsets.all(UIConstants.paddingLarge),
                       children: [
-                        // 暂无数据提示
+                        // 特色美食列表
+                        _buildFoodItem(
+                          name: '西湖醋鱼',
+                          description: '杭州名菜，选用西湖中的草鱼制作，口味酸甜适中，鱼肉鲜嫩。',
+                          price: '88-128元',
+                          rating: '4.8',
+                          imagePath: 'https://picsum.photos/id/1080/200/200',
+                          onTap: () {},
+                        ),
+                        SizedBox(height: UIConstants.paddingMedium),
+
+                        _buildFoodItem(
+                          name: '龙井虾仁',
+                          description: '以龙井茶与虾仁烹饪而成，茶香与虾的鲜美完美结合。',
+                          price: '68-98元',
+                          rating: '4.6',
+                          imagePath: 'https://picsum.photos/id/1060/200/200',
+                          onTap: () {},
+                        ),
+                        SizedBox(height: UIConstants.paddingMedium),
+
+                        _buildFoodItem(
+                          name: '东坡肉',
+                          description: '传说是苏东坡发明的杭州传统名菜，肥而不腻，口感醇厚。',
+                          price: '58-78元',
+                          rating: '4.7',
+                          imagePath: 'https://picsum.photos/id/1025/200/200',
+                          onTap: () {},
+                        ),
+
+                        // 添加美食信息按钮
                         Container(
-                          padding: EdgeInsets.all(16),
-                          margin: EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: AppTheme.cardColor,
-                            borderRadius: BorderRadius.circular(12),
+                          margin: EdgeInsets.only(
+                            top: UIConstants.paddingLarge,
                           ),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.no_food,
-                                color: Colors.grey.withOpacity(0.5),
-                                size: 48,
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            icon: Icon(Icons.add),
+                            label: Text('添加美食信息'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.neonPink,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                vertical: UIConstants.paddingMedium,
                               ),
-                              SizedBox(height: 12),
-                              Text(
-                                '暂无周边美食信息',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: AppTheme.secondaryTextColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  UIConstants.borderRadiusMedium,
                                 ),
                               ),
-                              SizedBox(height: 8),
-                              Text(
-                                '您可以分享您发现的美食信息，帮助其他游客',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppTheme.secondaryTextColor
-                                      .withOpacity(0.7),
+                            ),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              _showAddFoodInfoDialog(context);
+                            },
+                          ),
+                        ),
+
+                        // 奖励提示
+                        Container(
+                          margin: EdgeInsets.only(
+                            top: UIConstants.paddingMedium,
+                          ),
+                          padding: EdgeInsets.all(UIConstants.paddingMedium),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(
+                              UIConstants.borderRadiusMedium,
+                            ),
+                            border: Border.all(
+                              color: Colors.amber.withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.emoji_events,
+                                color: Colors.amber,
+                                size: UIConstants.iconSizeMedium,
+                              ),
+                              SizedBox(width: UIConstants.paddingSmall),
+                              Expanded(
+                                child: Text(
+                                  '提供真实有效的美食信息将获得 ${RewardConstants.pointsAddFoodInfo} 积分和 ${RewardConstants.expAddFoodInfo} 经验值奖励！',
+                                  style: TextStyle(
+                                    fontSize: UIConstants.fontSizeSmall,
+                                    color: Colors.amber.shade800,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-
-                        // 添加美食信息按钮
-                        ElevatedButton.icon(
-                          icon: Icon(Icons.add, size: 16),
-                          label: Text('添加美食信息'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.buttonColor,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                          ),
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _showAddFoodInfoDialog(context);
-                          },
                         ),
                       ],
                     ),
@@ -1632,6 +1694,112 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
           },
         );
       },
+    );
+  }
+
+  // 构建美食项
+  Widget _buildFoodItem({
+    required String name,
+    required String description,
+    required String price,
+    required String rating,
+    required String imagePath,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(UIConstants.borderRadiusMedium),
+      child: Container(
+        padding: EdgeInsets.all(UIConstants.paddingMedium),
+        decoration: BoxDecoration(
+          color: AppTheme.cardColor,
+          borderRadius: BorderRadius.circular(UIConstants.borderRadiusMedium),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 美食图片
+            ClipRRect(
+              borderRadius: BorderRadius.circular(
+                UIConstants.borderRadiusSmall,
+              ),
+              child: network.NetworkImage(
+                imageUrl: imagePath,
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+              ),
+            ),
+            SizedBox(width: UIConstants.paddingMedium),
+
+            // 美食信息
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          name,
+                          style: TextStyle(
+                            fontSize: UIConstants.fontSizeMedium,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryTextColor,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: UIConstants.paddingSmall,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(
+                            UIConstants.borderRadiusSmall,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.star, color: Colors.amber, size: 12),
+                            SizedBox(width: 2),
+                            Text(
+                              rating,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.amber,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.secondaryTextColor,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    '价格: $price',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.neonPink,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1676,7 +1844,9 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                       color: AppTheme.cardColor,
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(UIConstants.borderRadiusLarge),
-                        topRight: Radius.circular(UIConstants.borderRadiusLarge),
+                        topRight: Radius.circular(
+                          UIConstants.borderRadiusLarge,
+                        ),
                       ),
                     ),
                     child: Column(
@@ -1700,7 +1870,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                             ),
                             SizedBox(width: UIConstants.paddingSmall),
                             Text(
-                              '周边住宿推荐',
+                              '附近住宿',
                               style: TextStyle(
                                 fontSize: UIConstants.fontSizeLarge,
                                 fontWeight: FontWeight.bold,
@@ -1715,19 +1885,21 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                               ),
                               decoration: BoxDecoration(
                                 color: AppTheme.neonBlue.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(UIConstants.borderRadiusMedium),
+                                borderRadius: BorderRadius.circular(
+                                  UIConstants.borderRadiusMedium,
+                                ),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    Icons.link,
+                                    Icons.verified_outlined,
                                     size: UIConstants.iconSizeTiny,
                                     color: AppTheme.neonBlue,
                                   ),
                                   SizedBox(width: 2),
                                   Text(
-                                    '第三方平台',
+                                    '数据来源：第三方平台',
                                     style: TextStyle(
                                       fontSize: UIConstants.fontSizeTiny,
                                       color: AppTheme.neonBlue,
@@ -1741,180 +1913,83 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                       ],
                     ),
                   ),
-                  
-                  // 外部API集成示意(实际项目中这里需要接入真实API)
+
+                  // 内容区域
                   Expanded(
                     child: ListView(
                       controller: scrollController,
                       padding: EdgeInsets.all(UIConstants.paddingLarge),
                       children: [
-                        // 数据合作说明
-                        Container(
-                          padding: EdgeInsets.all(UIConstants.paddingMedium),
-                          margin: EdgeInsets.only(bottom: UIConstants.paddingMedium),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(UIConstants.borderRadiusMedium),
-                            border: Border.all(
-                              color: Colors.blue.withOpacity(0.2),
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(UIConstants.paddingSmall),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.handshake_outlined,
-                                  color: Colors.blue,
-                                  size: UIConstants.iconSizeMedium,
-                                ),
-                              ),
-                              SizedBox(width: UIConstants.paddingSmall),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '数据合作说明',
-                                      style: TextStyle(
-                                        fontSize: UIConstants.fontSizeSmall,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.blue,
-                                      ),
-                                    ),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      '我们与携程、去哪儿等平台建立了数据合作，但当前API对接仍在进行中。点击下方按钮将跳转至对应平台查看住宿信息。',
-                                      style: TextStyle(
-                                        fontSize: UIConstants.fontSizeTiny,
-                                        color: AppTheme.secondaryTextColor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        
-                        // 推荐酒店（模拟数据）
-                        SizedBox(height: UIConstants.paddingSmall),
+                        // 住宿平台选择
                         Text(
-                          '周边热门酒店',
+                          '选择预订平台',
                           style: TextStyle(
                             fontSize: UIConstants.fontSizeMedium,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.primaryTextColor,
                           ),
                         ),
-                        SizedBox(height: UIConstants.paddingSmall),
-                        
+                        SizedBox(height: UIConstants.paddingMedium),
+
+                        Wrap(
+                          spacing: UIConstants.paddingSmall,
+                          runSpacing: UIConstants.paddingSmall,
+                          children: [
+                            _buildPlatformButton(
+                              platformName: '携程旅行',
+                              icon: Icons.hotel,
+                              color: Colors.blue,
+                              onTap: () => _launchBookingApp('ctrip://', '携程'),
+                            ),
+                            _buildPlatformButton(
+                              platformName: '去哪儿旅行',
+                              icon: Icons.flight,
+                              color: Colors.deepPurple,
+                              onTap: () => _launchBookingApp('qunar://', '去哪儿'),
+                            ),
+                            _buildPlatformButton(
+                              platformName: '美团旅行',
+                              icon: Icons.hotel_class,
+                              color: Colors.green,
+                              onTap:
+                                  () => _launchBookingApp('imeituan://', '美团'),
+                            ),
+                          ],
+                        ),
+
+                        SizedBox(height: UIConstants.paddingLarge),
+
+                        // 推荐住宿
+                        Text(
+                          '景区周边推荐住宿',
+                          style: TextStyle(
+                            fontSize: UIConstants.fontSizeMedium,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryTextColor,
+                          ),
+                        ),
+                        SizedBox(height: UIConstants.paddingMedium),
+
                         // 酒店列表
                         _buildHotelItem(
-                          '西湖湖畔酒店',
-                          '4.8',
-                          '￥688',
-                          '距景区200米，可欣赏西湖全景',
-                          AppTheme.neonBlue,
-                        ),
-                        _buildHotelItem(
-                          '杭州国际青年旅舍',
-                          '4.5',
-                          '￥128',
-                          '背包客首选，交通便利',
-                          Colors.amber,
-                        ),
-                        _buildHotelItem(
-                          '西子湖四季酒店',
-                          '4.9',
-                          '￥1688',
-                          '五星级酒店，提供豪华服务',
-                          AppTheme.neonPink,
-                        ),
-                        
-                        SizedBox(height: UIConstants.paddingMedium),
-                        Text(
-                          '以上数据仅为示例，请点击下方按钮查看真实信息',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: UIConstants.fontSizeTiny,
-                            color: AppTheme.secondaryTextColor,
-                            fontStyle: FontStyle.italic,
-                          ),
+                          name: '西湖湖畔酒店',
+                          description: '位于西湖边，环境优美，交通便利，可俯瞰西湖美景。',
+                          price: '¥688起',
+                          distance: '800米',
+                          rating: '4.8',
+                          imagePath: 'https://picsum.photos/id/164/200/200',
+                          onTap: () => _launchBookingApp('ctrip://', '携程'),
                         ),
                         SizedBox(height: UIConstants.paddingMedium),
-                        
-                        // 选择跳转平台
-                        Container(
-                          padding: EdgeInsets.all(UIConstants.paddingMedium),
-                          decoration: BoxDecoration(
-                            color: AppTheme.cardColor,
-                            borderRadius: BorderRadius.circular(UIConstants.borderRadiusMedium),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '前往预订平台',
-                                style: TextStyle(
-                                  fontSize: UIConstants.fontSizeSmall,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.primaryTextColor,
-                                ),
-                              ),
-                              SizedBox(height: UIConstants.paddingMedium),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                children: [
-                                  _buildPlatformButton(
-                                    '携程', 
-                                    AppTheme.neonBlue, 
-                                    () => _launchBookingApp('ctrip://', '携程'),
-                                  ),
-                                  _buildPlatformButton(
-                                    '去哪儿', 
-                                    Colors.green, 
-                                    () => _launchBookingApp('qunar://', '去哪儿'),
-                                  ),
-                                  _buildPlatformButton(
-                                    '美团', 
-                                    Colors.amber, 
-                                    () => _launchBookingApp('imeituan://', '美团'),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        
-                        // 添加贡献信息和积分奖励
-                        SizedBox(height: UIConstants.paddingLarge),
-                        OutlinedButton.icon(
-                          icon: Icon(
-                            Icons.add,
-                            size: UIConstants.iconSizeSmall,
-                          ),
-                          label: Text('添加住宿推荐'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppTheme.neonBlue,
-                            side: BorderSide(
-                              color: AppTheme.neonBlue.withOpacity(0.5),
-                              width: 1,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(UIConstants.borderRadiusMedium),
-                            ),
-                            padding: EdgeInsets.symmetric(vertical: UIConstants.paddingMedium),
-                          ),
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _showAddAccommodationDialog(context);
-                          },
+
+                        _buildHotelItem(
+                          name: '杭州西溪悦榕庄',
+                          description: '奢华的五星级酒店，提供spa服务和各种娱乐设施。',
+                          price: '¥1288起',
+                          distance: '2.5公里',
+                          rating: '4.9',
+                          imagePath: 'https://picsum.photos/id/237/200/200',
+                          onTap: () => _launchBookingApp('ctrip://', '携程'),
                         ),
                       ],
                     ),
@@ -1927,57 +2002,53 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
       },
     );
   }
-  
+
   // 构建酒店项
-  Widget _buildHotelItem(
-    String name,
-    String rating,
-    String price,
-    String description,
-    Color color,
-  ) {
-    return Container(
-      margin: EdgeInsets.only(bottom: UIConstants.paddingSmall),
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(UIConstants.borderRadiusMedium),
-        border: Border.all(
-          color: color.withOpacity(0.1),
-          width: 1,
+  Widget _buildHotelItem({
+    required String name,
+    required String description,
+    required String price,
+    required String distance,
+    required String rating,
+    required String imagePath,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(UIConstants.borderRadiusMedium),
+      child: Container(
+        padding: EdgeInsets.all(UIConstants.paddingMedium),
+        decoration: BoxDecoration(
+          color: AppTheme.cardColor,
+          borderRadius: BorderRadius.circular(UIConstants.borderRadiusMedium),
         ),
-      ),
-      child: InkWell(
-        onTap: () => _launchBookingApp('ctrip://', '携程'),
-        borderRadius: BorderRadius.circular(UIConstants.borderRadiusMedium),
-        child: Padding(
-          padding: EdgeInsets.all(UIConstants.paddingMedium),
-          child: Row(
-            children: [
-              // 酒店图标
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(UIConstants.borderRadiusSmall),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.hotel,
-                    color: color,
-                    size: UIConstants.iconSizeLarge,
-                  ),
-                ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 酒店图片
+            ClipRRect(
+              borderRadius: BorderRadius.circular(
+                UIConstants.borderRadiusSmall,
               ),
-              SizedBox(width: UIConstants.paddingMedium),
-              // 酒店信息
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
+              child: network.NetworkImage(
+                imageUrl: imagePath,
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+              ),
+            ),
+            SizedBox(width: UIConstants.paddingMedium),
+
+            // 酒店信息
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
                           name,
                           style: TextStyle(
                             fontSize: UIConstants.fontSizeMedium,
@@ -1985,62 +2056,70 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                             color: AppTheme.primaryTextColor,
                           ),
                         ),
-                        Spacer(),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: UIConstants.paddingSmall,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.amber.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(UIConstants.borderRadiusSmall),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.star,
-                                color: Colors.amber,
-                                size: 12,
-                              ),
-                              SizedBox(width: 2),
-                              Text(
-                                rating,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.amber,
-                                ),
-                              ),
-                            ],
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: UIConstants.paddingSmall,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(
+                            UIConstants.borderRadiusSmall,
                           ),
                         ),
-    return Column(
-      children: [
-        Container(
-          padding: EdgeInsets.all(UIConstants.paddingSmall),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: color, size: UIConstants.iconSizeMedium),
+                        child: Row(
+                          children: [
+                            Icon(Icons.star, color: Colors.amber, size: 12),
+                            SizedBox(width: 2),
+                            Text(
+                              rating,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.amber,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.secondaryTextColor,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        price,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppTheme.neonBlue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        '距离: $distance',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.secondaryTextColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: UIConstants.fontSizeMedium,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: UIConstants.fontSizeTiny,
-            color: AppTheme.secondaryTextColor,
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -2585,37 +2664,6 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                                             ),
                                           ),
                                           Spacer(),
-                                          // 添加查看更多按钮
-                                          TextButton(
-                                            onPressed: () {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text('查看全部服务'),
-                                                  behavior:
-                                                      SnackBarBehavior.floating,
-                                                ),
-                                              );
-                                            },
-                                            style: TextButton.styleFrom(
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 4,
-                                              ),
-                                              minimumSize: Size(20, 20),
-                                              tapTargetSize:
-                                                  MaterialTapTargetSize
-                                                      .shrinkWrap,
-                                            ),
-                                            child: Text(
-                                              '更多',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: AppTheme.neonBlue,
-                                              ),
-                                            ),
-                                          ),
                                         ],
                                       ),
                                       SizedBox(height: 8), // 减少间距
@@ -2689,15 +2737,8 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                                             title: '景点介绍',
                                             color: AppTheme.neonOrange,
                                             onTap: () {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text('查看景点详细介绍'),
-                                                  behavior:
-                                                      SnackBarBehavior.floating,
-                                                ),
-                                              );
+                                              // 修复景点介绍点击事件
+                                              _showSpotIntroduction(context);
                                             },
                                           ),
                                           _buildServiceItem(
@@ -2705,15 +2746,8 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                                             title: '评价',
                                             color: Colors.amber,
                                             onTap: () {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text('查看游客评价'),
-                                                  behavior:
-                                                      SnackBarBehavior.floating,
-                                                ),
-                                              );
+                                              // 修复评价点击事件
+                                              _showReviews(context);
                                             },
                                           ),
                                           _buildServiceItem(
@@ -2762,6 +2796,1457 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                     ),
                   ),
                 ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 显示交通服务选项
+  void _showTransportationOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (context, scrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: AppTheme.backgroundColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(UIConstants.borderRadiusLarge),
+                  topRight: Radius.circular(UIConstants.borderRadiusLarge),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: Offset(0, -3),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 顶部把手和标题栏
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(
+                      vertical: UIConstants.paddingMedium,
+                      horizontal: UIConstants.paddingLarge,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.cardColor,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(UIConstants.borderRadiusLarge),
+                        topRight: Radius.circular(
+                          UIConstants.borderRadiusLarge,
+                        ),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        // 把手示意
+                        Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        SizedBox(height: UIConstants.paddingMedium),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.directions,
+                              color: AppTheme.neonGreen,
+                              size: UIConstants.iconSizeMedium,
+                            ),
+                            SizedBox(width: UIConstants.paddingSmall),
+                            Text(
+                              '交通出行指南',
+                              style: TextStyle(
+                                fontSize: UIConstants.fontSizeLarge,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryTextColor,
+                              ),
+                            ),
+                            Spacer(),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: UIConstants.paddingSmall,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.neonGreen.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(
+                                  UIConstants.borderRadiusMedium,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.verified_outlined,
+                                    size: UIConstants.iconSizeTiny,
+                                    color: AppTheme.neonGreen,
+                                  ),
+                                  SizedBox(width: 2),
+                                  Text(
+                                    '数据来源：景区官网',
+                                    style: TextStyle(
+                                      fontSize: UIConstants.fontSizeTiny,
+                                      color: AppTheme.neonGreen,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // 交通指南内容
+                  Expanded(
+                    child: ListView(
+                      controller: scrollController,
+                      padding: EdgeInsets.all(UIConstants.paddingLarge),
+                      children: [
+                        // 数据来源说明
+                        Container(
+                          padding: EdgeInsets.all(UIConstants.paddingMedium),
+                          margin: EdgeInsets.only(
+                            bottom: UIConstants.paddingMedium,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(
+                              UIConstants.borderRadiusMedium,
+                            ),
+                            border: Border.all(
+                              color: Colors.blue.withOpacity(0.2),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                color: Colors.blue,
+                                size: UIConstants.iconSizeMedium,
+                              ),
+                              SizedBox(width: UIConstants.paddingSmall),
+                              Expanded(
+                                child: Text(
+                                  '以下信息来自景区官方网站和用户贡献，仅供参考。实际交通情况可能因季节、天气或其他因素而变化。',
+                                  style: TextStyle(
+                                    fontSize: UIConstants.fontSizeSmall,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // 官方交通信息
+                        Container(
+                          padding: EdgeInsets.all(UIConstants.paddingMedium),
+                          margin: EdgeInsets.only(
+                            bottom: UIConstants.paddingMedium,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.cardColor,
+                            borderRadius: BorderRadius.circular(
+                              UIConstants.borderRadiusMedium,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.directions_bus,
+                                    color: AppTheme.neonGreen,
+                                    size: UIConstants.iconSizeSmall,
+                                  ),
+                                  SizedBox(width: UIConstants.paddingSmall),
+                                  Text(
+                                    '公共交通',
+                                    style: TextStyle(
+                                      fontSize: UIConstants.fontSizeMedium,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryTextColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: UIConstants.paddingSmall),
+                              Text(
+                                '杭州市区至西湖景区：\n乘坐公交K599路、Y2路、Y9路等可直达西湖景区。',
+                                style: TextStyle(
+                                  fontSize: UIConstants.fontSizeSmall,
+                                  color: AppTheme.primaryTextColor,
+                                ),
+                              ),
+                              Divider(height: 24),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.train,
+                                    color: AppTheme.neonGreen,
+                                    size: UIConstants.iconSizeSmall,
+                                  ),
+                                  SizedBox(width: UIConstants.paddingSmall),
+                                  Text(
+                                    '地铁路线',
+                                    style: TextStyle(
+                                      fontSize: UIConstants.fontSizeMedium,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryTextColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: UIConstants.paddingSmall),
+                              Text(
+                                '地铁1号线：龙翔桥站、定安路站下车后步行可达\n地铁2号线：凤起路站换乘公交车可达',
+                                style: TextStyle(
+                                  fontSize: UIConstants.fontSizeSmall,
+                                  color: AppTheme.primaryTextColor,
+                                ),
+                              ),
+                              Divider(height: 24),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.directions_car,
+                                    color: AppTheme.neonGreen,
+                                    size: UIConstants.iconSizeSmall,
+                                  ),
+                                  SizedBox(width: UIConstants.paddingSmall),
+                                  Text(
+                                    '自驾导航',
+                                    style: TextStyle(
+                                      fontSize: UIConstants.fontSizeMedium,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryTextColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: UIConstants.paddingSmall),
+                              Text(
+                                '导航至"西湖风景区"，可停车场：\n· 湖滨停车场（收费）\n· 断桥停车场（收费）\n· 岳庙停车场（收费）',
+                                style: TextStyle(
+                                  fontSize: UIConstants.fontSizeSmall,
+                                  color: AppTheme.primaryTextColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // 地图导航按钮
+                        ElevatedButton.icon(
+                          icon: Icon(
+                            Icons.map,
+                            size: UIConstants.iconSizeSmall,
+                          ),
+                          label: Text('打开地图导航'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.neonGreen,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                UIConstants.borderRadiusMedium,
+                              ),
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              vertical: UIConstants.paddingMedium,
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _launchMaps();
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // 显示添加美食信息的对话框
+  void _showAddFoodInfoDialog(BuildContext context) {
+    // 美食名称控制器
+    TextEditingController nameController = TextEditingController();
+    // 美食描述控制器
+    TextEditingController descriptionController = TextEditingController();
+    // 美食价格控制器
+    TextEditingController priceController = TextEditingController();
+    // 是否推荐
+    bool isRecommended = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              decoration: BoxDecoration(
+                color: AppTheme.backgroundColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(UIConstants.borderRadiusLarge),
+                  topRight: Radius.circular(UIConstants.borderRadiusLarge),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: Offset(0, -3),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(UIConstants.paddingLarge),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.restaurant,
+                          color: AppTheme.neonPink,
+                          size: UIConstants.iconSizeMedium,
+                        ),
+                        SizedBox(width: UIConstants.paddingSmall),
+                        Text(
+                          '添加美食信息',
+                          style: TextStyle(
+                            fontSize: UIConstants.fontSizeLarge,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryTextColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: UIConstants.paddingMedium),
+
+                    // 美食名称输入
+                    TextField(
+                      controller: nameController,
+                      decoration: InputDecoration(
+                        labelText: '美食名称',
+                        hintText: '例如：西湖醋鱼',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            UIConstants.borderRadiusMedium,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: UIConstants.paddingMedium),
+
+                    // 美食描述输入
+                    TextField(
+                      controller: descriptionController,
+                      decoration: InputDecoration(
+                        labelText: '美食描述',
+                        hintText: '例如：杭州特色传统名菜，味道鲜美...',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            UIConstants.borderRadiusMedium,
+                          ),
+                        ),
+                      ),
+                      maxLines: 3,
+                    ),
+                    SizedBox(height: UIConstants.paddingMedium),
+
+                    // 价格范围输入
+                    TextField(
+                      controller: priceController,
+                      decoration: InputDecoration(
+                        labelText: '价格范围',
+                        hintText: '例如：58-128元',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            UIConstants.borderRadiusMedium,
+                          ),
+                        ),
+                      ),
+                      keyboardType: TextInputType.text,
+                    ),
+                    SizedBox(height: UIConstants.paddingMedium),
+
+                    // 是否推荐选项
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: isRecommended,
+                          onChanged: (value) {
+                            setState(() {
+                              isRecommended = value ?? false;
+                            });
+                          },
+                          activeColor: AppTheme.neonPink,
+                        ),
+                        Text(
+                          '我向其他用户推荐这道美食',
+                          style: TextStyle(
+                            color: AppTheme.primaryTextColor,
+                            fontSize: UIConstants.fontSizeMedium,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // 奖励提示
+                    Container(
+                      margin: EdgeInsets.symmetric(
+                        vertical: UIConstants.paddingMedium,
+                      ),
+                      padding: EdgeInsets.all(UIConstants.paddingMedium),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(
+                          UIConstants.borderRadiusMedium,
+                        ),
+                        border: Border.all(
+                          color: Colors.amber.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.emoji_events,
+                            color: Colors.amber,
+                            size: UIConstants.iconSizeMedium,
+                          ),
+                          SizedBox(width: UIConstants.paddingSmall),
+                          Expanded(
+                            child: Text(
+                              '提供真实有效的美食信息将获得 ${RewardConstants.pointsAddFoodInfo} 积分和 ${RewardConstants.expAddFoodInfo} 经验值奖励！',
+                              style: TextStyle(
+                                fontSize: UIConstants.fontSizeSmall,
+                                color: Colors.amber.shade800,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // 提交按钮
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // 这里应该添加数据验证和提交逻辑
+                          if (nameController.text.isEmpty) {
+                            ScaffoldMessenger.of(
+                              context,
+                            ).showSnackBar(SnackBar(content: Text('请输入美食名称')));
+                            return;
+                          }
+
+                          // 模拟成功提交
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('美食信息提交成功，感谢您的贡献！'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+
+                          // 关闭对话框
+                          Navigator.pop(context);
+
+                          // 模拟积分和经验值奖励提示
+                          Future.delayed(Duration(milliseconds: 500), () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.emoji_events,
+                                        color: Colors.amber,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text('获得奖励'),
+                                    ],
+                                  ),
+                                  content: Text(
+                                    '感谢您的贡献！您获得了：\n'
+                                    '· ${RewardConstants.pointsAddFoodInfo} 积分\n'
+                                    '· ${RewardConstants.expAddFoodInfo} 经验值',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      child: Text('太棒了'),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.neonPink,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            vertical: UIConstants.paddingMedium,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              UIConstants.borderRadiusMedium,
+                            ),
+                          ),
+                        ),
+                        child: Text('提交美食信息'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // 构建平台按钮
+  Widget _buildPlatformButton({
+    required String platformName,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(UIConstants.borderRadiusMedium),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: UIConstants.paddingMedium,
+          vertical: UIConstants.paddingSmall,
+        ),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(UIConstants.borderRadiusMedium),
+          border: Border.all(color: color.withOpacity(0.3), width: 1),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: UIConstants.iconSizeSmall),
+            SizedBox(width: UIConstants.paddingSmall),
+            Text(
+              platformName,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: UIConstants.fontSizeSmall,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 启动预订应用
+  Future<void> _launchBookingApp(String appUrl, String appName) async {
+    try {
+      // 尝试打开App
+      final bool launched = await launchUrlString(
+        appUrl,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched) {
+        // 如果无法打开App，显示提示
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('$appName 应用未安装'),
+              action: SnackBarAction(
+                label: '获取',
+                onPressed: () {
+                  // 提供下载链接(这里模拟打开应用商店)
+                  String storeUrl =
+                      Platform.isIOS
+                          ? 'itms-apps://itunes.apple.com/app/id$appName'
+                          : 'market://details?id=com.$appName';
+                  launchUrlString(
+                    storeUrl,
+                    mode: LaunchMode.externalApplication,
+                  );
+                },
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('无法打开 $appName: $e')));
+      }
+    }
+  }
+
+  // 显示导航选项对话框
+  void _showNavigationOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(UIConstants.paddingLarge),
+          decoration: BoxDecoration(
+            color: AppTheme.backgroundColor,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(UIConstants.borderRadiusLarge),
+              topRight: Radius.circular(UIConstants.borderRadiusLarge),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: Offset(0, -3),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.map,
+                    color: AppTheme.neonBlue,
+                    size: UIConstants.iconSizeMedium,
+                  ),
+                  SizedBox(width: UIConstants.paddingSmall),
+                  Text(
+                    '选择导航应用',
+                    style: TextStyle(
+                      fontSize: UIConstants.fontSizeLarge,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryTextColor,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: UIConstants.paddingLarge),
+
+              // 导航选项列表
+              InkWell(
+                onTap: () => _launchMapApp('百度地图', 'baidumap://'),
+                borderRadius: BorderRadius.circular(
+                  UIConstants.borderRadiusMedium,
+                ),
+                child: Container(
+                  padding: EdgeInsets.all(UIConstants.paddingMedium),
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardColor,
+                    borderRadius: BorderRadius.circular(
+                      UIConstants.borderRadiusMedium,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(UIConstants.paddingSmall),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.map_outlined,
+                          color: Colors.blue,
+                          size: UIConstants.iconSizeMedium,
+                        ),
+                      ),
+                      SizedBox(width: UIConstants.paddingMedium),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '百度地图',
+                              style: TextStyle(
+                                fontSize: UIConstants.fontSizeMedium,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryTextColor,
+                              ),
+                            ),
+                            Text(
+                              '提供详细的实时路况和公交信息',
+                              style: TextStyle(
+                                fontSize: UIConstants.fontSizeSmall,
+                                color: AppTheme.secondaryTextColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: AppTheme.secondaryTextColor,
+                        size: UIConstants.iconSizeTiny,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: UIConstants.paddingSmall),
+
+              InkWell(
+                onTap: () => _launchMapApp('高德地图', 'androidamap://'),
+                borderRadius: BorderRadius.circular(
+                  UIConstants.borderRadiusMedium,
+                ),
+                child: Container(
+                  padding: EdgeInsets.all(UIConstants.paddingMedium),
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardColor,
+                    borderRadius: BorderRadius.circular(
+                      UIConstants.borderRadiusMedium,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(UIConstants.paddingSmall),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.map_outlined,
+                          color: Colors.green,
+                          size: UIConstants.iconSizeMedium,
+                        ),
+                      ),
+                      SizedBox(width: UIConstants.paddingMedium),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '高德地图',
+                              style: TextStyle(
+                                fontSize: UIConstants.fontSizeMedium,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryTextColor,
+                              ),
+                            ),
+                            Text(
+                              '准确的定位和路线规划',
+                              style: TextStyle(
+                                fontSize: UIConstants.fontSizeSmall,
+                                color: AppTheme.secondaryTextColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: AppTheme.secondaryTextColor,
+                        size: UIConstants.iconSizeTiny,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: UIConstants.paddingSmall),
+
+              InkWell(
+                onTap: () => _launchMapApp('腾讯地图', 'qqmap://'),
+                borderRadius: BorderRadius.circular(
+                  UIConstants.borderRadiusMedium,
+                ),
+                child: Container(
+                  padding: EdgeInsets.all(UIConstants.paddingMedium),
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardColor,
+                    borderRadius: BorderRadius.circular(
+                      UIConstants.borderRadiusMedium,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(UIConstants.paddingSmall),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade800.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.map_outlined,
+                          color: Colors.blue.shade800,
+                          size: UIConstants.iconSizeMedium,
+                        ),
+                      ),
+                      SizedBox(width: UIConstants.paddingMedium),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '腾讯地图',
+                              style: TextStyle(
+                                fontSize: UIConstants.fontSizeMedium,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryTextColor,
+                              ),
+                            ),
+                            Text(
+                              '精准导航和热门景点推荐',
+                              style: TextStyle(
+                                fontSize: UIConstants.fontSizeSmall,
+                                color: AppTheme.secondaryTextColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: AppTheme.secondaryTextColor,
+                        size: UIConstants.iconSizeTiny,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: UIConstants.paddingSmall),
+
+              InkWell(
+                onTap: () => _launchMapApp('Apple地图', 'maps://'),
+                borderRadius: BorderRadius.circular(
+                  UIConstants.borderRadiusMedium,
+                ),
+                child: Container(
+                  padding: EdgeInsets.all(UIConstants.paddingMedium),
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardColor,
+                    borderRadius: BorderRadius.circular(
+                      UIConstants.borderRadiusMedium,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(UIConstants.paddingSmall),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.map_outlined,
+                          color: Colors.grey,
+                          size: UIConstants.iconSizeMedium,
+                        ),
+                      ),
+                      SizedBox(width: UIConstants.paddingMedium),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Apple地图',
+                              style: TextStyle(
+                                fontSize: UIConstants.fontSizeMedium,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryTextColor,
+                              ),
+                            ),
+                            Text(
+                              '适用于iOS设备的原生地图应用',
+                              style: TextStyle(
+                                fontSize: UIConstants.fontSizeSmall,
+                                color: AppTheme.secondaryTextColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: AppTheme.secondaryTextColor,
+                        size: UIConstants.iconSizeTiny,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              SizedBox(height: UIConstants.paddingLarge),
+              // 取消按钮
+              InkWell(
+                onTap: () => Navigator.pop(context),
+                borderRadius: BorderRadius.circular(
+                  UIConstants.borderRadiusMedium,
+                ),
+                child: Container(
+                  padding: EdgeInsets.all(UIConstants.paddingMedium),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(
+                      UIConstants.borderRadiusMedium,
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '取消',
+                    style: TextStyle(
+                      fontSize: UIConstants.fontSizeMedium,
+                      color: AppTheme.secondaryTextColor,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // 启动地图应用
+  Future<void> _launchMapApp(String appName, String appUrl) async {
+    final location = _getSpotLocation();
+    final name = _getSpotName();
+
+    try {
+      String mapUrl = appUrl;
+
+      // 打开指定地图App并搜索地点
+      switch (appName) {
+        case '百度地图':
+          mapUrl =
+              'baidumap://map/direction?destination=$location&destinationname=$name&coord_type=bd09ll&mode=driving';
+          break;
+        case '高德地图':
+          mapUrl =
+              'androidamap://viewMap?sourceApplication=Travel Joy&poiname=$name&lat=30.259933&lon=120.12603&dev=0';
+          break;
+        case '腾讯地图':
+          mapUrl = 'qqmap://map/search?keyword=$name';
+          break;
+        case 'Apple地图':
+          mapUrl = 'maps://?q=$name&ll=30.259933,120.12603';
+          break;
+        default:
+          mapUrl = 'geo:30.259933,120.12603?q=$name';
+      }
+
+      final bool launched = await launchUrlString(
+        mapUrl,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('$appName 未安装，请选择其他地图应用'),
+              behavior: SnackBarBehavior.floating,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('无法打开 $appName: $e'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  // 显示景点介绍对话框
+  void _showSpotIntroduction(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (context, scrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: AppTheme.backgroundColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(UIConstants.borderRadiusLarge),
+                  topRight: Radius.circular(UIConstants.borderRadiusLarge),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: Offset(0, -3),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 顶部把手和标题栏
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(
+                      vertical: UIConstants.paddingMedium,
+                      horizontal: UIConstants.paddingLarge,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.cardColor,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(UIConstants.borderRadiusLarge),
+                        topRight: Radius.circular(
+                          UIConstants.borderRadiusLarge,
+                        ),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        // 把手示意
+                        Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        SizedBox(height: UIConstants.paddingMedium),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: AppTheme.neonOrange,
+                              size: UIConstants.iconSizeMedium,
+                            ),
+                            SizedBox(width: UIConstants.paddingSmall),
+                            Text(
+                              '景点详细介绍',
+                              style: TextStyle(
+                                fontSize: UIConstants.fontSizeLarge,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryTextColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // 内容区域
+                  Expanded(
+                    child: ListView(
+                      controller: scrollController,
+                      padding: EdgeInsets.all(UIConstants.paddingLarge),
+                      children: [
+                        Text(
+                          _getSpotDescription(),
+                          style: TextStyle(
+                            fontSize: UIConstants.fontSizeMedium,
+                            color: AppTheme.primaryTextColor,
+                            height: 1.5,
+                          ),
+                        ),
+                        SizedBox(height: UIConstants.paddingLarge),
+
+                        // 历史背景
+                        Container(
+                          padding: EdgeInsets.all(UIConstants.paddingMedium),
+                          decoration: BoxDecoration(
+                            color: AppTheme.cardColor,
+                            borderRadius: BorderRadius.circular(
+                              UIConstants.borderRadiusMedium,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.history,
+                                    color: AppTheme.neonBlue,
+                                    size: UIConstants.iconSizeMedium,
+                                  ),
+                                  SizedBox(width: UIConstants.paddingSmall),
+                                  Text(
+                                    '历史背景',
+                                    style: TextStyle(
+                                      fontSize: UIConstants.fontSizeMedium,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryTextColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: UIConstants.paddingSmall),
+                              Text(
+                                '西湖风景区内有许多著名的历史文化景点，如雷峰塔、岳庙、苏堤春晓等。这些景点历史悠久，文化内涵丰富，见证了杭州的历史变迁。西湖十景"苏堤春晓、曲院风荷、平湖秋月、断桥残雪、柳浪闻莺、花港观鱼、雷峰夕照、双峰插云、南屏晚钟、三潭印月"成为游客观赏的重点。',
+                                style: TextStyle(
+                                  fontSize: UIConstants.fontSizeSmall,
+                                  color: AppTheme.primaryTextColor,
+                                  height: 1.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        SizedBox(height: UIConstants.paddingMedium),
+
+                        // 文化特色
+                        Container(
+                          padding: EdgeInsets.all(UIConstants.paddingMedium),
+                          decoration: BoxDecoration(
+                            color: AppTheme.cardColor,
+                            borderRadius: BorderRadius.circular(
+                              UIConstants.borderRadiusMedium,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.palette,
+                                    color: AppTheme.neonPurple,
+                                    size: UIConstants.iconSizeMedium,
+                                  ),
+                                  SizedBox(width: UIConstants.paddingSmall),
+                                  Text(
+                                    '文化特色',
+                                    style: TextStyle(
+                                      fontSize: UIConstants.fontSizeMedium,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryTextColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: UIConstants.paddingSmall),
+                              Text(
+                                '西湖是中国传统审美文化的代表，自古以来就是文人墨客吟咏的对象，留下了众多脍炙人口的诗词佳句。西湖还是白娘子与许仙、梁山伯与祝英台等民间传说的发源地，这些传说为西湖增添了浪漫色彩。另外，西湖龙井茶也是杭州的特色文化符号之一。',
+                                style: TextStyle(
+                                  fontSize: UIConstants.fontSizeSmall,
+                                  color: AppTheme.primaryTextColor,
+                                  height: 1.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // 显示评论对话框
+  void _showReviews(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (context, scrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: AppTheme.backgroundColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(UIConstants.borderRadiusLarge),
+                  topRight: Radius.circular(UIConstants.borderRadiusLarge),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: Offset(0, -3),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 顶部把手和标题栏
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(
+                      vertical: UIConstants.paddingMedium,
+                      horizontal: UIConstants.paddingLarge,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.cardColor,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(UIConstants.borderRadiusLarge),
+                        topRight: Radius.circular(
+                          UIConstants.borderRadiusLarge,
+                        ),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        // 把手示意
+                        Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        SizedBox(height: UIConstants.paddingMedium),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                              size: UIConstants.iconSizeMedium,
+                            ),
+                            SizedBox(width: UIConstants.paddingSmall),
+                            Text(
+                              '游客评价',
+                              style: TextStyle(
+                                fontSize: UIConstants.fontSizeLarge,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryTextColor,
+                              ),
+                            ),
+                            Spacer(),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: UIConstants.paddingMedium,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.amber.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(
+                                  UIConstants.borderRadiusMedium,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.star,
+                                    color: Colors.amber,
+                                    size: 14,
+                                  ),
+                                  SizedBox(width: 2),
+                                  Text(
+                                    _getSpotRating(),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.amber,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // 评论列表
+                  Expanded(
+                    child: ListView.builder(
+                      controller: scrollController,
+                      padding: EdgeInsets.all(UIConstants.paddingLarge),
+                      itemCount: _reviews.length + 1, // +1 为了添加一个"写评论"按钮
+                      itemBuilder: (context, index) {
+                        if (index == _reviews.length) {
+                          // 添加评论按钮
+                          return Container(
+                            margin: EdgeInsets.only(
+                              top: UIConstants.paddingMedium,
+                            ),
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              icon: Icon(Icons.rate_review),
+                              label: Text('写下您的评价'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.neonBlue,
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(
+                                  vertical: UIConstants.paddingMedium,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    UIConstants.borderRadiusMedium,
+                                  ),
+                                ),
+                              ),
+                              onPressed: () {
+                                // 可以跳转到评论编写页面
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('评价功能即将上线')),
+                                );
+                              },
+                            ),
+                          );
+                        }
+
+                        // 评论卡片
+                        return _buildReviewCard(_reviews[index]);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // 构建评论卡片
+  Widget _buildReviewCard(Map<String, dynamic> review) {
+    return Container(
+      margin: EdgeInsets.only(bottom: UIConstants.paddingMedium),
+      padding: EdgeInsets.all(UIConstants.paddingMedium),
+      decoration: BoxDecoration(
+        color: AppTheme.cardColor,
+        borderRadius: BorderRadius.circular(UIConstants.borderRadiusMedium),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 用户信息和评分
+          Row(
+            children: [
+              // 用户头像
+              CircleAvatar(
+                radius: 18,
+                backgroundImage: NetworkImage(review['avatar']),
+              ),
+              SizedBox(width: UIConstants.paddingSmall),
+
+              // 用户名和日期
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      review['userName'],
+                      style: TextStyle(
+                        fontSize: UIConstants.fontSizeMedium,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryTextColor,
+                      ),
+                    ),
+                    Text(
+                      review['date'],
+                      style: TextStyle(
+                        fontSize: UIConstants.fontSizeTiny,
+                        color: AppTheme.secondaryTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // 评分
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: UIConstants.paddingSmall,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(
+                    UIConstants.borderRadiusSmall,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.star, color: Colors.amber, size: 12),
+                    SizedBox(width: 2),
+                    Text(
+                      review['rating'].toString(),
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.amber,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          // 评论内容
+          Padding(
+            padding: EdgeInsets.only(top: UIConstants.paddingSmall),
+            child: Text(
+              review['comment'],
+              style: TextStyle(
+                fontSize: UIConstants.fontSizeSmall,
+                color: AppTheme.primaryTextColor,
+                height: 1.4,
               ),
             ),
           ),
