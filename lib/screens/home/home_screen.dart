@@ -16,10 +16,13 @@ import 'package:travel_joy/screens/activity/activity_screen.dart';
 import 'package:travel_joy/screens/collection/collection_screen.dart';
 import 'package:travel_joy/screens/profile/user_stats_screen.dart';
 import 'package:travel_joy/screens/settings/settings_screen.dart';
-import 'package:travel_joy/widgets/network_image.dart' as network; // 添加这一行，使用别名避免与Flutter的NetworkImage冲突
+import 'package:travel_joy/widgets/network_image.dart'
+    as network; // 添加这一行，使用别名避免与Flutter的NetworkImage冲突
+import 'package:travel_joy/screens/checklist/checklist_screen.dart';
 
 // 导入TimelineTravelEvent
-import 'package:travel_joy/widgets/travel_timeline.dart' show TimelineTravelEvent;
+import 'package:travel_joy/widgets/travel_timeline.dart'
+    show TimelineTravelEvent;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -157,42 +160,43 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => TravelHistoryScreen(
-          events: [
-            TimelineTravelEvent(
-              location: '东京',
-              date: '2023年10月15日',
-              description: '参观了浅草寺和东京塔，体验了当地美食。',
-              imageUrl: 'assets/images/tokyo.jpg',
-              dotColor: AppTheme.neonBlue,
-              country: '日本',
+        builder:
+            (context) => TravelHistoryScreen(
+              events: [
+                TimelineTravelEvent(
+                  location: '东京',
+                  date: '2023年10月15日',
+                  description: '参观了浅草寺和东京塔，体验了当地美食。',
+                  imageUrl: 'assets/images/tokyo.jpg',
+                  dotColor: AppTheme.neonBlue,
+                  country: '日本',
+                ),
+                TimelineTravelEvent(
+                  location: '巴黎',
+                  date: '2023年7月22日',
+                  description: '游览了埃菲尔铁塔和卢浮宫，品尝了正宗的法式甜点。',
+                  imageUrl: 'assets/images/paris.jpg',
+                  dotColor: AppTheme.neonPurple,
+                  country: '法国',
+                ),
+                TimelineTravelEvent(
+                  location: '曼谷',
+                  date: '2023年4月5日',
+                  description: '参观了大皇宫和卧佛寺，享受了泰式按摩。',
+                  imageUrl: 'assets/images/bangkok.jpg',
+                  dotColor: AppTheme.neonOrange,
+                  country: '泰国',
+                ),
+                TimelineTravelEvent(
+                  location: '纽约',
+                  date: '2022年12月18日',
+                  description: '参观了自由女神像和时代广场，体验了百老汇演出。',
+                  imageUrl: 'assets/images/newyork.jpg',
+                  dotColor: AppTheme.neonGreen,
+                  country: '美国',
+                ),
+              ],
             ),
-            TimelineTravelEvent(
-              location: '巴黎',
-              date: '2023年7月22日',
-              description: '游览了埃菲尔铁塔和卢浮宫，品尝了正宗的法式甜点。',
-              imageUrl: 'assets/images/paris.jpg',
-              dotColor: AppTheme.neonPurple,
-              country: '法国',
-            ),
-            TimelineTravelEvent(
-              location: '曼谷',
-              date: '2023年4月5日',
-              description: '参观了大皇宫和卧佛寺，享受了泰式按摩。',
-              imageUrl: 'assets/images/bangkok.jpg',
-              dotColor: AppTheme.neonOrange,
-              country: '泰国',
-            ),
-            TimelineTravelEvent(
-              location: '纽约',
-              date: '2022年12月18日',
-              description: '参观了自由女神像和时代广场，体验了百老汇演出。',
-              imageUrl: 'assets/images/newyork.jpg',
-              dotColor: AppTheme.neonGreen,
-              country: '美国',
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -299,6 +303,30 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
       ],
     },
   ];
+
+  // 添加onTap处理方法
+  void _handleFeatureCardTap(int index) {
+    final cardData = _featureCards[index];
+    final String title = cardData['title'] as String? ?? "功能";
+
+    // 处理行李清单跳转
+    if (title == '行李清单') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ChecklistScreen()),
+      );
+    } else {
+      // 其他功能卡片的处理逻辑
+      print('点击了: $title');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('您选择了: $title'),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -737,14 +765,14 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
             ),
             child: InkWell(
               onTap: () {
-                print('点击了: $title');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('您选择了: $title'),
-                    behavior: SnackBarBehavior.floating,
-                    duration: const Duration(seconds: 1),
-                  ),
+                // 获取当前卡片在_featureCards中的索引
+                int cardIndex = _featureCards.indexWhere(
+                  (card) =>
+                      card['title'] == title && card['subtitle'] == subtitle,
                 );
+                if (cardIndex != -1) {
+                  _handleFeatureCardTap(cardIndex);
+                }
               },
               onHover: (isHovered) {
                 if (_shineAnimationController != null) {
@@ -3153,23 +3181,25 @@ Widget _buildTravelEventCard(TimelineTravelEvent event) {
             topLeft: Radius.circular(12),
             bottomLeft: Radius.circular(12),
           ),
-          child: event.imageUrl != null 
-            ? network.NetworkImage( // 使用我们的自定义NetworkImage组件
-                imageUrl: event.imageUrl!,  // 使用非空断言确保不为空
-                width: 100,
-                height: 100,
-                fit: BoxFit.cover,
-              )
-            : Container(
-                width: 100,
-                height: 100,
-                color: Colors.grey.withOpacity(0.2),
-                child: Icon(
-                  Icons.image_not_supported,
-                  color: Colors.white.withOpacity(0.5),
-                  size: 30,
-                ),
-              ),
+          child:
+              event.imageUrl != null
+                  ? network.NetworkImage(
+                    // 使用我们的自定义NetworkImage组件
+                    imageUrl: event.imageUrl!, // 使用非空断言确保不为空
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.cover,
+                  )
+                  : Container(
+                    width: 100,
+                    height: 100,
+                    color: Colors.grey.withOpacity(0.2),
+                    child: Icon(
+                      Icons.image_not_supported,
+                      color: Colors.white.withOpacity(0.5),
+                      size: 30,
+                    ),
+                  ),
         ),
         Expanded(
           child: Padding(
