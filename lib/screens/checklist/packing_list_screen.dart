@@ -833,6 +833,8 @@ class _PackingListScreenState extends State<PackingListScreen>
         onPressed: _showAddItemDialog,
         backgroundColor: AppTheme.buttonColor,
         child: const Icon(Icons.add, color: Colors.white),
+        mini: true,
+        elevation: 4,
       ),
     );
   }
@@ -864,66 +866,15 @@ class _PackingListScreenState extends State<PackingListScreen>
                 ),
               ),
 
-              // 搜索和更多按钮
-              Row(
-                children: [
-                  CircleButton(
-                    icon: _showSearchBar ? Icons.close : Icons.search,
-                    onPressed: () {
-                      setState(() {
-                        _showSearchBar = !_showSearchBar;
-                        if (!_showSearchBar) {
-                          _searchQuery = '';
-                          _searchController.clear();
-                        }
-                      });
-                    },
-                    size: 38,
-                    iconSize: 16,
-                  ),
-                  const SizedBox(width: 8),
-                  CircleButton(
-                    icon: Icons.more_vert,
-                    onPressed: _showMoreOptions,
-                    size: 38,
-                    iconSize: 16,
-                  ),
-                ],
+              // 更多选项按钮
+              CircleButton(
+                icon: Icons.more_vert,
+                onPressed: _showMoreOptions,
+                size: 38,
+                iconSize: 16,
               ),
             ],
           ),
-
-          // 搜索栏
-          if (_showSearchBar)
-            AnimatedContainer(
-              duration: Duration(milliseconds: 300),
-              height: _showSearchBar ? 60 : 0,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 12.0),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: '搜索物品...',
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: AppTheme.secondaryTextColor,
-                    ),
-                    filled: true,
-                    fillColor: AppTheme.cardColor,
-                    contentPadding: EdgeInsets.symmetric(vertical: 0),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _searchQuery = value;
-                    });
-                  },
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -936,20 +887,36 @@ class _PackingListScreenState extends State<PackingListScreen>
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          padding: EdgeInsets.symmetric(vertical: 20),
           decoration: BoxDecoration(
             color: AppTheme.backgroundColor,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                spreadRadius: 1,
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+              // 标题栏
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: AppTheme.secondaryTextColor.withOpacity(0.1),
+                      width: 1,
+                    ),
+                  ),
+                ),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       '更多选项',
@@ -959,51 +926,51 @@ class _PackingListScreenState extends State<PackingListScreen>
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Spacer(),
                     IconButton(
                       icon: Icon(
                         Icons.close,
                         color: AppTheme.secondaryTextColor,
                       ),
                       onPressed: () => Navigator.pop(context),
+                      splashRadius: 20,
+                      padding: EdgeInsets.zero,
+                      constraints: BoxConstraints(minWidth: 36, minHeight: 36),
                     ),
                   ],
                 ),
               ),
-              Divider(),
 
               // 选项列表
-              _buildMoreOption(
-                icon: Icons.filter_list,
-                title: '筛选和排序',
-                onTap: () {
-                  Navigator.pop(context);
-                  _showFilterAndSortDialog();
-                },
-              ),
-              _buildMoreOption(
+              _buildOptionItem(
                 icon: Icons.format_list_bulleted,
                 title: '应用清单模板',
+                iconColor: AppTheme.neonBlue,
                 onTap: () {
                   Navigator.pop(context);
                   _showTemplatesDialog();
                 },
               ),
-              _buildMoreOption(
+              _buildOptionItem(
                 icon: Icons.share,
                 title: '分享行李清单',
+                iconColor: AppTheme.neonPurple,
                 onTap: () {
                   Navigator.pop(context);
                   _sharePackingList();
                 },
               ),
-              _buildMoreOption(
+              _buildOptionItem(
                 icon: Icons.delete_outline,
                 title: '清空行李清单',
+                iconColor: AppTheme.errorColor,
                 onTap: () {
                   Navigator.pop(context);
                   _showClearConfirmationDialog();
                 },
+              ),
+
+              SizedBox(
+                height: MediaQuery.of(context).padding.bottom > 0 ? 16 : 8,
               ),
             ],
           ),
@@ -1012,203 +979,47 @@ class _PackingListScreenState extends State<PackingListScreen>
     );
   }
 
-  // 构建更多选项项目
-  Widget _buildMoreOption({
+  // 构建选项项目
+  Widget _buildOptionItem({
     required IconData icon,
     required String title,
+    required Color iconColor,
     required VoidCallback onTap,
   }) {
-    return ListTile(
-      leading: Icon(icon, color: AppTheme.buttonColor),
-      title: Text(title, style: TextStyle(color: AppTheme.primaryTextColor)),
+    return InkWell(
       onTap: onTap,
-    );
-  }
-
-  // 显示筛选和排序对话框
-  void _showFilterAndSortDialog() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Container(
-              padding: EdgeInsets.all(20),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Row(
+          children: [
+            // 图标容器
+            Container(
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
-                color: AppTheme.backgroundColor,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
+                color: iconColor.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '筛选和排序',
-                    style: TextStyle(
-                      color: AppTheme.primaryTextColor,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 20),
-
-                  // 类别筛选
-                  Text(
-                    '按类别筛选',
-                    style: TextStyle(
-                      color: AppTheme.primaryTextColor,
-                      fontSize: 16,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Container(
-                    height: 50,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _categories.length + 1, // +1 for "全部"
-                      itemBuilder: (context, index) {
-                        final category =
-                            index == 0 ? '全部' : _categories[index - 1];
-                        final isSelected = _filterCategory == category;
-
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: ChoiceChip(
-                            label: Text(category),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              if (selected) {
-                                setState(() {
-                                  _filterCategory = category;
-                                });
-                                this.setState(() {});
-                              }
-                            },
-                            backgroundColor: AppTheme.cardColor,
-                            selectedColor: AppTheme.buttonColor,
-                            labelStyle: TextStyle(
-                              color:
-                                  isSelected
-                                      ? AppTheme.primaryTextColor
-                                      : AppTheme.secondaryTextColor,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  SizedBox(height: 20),
-
-                  // 排序方式
-                  Text(
-                    '排序方式',
-                    style: TextStyle(
-                      color: AppTheme.primaryTextColor,
-                      fontSize: 16,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      _buildSortOption('类别', AppTheme.neonBlue, setState),
-                      _buildSortOption('优先级', AppTheme.neonPink, setState),
-                      _buildSortOption('名称', AppTheme.neonGreen, setState),
-                      _buildSortOption('重量', AppTheme.neonOrange, setState),
-                    ],
-                  ),
-
-                  SizedBox(height: 20),
-
-                  // 打包状态筛选
-                  Row(
-                    children: [
-                      Switch(
-                        value: _showOnlyUnpacked,
-                        onChanged: (value) {
-                          setState(() {
-                            _showOnlyUnpacked = value;
-                          });
-                          this.setState(() {});
-                        },
-                        activeColor: AppTheme.buttonColor,
-                      ),
-                      Text(
-                        '只显示未打包物品',
-                        style: TextStyle(color: AppTheme.primaryTextColor),
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: 20),
-
-                  // 应用按钮
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        this.setState(() {});
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 40,
-                          vertical: 12,
-                        ),
-                        backgroundColor: AppTheme.buttonColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        '应用',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+            SizedBox(width: 16),
+            // 标题
+            Text(
+              title,
+              style: TextStyle(
+                color: AppTheme.primaryTextColor,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
               ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  // 构建排序选项
-  Widget _buildSortOption(String option, Color color, StateSetter setState) {
-    final isSelected = _sortBy == option;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _sortBy = option;
-        });
-        this.setState(() {});
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.2) : AppTheme.cardColor,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? color : Colors.transparent,
-            width: 1,
-          ),
-        ),
-        child: Text(
-          option,
-          style: TextStyle(
-            color: isSelected ? color : AppTheme.secondaryTextColor,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
+            ),
+            Spacer(),
+            // 箭头
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 14,
+              color: AppTheme.secondaryTextColor,
+            ),
+          ],
         ),
       ),
     );
@@ -1990,45 +1801,6 @@ class _PackingListScreenState extends State<PackingListScreen>
                 ),
               ),
 
-            // 易忘记标记
-            if (item.isEasilyForgotten)
-              Positioned(
-                top: item.priority > 1 ? 24 : 0,
-                right: 0,
-                child: Container(
-                  padding: EdgeInsets.fromLTRB(8, 2, 8, 2),
-                  decoration: BoxDecoration(
-                    color: AppTheme.neonOrange.withOpacity(0.2),
-                    borderRadius: BorderRadius.only(
-                      topRight:
-                          item.priority > 1
-                              ? Radius.circular(0)
-                              : Radius.circular(12),
-                      bottomLeft: Radius.circular(8),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.notifications_active,
-                        color: AppTheme.neonOrange,
-                        size: 12,
-                      ),
-                      SizedBox(width: 3),
-                      Text(
-                        '易忘记',
-                        style: TextStyle(
-                          color: AppTheme.neonOrange,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
             // 主要内容
             ListTile(
               contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -2055,40 +1827,83 @@ class _PackingListScreenState extends State<PackingListScreen>
                   size: 20,
                 ),
               ),
-              title: Row(
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(
-                      item.name,
-                      style: TextStyle(
-                        color: AppTheme.primaryTextColor,
-                        fontSize: 16,
-                        decoration:
-                            item.isPacked ? TextDecoration.lineThrough : null,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Text(
+                              item.name,
+                              style: TextStyle(
+                                color: AppTheme.primaryTextColor,
+                                fontSize: 16,
+                                decoration:
+                                    item.isPacked
+                                        ? TextDecoration.lineThrough
+                                        : null,
+                              ),
+                            ),
+                            if (item.weight > 0)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8.0),
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.buttonColor.withOpacity(
+                                      0.15,
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: AppTheme.buttonColor.withOpacity(
+                                        0.3,
+                                      ),
+                                      width: 0.5,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    item.weight < 1000
+                                        ? '${item.weight.toInt()}克'
+                                        : '${(item.weight / 1000).toStringAsFixed(1)}千克',
+                                    style: TextStyle(
+                                      color: AppTheme.buttonColor,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
+                      // 易忘记标签改为一个小图标
+                      if (item.isEasilyForgotten)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 4.0),
+                          child: Tooltip(
+                            message: '易被忘记的物品',
+                            child: Container(
+                              width: 22,
+                              height: 22,
+                              decoration: BoxDecoration(
+                                color: AppTheme.neonOrange.withOpacity(0.15),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.notifications_active,
+                                color: AppTheme.neonOrange,
+                                size: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                  if (item.weight > 0)
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppTheme.cardColor.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: AppTheme.secondaryTextColor.withOpacity(0.1),
-                          width: 0.5,
-                        ),
-                      ),
-                      child: Text(
-                        item.weight < 1000
-                            ? '${item.weight.toInt()}克'
-                            : '${(item.weight / 1000).toStringAsFixed(1)}千克',
-                        style: TextStyle(
-                          color: AppTheme.secondaryTextColor.withOpacity(0.7),
-                          fontSize: 10,
-                        ),
-                      ),
-                    ),
                 ],
               ),
               subtitle: Row(
