@@ -77,7 +77,7 @@ class _TravelHistoryScreenState extends State<TravelHistoryScreen> {
                         height: 36,
                         decoration: BoxDecoration(
                           color: AppTheme.cardColor.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(8),
+                          shape: BoxShape.circle,
                         ),
                         child: IconButton(
                           icon: Icon(

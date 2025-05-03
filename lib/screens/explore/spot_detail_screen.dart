@@ -1005,48 +1005,37 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
               children: [
                 // 返回按钮
                 Container(
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color:
                         opacity < 0.5
-                            ? Colors.black.withOpacity(0.3)
-                            : Colors.transparent,
+                            ? AppTheme.cardColor.withOpacity(0.3)
+                            : AppTheme.cardColor.withOpacity(0.3),
                   ),
                   child: IconButton(
-                    icon: Icon(
-                      Icons.arrow_back_ios_rounded,
-                      color:
-                          opacity < 0.5
-                              ? Colors.white
-                              : AppTheme.primaryTextColor,
-                      size: screenWidth < 340 ? 18 : 20,
-                    ),
+                    icon: Icon(Icons.arrow_back, color: Colors.white, size: 18),
                     onPressed: () => Navigator.of(context).pop(),
-                    padding: EdgeInsets.all(screenWidth < 340 ? 8 : 12),
-                    constraints: BoxConstraints(),
+                    padding: EdgeInsets.zero,
                   ),
                 ),
+
                 // 收藏按钮
                 Container(
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color:
-                        opacity < 0.5
-                            ? Colors.black.withOpacity(0.3)
-                            : Colors.transparent,
+                    color: AppTheme.cardColor.withOpacity(0.3),
                   ),
                   child: IconButton(
                     icon: Icon(
                       _isFavorite
                           ? Icons.favorite_rounded
                           : Icons.favorite_border_rounded,
-                      color:
-                          _isFavorite
-                              ? AppTheme.neonPink
-                              : (opacity < 0.5
-                                  ? Colors.white
-                                  : AppTheme.primaryTextColor),
-                      size: screenWidth < 340 ? 18 : 20,
+                      color: _isFavorite ? AppTheme.neonPink : Colors.white,
+                      size: 18,
                     ),
                     onPressed: () {
                       setState(() {
@@ -1062,8 +1051,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                         ),
                       );
                     },
-                    padding: EdgeInsets.all(screenWidth < 340 ? 8 : 12),
-                    constraints: BoxConstraints(),
+                    padding: EdgeInsets.zero,
                   ),
                 ),
               ],
