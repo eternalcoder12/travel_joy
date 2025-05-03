@@ -13,37 +13,8 @@ class TravelHistoryScreen extends StatefulWidget {
 }
 
 class _TravelHistoryScreenState extends State<TravelHistoryScreen> {
-  String _selectedLocation = "全部";
-  String _selectedCountry = "全部";
-
-  // 获取所有地点
-  List<String> _getLocations() {
-    return widget.events.map((e) => e.location).toSet().toList();
-  }
-
-  // 获取所有国家
-  List<String> _getCountries() {
-    return widget.events.map((e) => e.country ?? "未知").toSet().toList();
-  }
-
-  // 按选择筛选事件
-  List<TimelineTravelEvent> _getFilteredEvents() {
-    return widget.events.where((event) {
-      bool locationMatch =
-          _selectedLocation == "全部" || event.location == _selectedLocation;
-      bool countryMatch =
-          _selectedCountry == "全部" || event.country == _selectedCountry;
-      return locationMatch && countryMatch;
-    }).toList();
-  }
-
   @override
   Widget build(BuildContext context) {
-    final locations = ["全部", ..._getLocations()];
-    final countries = ["全部", ..._getCountries()];
-
-    final filteredEvents = _getFilteredEvents();
-
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       body: Stack(
@@ -69,10 +40,18 @@ class _TravelHistoryScreenState extends State<TravelHistoryScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // 返回按钮
-                      CircleAvatar(
-                        backgroundColor: Colors.white.withOpacity(0.3),
-                        radius: 18,
+                      // 返回按钮 - 与"我的信息"页面风格一致
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          border: Border.all(
+                            color: AppTheme.neonBlue.withOpacity(0.3),
+                            width: 1,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                         child: IconButton(
                           icon: Icon(
                             Icons.arrow_back,
@@ -96,10 +75,14 @@ class _TravelHistoryScreenState extends State<TravelHistoryScreen> {
                         ),
                       ),
 
-                      // 右侧分享按钮
-                      CircleAvatar(
-                        backgroundColor: Colors.white.withOpacity(0.3),
-                        radius: 18,
+                      // 右侧分享按钮 - 与"我的信息"页面风格一致
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: AppTheme.cardColor.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                         child: IconButton(
                           icon: Icon(
                             Icons.share,
@@ -121,111 +104,12 @@ class _TravelHistoryScreenState extends State<TravelHistoryScreen> {
                   ),
                 ),
 
-                // 筛选器
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  child: Row(
-                    children: [
-                      // 地点筛选
-                      Expanded(
-                        child: Container(
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: AppTheme.cardColor,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _selectedLocation,
-                              isExpanded: true,
-                              isDense: true,
-                              icon: Icon(
-                                Icons.keyboard_arrow_down,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                              ),
-                              dropdownColor: AppTheme.cardColor,
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  _selectedLocation = newValue!;
-                                });
-                              },
-                              items:
-                                  locations.map<DropdownMenuItem<String>>((
-                                    String value,
-                                  ) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(value),
-                                    );
-                                  }).toList(),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      SizedBox(width: 8),
-
-                      // 国家筛选
-                      Expanded(
-                        child: Container(
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: AppTheme.cardColor,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _selectedCountry,
-                              isExpanded: true,
-                              isDense: true,
-                              icon: Icon(
-                                Icons.keyboard_arrow_down,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                              ),
-                              dropdownColor: AppTheme.cardColor,
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  _selectedCountry = newValue!;
-                                });
-                              },
-                              items:
-                                  countries.map<DropdownMenuItem<String>>((
-                                    String value,
-                                  ) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(value),
-                                    );
-                                  }).toList(),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // 时间线
+                // 时间线 - 直接显示全部事件，不包含筛选功能
                 Expanded(
                   child:
-                      filteredEvents.isEmpty
+                      widget.events.isEmpty
                           ? _buildEmptyState()
-                          : TravelTimeline(events: filteredEvents),
+                          : TravelTimeline(events: widget.events),
                 ),
               ],
             ),
@@ -256,7 +140,7 @@ class _TravelHistoryScreenState extends State<TravelHistoryScreen> {
           ),
           SizedBox(height: 8),
           Text(
-            '尝试更改筛选条件或去探索新的地方吧',
+            '去探索新的地方吧',
             style: TextStyle(
               color: Colors.white.withOpacity(0.5),
               fontSize: 14,
@@ -265,26 +149,5 @@ class _TravelHistoryScreenState extends State<TravelHistoryScreen> {
         ],
       ),
     );
-  }
-
-  // 为事件添加国家信息
-  List<TimelineTravelEvent> _addCountryToEvents() {
-    final Map<String, String> countries = {};
-
-    return widget.events.map((event) {
-      countries[event.location] ??=
-          (event.location.contains('York')
-              ? '美国'
-              : (event.location.contains('Tokyo') ? '日本' : '未知'));
-
-      return TimelineTravelEvent(
-        location: event.location,
-        date: event.date,
-        description: event.description,
-        imageUrl: event.imageUrl,
-        dotColor: event.dotColor,
-        country: countries[event.location],
-      );
-    }).toList();
   }
 }

@@ -114,14 +114,8 @@ class _TravelTimelineScreenState extends State<TravelTimelineScreen>
 
   @override
   Widget build(BuildContext context) {
-    // 筛选事件
-    final filteredEvents = _getFilteredEvents();
-
-    // 构建年份选项
-    final years = _getYears();
-
-    // 构建国家选项
-    final countries = _getCountries();
+    // 不再筛选事件，直接使用所有事件
+    final allEvents = widget.events;
 
     return Scaffold(
       appBar: AppBar(
@@ -140,8 +134,12 @@ class _TravelTimelineScreenState extends State<TravelTimelineScreen>
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppTheme.cardColor.withOpacity(0.7),
-              shape: BoxShape.circle,
+              color: Colors.transparent,
+              border: Border.all(
+                color: AppTheme.neonBlue.withOpacity(0.3),
+                width: 1,
+              ),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
               Icons.arrow_back,
@@ -155,10 +153,7 @@ class _TravelTimelineScreenState extends State<TravelTimelineScreen>
           },
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.filter_list, color: Colors.white),
-            onPressed: () => _showFilterDialog(context, years, countries),
-          ),
+          // 移除筛选按钮
         ],
       ),
       body: Stack(
@@ -327,7 +322,7 @@ class _TravelTimelineScreenState extends State<TravelTimelineScreen>
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  '${_countCountries(filteredEvents)}个国家',
+                                  '${_countCountries(widget.events)}个国家',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: AppTheme.primaryTextColor
@@ -407,7 +402,7 @@ class _TravelTimelineScreenState extends State<TravelTimelineScreen>
                                       label: '地点',
                                       value:
                                           _getUniqueLocations(
-                                            filteredEvents,
+                                            widget.events,
                                           ).length.toString(),
                                       color: AppTheme.neonBlue,
                                     ),
@@ -416,14 +411,14 @@ class _TravelTimelineScreenState extends State<TravelTimelineScreen>
                                       label: '国家',
                                       value:
                                           _getUniqueCountries(
-                                            filteredEvents,
+                                            widget.events,
                                           ).length.toString(),
                                       color: AppTheme.neonPurple,
                                     ),
                                     _buildStatItem(
                                       icon: Icons.event,
                                       label: '旅行',
-                                      value: filteredEvents.length.toString(),
+                                      value: widget.events.length.toString(),
                                       color: AppTheme.neonOrange,
                                     ),
                                   ],
@@ -440,10 +435,10 @@ class _TravelTimelineScreenState extends State<TravelTimelineScreen>
                       child: FadeTransition(
                         opacity: _fadeAnimation,
                         child:
-                            filteredEvents.isEmpty
+                            widget.events.isEmpty
                                 ? _buildEmptyState()
                                 : TravelTimeline(
-                                  events: filteredEvents,
+                                  events: widget.events,
                                   scrollController: _scrollController,
                                 ),
                       ),
@@ -470,12 +465,88 @@ class _TravelTimelineScreenState extends State<TravelTimelineScreen>
 
   // 计算国家数量
   int _countCountries(List<TimelineTravelEvent> events) {
-    final countries =
-        events
-            .where((event) => event.country != null)
-            .map((event) => event.country)
-            .toSet();
-    return countries.length;
+    return _getUniqueCountries(events).length;
+  }
+
+  // 获取唯一的国家列表
+  List<String> _getUniqueCountries(List<TimelineTravelEvent> events) {
+    return events
+        .where((e) => e.country != null)
+        .map((e) => e.country!)
+        .toSet()
+        .toList();
+  }
+
+  // 获取唯一的地点列表
+  List<String> _getUniqueLocations(List<TimelineTravelEvent> events) {
+    return events.map((e) => e.location).toSet().toList();
+  }
+
+  // 构建空状态视图
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.map_outlined,
+            size: 80,
+            color: Colors.white.withOpacity(0.3),
+          ),
+          SizedBox(height: 16),
+          Text(
+            '没有旅行记录',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.7),
+              fontSize: 18,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            '快来记录你的第一次旅行吧',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.5),
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 构建统计项目
+  Widget _buildStatItem({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12),
+        ),
+      ],
+    );
   }
 
   // 构建筛选选项卡
@@ -506,277 +577,6 @@ class _TravelTimelineScreenState extends State<TravelTimelineScreen>
           ],
         ),
       ),
-    );
-  }
-
-  // 构建统计项
-  Widget _buildStatItem({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
-    return Column(
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.2),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: color, size: 22),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12),
-        ),
-      ],
-    );
-  }
-
-  // 构建空状态
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.terrain, size: 64, color: Colors.white.withOpacity(0.3)),
-          const SizedBox(height: 16),
-          Text(
-            '没有找到旅行记录',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.7),
-              fontWeight: FontWeight.w500,
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '尝试更改筛选条件',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.5),
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 获取年份列表
-  List<String> _getYears() {
-    final Set<String> years = {"全部"};
-
-    for (var event in widget.events) {
-      if (event.date.length >= 4) {
-        if (event.date.contains('-')) {
-          years.add(event.date.split('-')[0]);
-        } else if (event.date.contains('年')) {
-          years.add(event.date.split('年')[0]);
-        } else {
-          years.add(event.date.substring(0, 4));
-        }
-      }
-    }
-
-    return years.toList()..sort((a, b) {
-      if (a == "全部") return -1;
-      if (b == "全部") return 1;
-      return b.compareTo(a); // 降序排列
-    });
-  }
-
-  // 获取国家列表
-  List<String> _getCountries() {
-    final Set<String> countries = {"全部"};
-
-    widget.events
-        .where((event) => event.country != null)
-        .map((event) => event.country)
-        .forEach((country) {
-          if (country != null) {
-            countries.add(country);
-          }
-        });
-
-    return countries.toList()..sort((a, b) {
-      if (a == "全部") return -1;
-      if (b == "全部") return 1;
-      return a.compareTo(b);
-    });
-  }
-
-  // 获取唯一地点列表
-  Set<String> _getUniqueLocations(List<TimelineTravelEvent> events) {
-    return events.map((event) => event.location).toSet();
-  }
-
-  // 获取唯一国家列表
-  Set<String> _getUniqueCountries(List<TimelineTravelEvent> events) {
-    return events
-        .where((event) => event.country != null)
-        .map((event) => event.country!)
-        .toSet();
-  }
-
-  // 按筛选条件过滤事件
-  List<TimelineTravelEvent> _getFilteredEvents() {
-    return widget.events.where((event) {
-      // 年份筛选
-      bool yearMatch =
-          _selectedYear == "全部" || _getEventYear(event) == _selectedYear;
-
-      // 国家筛选
-      bool countryMatch =
-          _selectedCountry == "全部" || event.country == _selectedCountry;
-
-      return yearMatch && countryMatch;
-    }).toList();
-  }
-
-  // 获取事件年份
-  String _getEventYear(TimelineTravelEvent event) {
-    if (event.date.length >= 4) {
-      if (event.date.contains('-')) {
-        return event.date.split('-')[0];
-      } else if (event.date.contains('年')) {
-        return event.date.split('年')[0];
-      } else {
-        return event.date.substring(0, 4);
-      }
-    }
-    return "";
-  }
-
-  // 显示筛选对话框
-  void _showFilterDialog(
-    BuildContext context,
-    List<String> years,
-    List<String> countries,
-  ) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: AppTheme.cardColor,
-            title: Text(
-              '筛选旅行足迹',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '年份',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  height: 40,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children:
-                        years
-                            .map(
-                              (year) => Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: ChoiceChip(
-                                  label: Text(year == "全部" ? year : '$year年'),
-                                  selected: _selectedYear == year,
-                                  onSelected: (selected) {
-                                    if (selected) {
-                                      setState(() {
-                                        _selectedYear = year;
-                                        Navigator.pop(context);
-                                      });
-                                    }
-                                  },
-                                  backgroundColor: AppTheme.backgroundColor
-                                      .withOpacity(0.3),
-                                  selectedColor: AppTheme.neonBlue.withOpacity(
-                                    0.3,
-                                  ),
-                                  labelStyle: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            )
-                            .toList(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  '国家',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children:
-                      countries
-                          .map(
-                            (country) => ChoiceChip(
-                              label: Text(country),
-                              selected: _selectedCountry == country,
-                              onSelected: (selected) {
-                                if (selected) {
-                                  setState(() {
-                                    _selectedCountry = country;
-                                    Navigator.pop(context);
-                                  });
-                                }
-                              },
-                              backgroundColor: AppTheme.backgroundColor
-                                  .withOpacity(0.3),
-                              selectedColor: AppTheme.neonPurple.withOpacity(
-                                0.3,
-                              ),
-                              labelStyle: TextStyle(color: Colors.white),
-                            ),
-                          )
-                          .toList(),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _selectedYear = "全部";
-                    _selectedCountry = "全部";
-                  });
-                  Navigator.pop(context);
-                },
-                child: Text('重置', style: TextStyle(color: Colors.white)),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text('关闭', style: TextStyle(color: AppTheme.neonBlue)),
-              ),
-            ],
-          ),
     );
   }
 }
