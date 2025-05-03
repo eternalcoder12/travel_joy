@@ -225,8 +225,10 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     final statusBarHeight = MediaQuery.of(context).padding.top;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     final screenWidth = MediaQuery.of(context).size.width;
-    final isIOS = Platform.isIOS;
+    // 使用屏幕大小判断而不是平台判断
     final isSmallScreen = screenWidth < 340;
+    final isMediumScreen = screenWidth >= 340 && screenWidth < 400;
+    final isLargeScreen = screenWidth >= 400;
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
@@ -287,8 +289,8 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                     ),
                   ),
                   
-                  // 底部间距 - 根据设备平台调整
-                  SizedBox(height: 30 + bottomPadding + (isIOS ? 10 : 0)),
+                  // 底部间距 - 根据设备调整
+                  SizedBox(height: 30 + bottomPadding),
                 ],
               ),
             ),
@@ -302,11 +304,11 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
       floatingActionButton: Transform.scale(
         scale: isSmallScreen ? 0.9 : 1.1, // 根据屏幕大小调整按钮大小
         child: FloatingActionButton(
-          onPressed: _showBottomDrawer,
-          backgroundColor: AppTheme.buttonColor,
-          child: Icon(Icons.more_horiz, color: Colors.white),
-          // 添加弹出动画
-          heroTag: 'fab',
+        onPressed: _showBottomDrawer,
+        backgroundColor: AppTheme.buttonColor,
+        child: Icon(Icons.more_horiz, color: Colors.white),
+        // 添加弹出动画
+        heroTag: 'fab',
           mini: isSmallScreen, // 在小屏幕上使用mini属性
         ),
       ),
@@ -509,9 +511,10 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   
   // 建立标题部分
   Widget _buildTitleSection() {
-    final isIOS = Platform.isIOS;
     final screenWidth = MediaQuery.of(context).size.width;
-    final horizontalMargin = isIOS ? MCPDimension.spacingLarge : MCPDimension.spacingMedium;
+    final isSmallScreen = screenWidth < 340;
+    // 基于屏幕宽度动态计算边距，而不是基于平台
+    final horizontalMargin = screenWidth < 360 ? MCPDimension.spacingMedium : MCPDimension.spacingLarge;
     
     return Container(
       margin: EdgeInsets.fromLTRB(
@@ -622,37 +625,48 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
 
           SizedBox(height: MCPDimension.spacingLarge),
           
-          // 标签列表 - 修复跨平台滚动问题
+          // 标签列表 - 修复跨平台滚动问题和居中问题
           Container(
             height: MCPDimension.cardHeightSmall * 0.45,
+            width: double.infinity,
             child: Center(
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 padding: EdgeInsets.symmetric(horizontal: MCPDimension.spacingXSmall),
-                children: _getSpotTags().map((tag) => Container(
-                  margin: EdgeInsets.only(right: MCPDimension.spacingMedium),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: MCPDimension.spacingLarge, 
-                    vertical: MCPDimension.spacingSmall
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.neonBlue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
-                    border: Border.all(
-                      color: AppTheme.neonBlue.withOpacity(0.3),
-                      width: 1,
+                children: _getSpotTags().map((tag) {
+                  // 创建固定高度的容器确保所有标签高度一致
+                  return Container(
+                    height: 32, // 固定高度
+                    margin: EdgeInsets.only(right: MCPDimension.spacingMedium),
+                    decoration: BoxDecoration(
+                      color: AppTheme.neonBlue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(MCPDimension.radiusCircular),
+                      border: Border.all(
+                        color: AppTheme.neonBlue.withOpacity(0.3),
+                        width: 1,
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    tag,
-                    style: TextStyle(
-                      fontSize: MCPDimension.fontSizeSmall,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.neonBlue,
+                    // 使用Align确保内容垂直居中
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: MCPDimension.spacingLarge,
+                          vertical: MCPDimension.spacingXSmall,
+                        ),
+                        child: Text(
+                          tag,
+                          style: TextStyle(
+                            fontSize: MCPDimension.fontSizeSmall,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.neonBlue,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                )).toList(),
+                  );
+                }).toList(),
               ),
             ),
           ),
@@ -712,9 +726,9 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   
   // 快捷操作按钮
   Widget _buildQuickActionButtons() {
-    final isIOS = Platform.isIOS;
     final screenWidth = MediaQuery.of(context).size.width;
-    final horizontalMargin = isIOS ? MCPDimension.spacingLarge : MCPDimension.spacingMedium;
+    final isSmallScreen = screenWidth < 340;
+    final horizontalMargin = screenWidth < 360 ? MCPDimension.spacingMedium : MCPDimension.spacingLarge;
     final buttonSpacing = screenWidth > 360 ? MainAxisAlignment.spaceEvenly : MainAxisAlignment.spaceAround;
 
     return Container(
@@ -1147,7 +1161,9 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
   
   // 景点信息区
   Widget _buildInfoSection() {
-    final horizontalPadding = Platform.isIOS ? MCPDimension.spacingLarge : MCPDimension.spacingMedium;
+    final screenWidth = MediaQuery.of(context).size.width;
+    // 基于屏幕宽度动态计算边距，而不是基于平台
+    final horizontalPadding = screenWidth < 360 ? MCPDimension.spacingMedium : MCPDimension.spacingLarge;
     
     return Container(
       padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
@@ -1299,8 +1315,9 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
 
   // 构建描述部分
   Widget _buildDescriptionSection() {
-    final horizontalPadding = Platform.isIOS ? MCPDimension.spacingLarge : MCPDimension.spacingMedium;
     final screenWidth = MediaQuery.of(context).size.width;
+    // 基于屏幕宽度动态计算边距，而不是基于平台
+    final horizontalPadding = screenWidth < 360 ? MCPDimension.spacingMedium : MCPDimension.spacingLarge;
     final isSmallScreen = screenWidth < 340;
     
     return Container(
@@ -1350,8 +1367,9 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
 
   // 构建评论部分
   Widget _buildReviewSection() {
-    final horizontalPadding = Platform.isIOS ? MCPDimension.spacingLarge : MCPDimension.spacingMedium;
     final screenWidth = MediaQuery.of(context).size.width;
+    // 基于屏幕宽度动态计算边距，而不是基于平台
+    final horizontalPadding = screenWidth < 360 ? MCPDimension.spacingMedium : MCPDimension.spacingLarge;
     final isSmallScreen = screenWidth < 340;
     
     return Container(
@@ -1403,11 +1421,12 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
       ),
     );
   }
-
+  
   // 构建推荐部分
   Widget _buildRecommendationSection() {
-    final horizontalPadding = Platform.isIOS ? MCPDimension.spacingLarge : MCPDimension.spacingMedium;
     final screenWidth = MediaQuery.of(context).size.width;
+    // 基于屏幕宽度动态计算边距，而不是基于平台
+    final horizontalPadding = screenWidth < 360 ? MCPDimension.spacingMedium : MCPDimension.spacingLarge;
     final isSmallScreen = screenWidth < 340;
     
     return Container(
@@ -1649,16 +1668,8 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     final location = _getSpotLocation();
     final name = _getSpotName();
     
-    // 尝试使用平台特定的地图应用进行导航
-    String url;
-    if (Platform.isIOS) {
-      // iOS使用Apple Maps
-      url = 'https://maps.apple.com/?q=$name&address=$location';
-    } else {
-      // Android使用Google Maps
-      url = 'https://www.google.com/maps/search/?api=1&query=$location';
-    }
-    
+    // 使用通用URL方式，不再区分平台
+    String url = 'https://www.google.com/maps/search/?api=1&query=$location';
     _launchExternalApp(url);
   }
 
@@ -2106,7 +2117,6 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 340;
     final drawerHeight = MediaQuery.of(context).size.height * (isSmallScreen ? 0.7 : 0.6);
-    final isIOS = Platform.isIOS;
 
     return Positioned(
       bottom: 0,
@@ -2198,7 +2208,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                 Expanded(
                   child: ListView(
                     padding: EdgeInsets.symmetric(
-                      horizontal: isIOS ? (isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge) : MCPDimension.spacingMedium,
+                      horizontal: screenWidth < 360 ? MCPDimension.spacingMedium : MCPDimension.spacingLarge,
                       vertical: isSmallScreen ? MCPDimension.spacingSmall : MCPDimension.spacingMedium,
                     ),
                     children: [
@@ -2252,7 +2262,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen>
                 Container(
                   width: double.infinity,
                   padding: EdgeInsets.symmetric(
-                    horizontal: isIOS ? (isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge) : MCPDimension.spacingMedium,
+                    horizontal: screenWidth < 360 ? MCPDimension.spacingMedium : MCPDimension.spacingLarge,
                     vertical: isSmallScreen ? MCPDimension.spacingMedium : MCPDimension.spacingLarge,
                   ),
                   child: ElevatedButton(
