@@ -134,7 +134,7 @@ class _TravelTimelineScreenState extends State<TravelTimelineScreen>
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: AppTheme.cardColor.withOpacity(0.3),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -144,7 +144,6 @@ class _TravelTimelineScreenState extends State<TravelTimelineScreen>
             ),
           ),
           onPressed: () {
-            // 使用 NavigationUtils 而不是直接的 Navigator.pop
             Navigator.of(context).pop();
           },
         ),
