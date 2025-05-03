@@ -166,69 +166,55 @@ class TravelTimeline extends StatelessWidget {
     final travelType = _getRandomTravelType(index);
     final travelMood = _getRandomTravelMood(index);
 
-    // 提取日期数字，不带月份
+    // 提取日期数字
+    final month = _extractMonthNumber(event.date);
     final day = _getDay(event.date);
-    final month = _extractMonthNumber(event.date); // 只获取月份数字
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 4, 8, 4), // 再次减少左侧间距，从12改为8
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 左侧时间线 - 完全重新设计为更紧凑的垂直布局
+          // 左侧时间线 - 垂直布局与截图一致
           SizedBox(
-            width: 20, // 进一步减小宽度，从26改为20
+            width: 24,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // 日期点 - 改为点+数字的组合布局
+                // 月份显示
                 Container(
-                  width: 18, // 减小宽度，从24改为18
-                  height: 18, // 减小高度，从24改为18
+                  width: 22,
+                  height: 22,
                   decoration: BoxDecoration(
-                    color: dotColor.withOpacity(0.2),
+                    color: dotColor.withOpacity(0.3),
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: dotColor.withOpacity(0.3),
-                      width: 1,
-                    ),
                   ),
                   child: Center(
                     child: Text(
-                      month, // 只显示月份数字
+                      month,
                       style: TextStyle(
-                        color: dotColor,
-                        fontSize: 8, // 保持最小字号
+                        color: Colors.white,
+                        fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-                // 日期文本 - 外置
+                // 日期显示
                 Text(
                   day,
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 10, // 再次减小字号，从12改为10
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                // 线条
+                // 连接线
                 if (!isLast)
                   Container(
-                    width: 1, // 保持较细的线条
-                    height: 40, // 减小高度，从46改为40
-                    margin: const EdgeInsets.only(top: 4),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          dotColor.withOpacity(0.7),
-                          dotColor.withOpacity(0.1),
-                        ],
-                      ),
-                    ),
+                    width: 1,
+                    height: 40,
+                    margin: const EdgeInsets.only(top: 2),
+                    color: dotColor.withOpacity(0.3),
                   ),
               ],
             ),
@@ -237,7 +223,7 @@ class TravelTimeline extends StatelessWidget {
           // 右侧内容
           Expanded(
             child: Container(
-              margin: const EdgeInsets.only(left: 6), // 减少左侧边距，从8改为6
+              margin: const EdgeInsets.only(left: 6),
               decoration: BoxDecoration(
                 color: AppTheme.cardColor.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(12),
@@ -296,25 +282,21 @@ class TravelTimeline extends StatelessWidget {
                             ),
                           ),
 
-                          // 旅行类型标签
+                          // 旅行类型标签 - 使用与截图一致的风格
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
+                              horizontal: 8,
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: dotColor.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(
-                                color: dotColor.withOpacity(0.3),
-                                width: 0.5,
-                              ),
+                              color: dotColor.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
                               travelType,
                               style: TextStyle(
                                 fontSize: 10,
-                                color: dotColor,
+                                color: Colors.white,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
