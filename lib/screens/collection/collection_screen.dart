@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../app_theme.dart';
 import '../../widgets/animated_item.dart';
 import 'dart:math' as math;
+import '../explore/spot_detail_screen.dart';
 
 class CollectionScreen extends StatefulWidget {
   const CollectionScreen({Key? key}) : super(key: key);
@@ -331,9 +332,28 @@ class _CollectionScreenState extends State<CollectionScreen>
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            ScaffoldMessenger.of(
+            Navigator.push(
               context,
-            ).showSnackBar(SnackBar(content: Text('查看详情功能开发中')));
+              MaterialPageRoute(
+                builder:
+                    (context) => SpotDetailScreen(
+                      spotData: {
+                        'name': collection['title'],
+                        'location': collection['location'],
+                        'imageUrl': collection['imageUrl'],
+                        'description': collection['description'],
+                        'id': collection['id'],
+                        'rating': '4.8',
+                        'price': '88',
+                        'hours': '09:00-18:00',
+                        'contact': '0571-88888888',
+                        'bestTime': '春季和秋季 (3-5月, 9-11月)',
+                        'duration': '2-3小时',
+                        'suitableFor': '所有年龄段，尤其是摄影爱好者和自然探索者',
+                      },
+                    ),
+              ),
+            );
           },
           borderRadius: BorderRadius.circular(16),
           child: Padding(
@@ -416,9 +436,28 @@ class _CollectionScreenState extends State<CollectionScreen>
                       icon: Icons.arrow_forward,
                       color: AppTheme.neonBlue,
                       onTap: () {
-                        ScaffoldMessenger.of(
+                        Navigator.push(
                           context,
-                        ).showSnackBar(SnackBar(content: Text('查看详情功能开发中')));
+                          MaterialPageRoute(
+                            builder:
+                                (context) => SpotDetailScreen(
+                                  spotData: {
+                                    'name': collection['title'],
+                                    'location': collection['location'],
+                                    'imageUrl': collection['imageUrl'],
+                                    'description': collection['description'],
+                                    'id': collection['id'],
+                                    'rating': '4.8',
+                                    'price': '88',
+                                    'hours': '09:00-18:00',
+                                    'contact': '0571-88888888',
+                                    'bestTime': '春季和秋季 (3-5月, 9-11月)',
+                                    'duration': '2-3小时',
+                                    'suitableFor': '所有年龄段，尤其是摄影爱好者和自然探索者',
+                                  },
+                                ),
+                          ),
+                        );
                       },
                     ),
                     const SizedBox(width: 8),
