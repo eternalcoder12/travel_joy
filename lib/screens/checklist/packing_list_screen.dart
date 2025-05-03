@@ -9,7 +9,8 @@ class PackingItem {
   final IconData icon;
   bool isPacked;
   int priority; // 1-低 2-中 3-高
-  double weight; // 单位：克
+  bool isEasilyForgotten; // 新增：常被遗忘标记
+  double weight; // 保留但弱化重量属性
 
   PackingItem({
     required this.id,
@@ -18,6 +19,7 @@ class PackingItem {
     required this.icon,
     this.isPacked = false,
     this.priority = 2, // 默认中优先级
+    this.isEasilyForgotten = false, // 默认非易忘物品
     this.weight = 0, // 默认重量为0
   });
 }
@@ -71,28 +73,171 @@ class _PackingListScreenState extends State<PackingListScreen>
   // 旅行模板
   final Map<String, List<Map<String, dynamic>>> _templates = {
     '商务旅行': [
-      {'name': '手提电脑', 'category': '电子设备', 'priority': 3, 'weight': 1500},
-      {'name': '充电器', 'category': '电子设备', 'priority': 3, 'weight': 200},
-      {'name': '名片', 'category': '必备物品', 'priority': 2, 'weight': 50},
-      {'name': '正装', 'category': '衣物', 'priority': 3, 'weight': 1000},
-      {'name': '商务文件', 'category': '必备物品', 'priority': 3, 'weight': 300},
-      {'name': '护照', 'category': '证件', 'priority': 3, 'weight': 50},
+      {
+        'name': '手提电脑',
+        'category': '电子设备',
+        'priority': 3,
+        'isEasilyForgotten': false,
+        'weight': 1500,
+      },
+      {
+        'name': '充电器',
+        'category': '电子设备',
+        'priority': 3,
+        'isEasilyForgotten': true,
+        'weight': 200,
+      },
+      {
+        'name': '名片',
+        'category': '必备物品',
+        'priority': 2,
+        'isEasilyForgotten': true,
+        'weight': 50,
+      },
+      {
+        'name': '移动电源',
+        'category': '电子设备',
+        'priority': 2,
+        'isEasilyForgotten': true,
+        'weight': 300,
+      },
+      {
+        'name': '转接头',
+        'category': '电子设备',
+        'priority': 2,
+        'isEasilyForgotten': true,
+        'weight': 100,
+      },
+      {
+        'name': '商务文件',
+        'category': '必备物品',
+        'priority': 3,
+        'isEasilyForgotten': false,
+        'weight': 300,
+      },
+      {
+        'name': '护照/身份证',
+        'category': '证件',
+        'priority': 3,
+        'isEasilyForgotten': false,
+        'weight': 50,
+      },
     ],
-    '沙滩假期': [
-      {'name': '泳衣', 'category': '衣物', 'priority': 3, 'weight': 200},
-      {'name': '防晒霜', 'category': '洗漱用品', 'priority': 3, 'weight': 150},
-      {'name': '太阳镜', 'category': '必备物品', 'priority': 2, 'weight': 100},
-      {'name': '沙滩毛巾', 'category': '必备物品', 'priority': 2, 'weight': 400},
-      {'name': '拖鞋', 'category': '衣物', 'priority': 2, 'weight': 300},
-      {'name': '身份证', 'category': '证件', 'priority': 3, 'weight': 10},
+    '度假旅行': [
+      {
+        'name': '防晒霜',
+        'category': '洗漱用品',
+        'priority': 3,
+        'isEasilyForgotten': true,
+        'weight': 150,
+      },
+      {
+        'name': '泳衣',
+        'category': '衣物',
+        'priority': 2,
+        'isEasilyForgotten': true,
+        'weight': 200,
+      },
+      {
+        'name': '太阳镜',
+        'category': '必备物品',
+        'priority': 2,
+        'isEasilyForgotten': true,
+        'weight': 100,
+      },
+      {
+        'name': '常用药品',
+        'category': '药品',
+        'priority': 3,
+        'isEasilyForgotten': true,
+        'weight': 200,
+      },
+      {
+        'name': '创可贴',
+        'category': '药品',
+        'priority': 2,
+        'isEasilyForgotten': true,
+        'weight': 50,
+      },
+      {
+        'name': '充电线',
+        'category': '电子设备',
+        'priority': 2,
+        'isEasilyForgotten': true,
+        'weight': 50,
+      },
+      {
+        'name': '身份证',
+        'category': '证件',
+        'priority': 3,
+        'isEasilyForgotten': false,
+        'weight': 10,
+      },
     ],
-    '登山徒步': [
-      {'name': '登山鞋', 'category': '衣物', 'priority': 3, 'weight': 800},
-      {'name': '登山杖', 'category': '必备物品', 'priority': 2, 'weight': 300},
-      {'name': '保温水壶', 'category': '必备物品', 'priority': 3, 'weight': 500},
-      {'name': '急救包', 'category': '药品', 'priority': 3, 'weight': 250},
-      {'name': '防水外套', 'category': '衣物', 'priority': 3, 'weight': 600},
-      {'name': '身份证', 'category': '证件', 'priority': 3, 'weight': 10},
+    '常被遗忘物品': [
+      {
+        'name': '牙线/牙签',
+        'category': '洗漱用品',
+        'priority': 1,
+        'isEasilyForgotten': true,
+        'weight': 20,
+      },
+      {
+        'name': '耳塞',
+        'category': '必备物品',
+        'priority': 1,
+        'isEasilyForgotten': true,
+        'weight': 10,
+      },
+      {
+        'name': '眼罩',
+        'category': '必备物品',
+        'priority': 1,
+        'isEasilyForgotten': true,
+        'weight': 30,
+      },
+      {
+        'name': '转换插头',
+        'category': '电子设备',
+        'priority': 2,
+        'isEasilyForgotten': true,
+        'weight': 100,
+      },
+      {
+        'name': '雨伞/雨衣',
+        'category': '必备物品',
+        'priority': 2,
+        'isEasilyForgotten': true,
+        'weight': 300,
+      },
+      {
+        'name': '备用眼镜',
+        'category': '必备物品',
+        'priority': 2,
+        'isEasilyForgotten': true,
+        'weight': 150,
+      },
+      {
+        'name': '湿纸巾',
+        'category': '洗漱用品',
+        'priority': 1,
+        'isEasilyForgotten': true,
+        'weight': 100,
+      },
+      {
+        'name': '指甲刀',
+        'category': '洗漱用品',
+        'priority': 1,
+        'isEasilyForgotten': true,
+        'weight': 30,
+      },
+      {
+        'name': '备用内存卡',
+        'category': '电子设备',
+        'priority': 1,
+        'isEasilyForgotten': true,
+        'weight': 10,
+      },
     ],
   };
 
@@ -112,6 +257,7 @@ class _PackingListScreenState extends State<PackingListScreen>
       category: '电子设备',
       icon: Icons.battery_charging_full,
       priority: 3,
+      isEasilyForgotten: true,
       weight: 150,
     ),
     PackingItem(
@@ -132,10 +278,20 @@ class _PackingListScreenState extends State<PackingListScreen>
     ),
     PackingItem(
       id: '5',
-      name: '感冒药',
+      name: '常用药品',
       category: '药品',
       icon: Icons.medication,
-      priority: 1,
+      priority: 2,
+      isEasilyForgotten: true,
+      weight: 100,
+    ),
+    PackingItem(
+      id: '6',
+      name: '转换插头',
+      category: '电子设备',
+      icon: Icons.power,
+      priority: 2,
+      isEasilyForgotten: true,
       weight: 100,
     ),
   ];
@@ -144,8 +300,24 @@ class _PackingListScreenState extends State<PackingListScreen>
   void _applyTemplate(String templateName) {
     if (_templates.containsKey(templateName)) {
       final templateItems = _templates[templateName]!;
+
+      // 检查已有物品，避免重复添加
+      List<String> existingItemNames =
+          _items.map((item) => item.name.toLowerCase()).toList();
+
+      // 筛选出不重复的物品
+      final newItems =
+          templateItems
+              .where(
+                (item) =>
+                    !existingItemNames.contains(
+                      (item['name'] as String).toLowerCase(),
+                    ),
+              )
+              .toList();
+
       setState(() {
-        for (var item in templateItems) {
+        for (var item in newItems) {
           _items.add(
             PackingItem(
               id:
@@ -155,6 +327,7 @@ class _PackingListScreenState extends State<PackingListScreen>
               category: item['category'],
               icon: _categoryIcons[item['category']] ?? Icons.more_horiz,
               priority: item['priority'],
+              isEasilyForgotten: item['isEasilyForgotten'],
               weight: item['weight'].toDouble(),
             ),
           );
@@ -164,11 +337,32 @@ class _PackingListScreenState extends State<PackingListScreen>
       // 显示添加成功的提示
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('已应用"$templateName"模板'),
+          content: Text('已应用"$templateName"模板，添加了${newItems.length}个物品'),
           backgroundColor: AppTheme.successColor,
           behavior: SnackBarBehavior.floating,
         ),
       );
+
+      // 当添加了易忘记物品时，显示特别提示
+      int forgottenItemsAdded =
+          newItems.where((item) => item['isEasilyForgotten'] == true).length;
+      if (forgottenItemsAdded > 0) {
+        Future.delayed(Duration(seconds: 1), () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('包含$forgottenItemsAdded件易被忘记的物品，请特别留意！'),
+              backgroundColor: AppTheme.neonOrange,
+              behavior: SnackBarBehavior.floating,
+              duration: Duration(seconds: 3),
+              action: SnackBarAction(
+                label: '知道了',
+                textColor: Colors.white,
+                onPressed: () {},
+              ),
+            ),
+          );
+        });
+      }
     }
   }
 
@@ -296,6 +490,7 @@ class _PackingListScreenState extends State<PackingListScreen>
   void _showAddItemDialog() {
     _selectedPriority = 2; // 重置为中优先级
     _selectedWeight = 0; // 重置重量
+    bool _isEasilyForgotten = false; // 初始化易忘记标志
 
     showModalBottomSheet(
       context: context,
@@ -427,38 +622,88 @@ class _PackingListScreenState extends State<PackingListScreen>
                     ),
 
                     const SizedBox(height: 15),
+
+                    // 添加"易忘记"标记选项
                     Row(
                       children: [
-                        Text(
-                          '估计重量',
-                          style: TextStyle(
-                            color: AppTheme.primaryTextColor,
-                            fontSize: 16,
-                          ),
+                        Switch(
+                          value: _isEasilyForgotten,
+                          onChanged: (value) {
+                            setState(() {
+                              _isEasilyForgotten = value;
+                            });
+                          },
+                          activeColor: AppTheme.neonOrange,
                         ),
-                        const SizedBox(width: 10),
-                        Text(
-                          '${_selectedWeight.toStringAsFixed(0)} 克',
-                          style: TextStyle(
-                            color: AppTheme.buttonColor,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        const SizedBox(width: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.notifications_active,
+                              size: 16,
+                              color:
+                                  _isEasilyForgotten
+                                      ? AppTheme.neonOrange
+                                      : AppTheme.secondaryTextColor,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '容易被忘记的物品',
+                              style: TextStyle(
+                                color:
+                                    _isEasilyForgotten
+                                        ? AppTheme.neonOrange
+                                        : AppTheme.primaryTextColor,
+                                fontWeight:
+                                    _isEasilyForgotten
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
 
-                    Slider(
-                      value: _selectedWeight,
-                      min: 0,
-                      max: 5000, // 5千克
-                      divisions: 50,
-                      activeColor: AppTheme.buttonColor,
-                      label: '${_selectedWeight.toStringAsFixed(0)} 克',
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedWeight = value;
-                        });
-                      },
+                    // 将重量滑块放在折叠面板中，减少视觉强调
+                    ExpansionTile(
+                      tilePadding: EdgeInsets.zero,
+                      title: Text(
+                        '估计重量（可选）',
+                        style: TextStyle(
+                          color: AppTheme.secondaryTextColor,
+                          fontSize: 14,
+                        ),
+                      ),
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Slider(
+                                value: _selectedWeight,
+                                min: 0,
+                                max: 5000, // 5千克
+                                divisions: 50,
+                                activeColor: AppTheme.secondaryTextColor,
+                                label:
+                                    '${_selectedWeight.toStringAsFixed(0)} 克',
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedWeight = value;
+                                  });
+                                },
+                              ),
+                            ),
+                            Text(
+                              '${_selectedWeight.toStringAsFixed(0)} 克',
+                              style: TextStyle(
+                                color: AppTheme.secondaryTextColor,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
 
                     const SizedBox(height: 20),
@@ -466,8 +711,38 @@ class _PackingListScreenState extends State<PackingListScreen>
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          _addItem();
-                          Navigator.pop(context);
+                          // 修改添加物品方法，包含易忘记标记
+                          if (_itemNameController.text.trim().isNotEmpty) {
+                            setState(() {
+                              _items.add(
+                                PackingItem(
+                                  id:
+                                      DateTime.now().millisecondsSinceEpoch
+                                          .toString(),
+                                  name: _itemNameController.text.trim(),
+                                  category: _selectedCategory,
+                                  icon:
+                                      _categoryIcons[_selectedCategory] ??
+                                      Icons.more_horiz,
+                                  priority: _selectedPriority,
+                                  isEasilyForgotten: _isEasilyForgotten,
+                                  weight: _selectedWeight,
+                                ),
+                              );
+                              _itemNameController.clear();
+                            });
+
+                            // 显示添加成功的提示
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('已添加到行李清单'),
+                                backgroundColor: AppTheme.successColor,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+
+                            Navigator.pop(context);
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 15),
@@ -977,97 +1252,202 @@ class _PackingListScreenState extends State<PackingListScreen>
               SizedBox(height: 20),
 
               // 模板列表
-              ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: _templates.length,
-                itemBuilder: (context, index) {
-                  final templateName = _templates.keys.elementAt(index);
-                  final templateItems = _templates[templateName]!;
+              Expanded(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _templates.length,
+                  itemBuilder: (context, index) {
+                    final templateName = _templates.keys.elementAt(index);
+                    final templateItems = _templates[templateName]!;
 
-                  // 计算模板物品总数和总重量
-                  final itemCount = templateItems.length;
-                  final totalWeight = templateItems.fold<double>(
-                    0,
-                    (sum, item) => sum + (item['weight'] as double),
-                  );
+                    // 计算模板物品总数和易忘记物品数量
+                    final itemCount = templateItems.length;
+                    final forgottenCount =
+                        templateItems
+                            .where((item) => item['isEasilyForgotten'] == true)
+                            .length;
 
-                  return Card(
-                    margin: EdgeInsets.only(bottom: 10),
-                    color: AppTheme.cardColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: InkWell(
-                      onTap: () {
-                        _applyTemplate(templateName);
-                        Navigator.pop(context);
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  templateName == '商务旅行'
-                                      ? Icons.business
-                                      : templateName == '沙滩假期'
-                                      ? Icons.beach_access
-                                      : Icons.terrain,
-                                  color: AppTheme.buttonColor,
-                                ),
-                                SizedBox(width: 10),
-                                Text(
-                                  templateName,
-                                  style: TextStyle(
-                                    color: AppTheme.primaryTextColor,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                    return Card(
+                      margin: EdgeInsets.only(bottom: 10),
+                      color: AppTheme.cardColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: InkWell(
+                        onTap: () {
+                          _applyTemplate(templateName);
+                          Navigator.pop(context);
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    templateName == '商务旅行'
+                                        ? Icons.business
+                                        : templateName == '度假旅行'
+                                        ? Icons.beach_access
+                                        : Icons.notifications_active,
+                                    color:
+                                        templateName == '常被遗忘物品'
+                                            ? AppTheme.neonOrange
+                                            : AppTheme.buttonColor,
                                   ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 10),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.shopping_bag_outlined,
-                                  size: 14,
-                                  color: AppTheme.secondaryTextColor,
-                                ),
-                                SizedBox(width: 5),
-                                Text(
-                                  '$itemCount 件物品',
-                                  style: TextStyle(
+                                  SizedBox(width: 10),
+                                  Text(
+                                    templateName,
+                                    style: TextStyle(
+                                      color: AppTheme.primaryTextColor,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  if (templateName == '常被遗忘物品')
+                                    Container(
+                                      margin: EdgeInsets.only(left: 8),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.neonOrange.withOpacity(
+                                          0.2,
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        '推荐',
+                                        style: TextStyle(
+                                          color: AppTheme.neonOrange,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.shopping_bag_outlined,
+                                    size: 14,
                                     color: AppTheme.secondaryTextColor,
-                                    fontSize: 12,
                                   ),
-                                ),
-                                SizedBox(width: 15),
-                                Icon(
-                                  Icons.scale,
-                                  size: 14,
-                                  color: AppTheme.secondaryTextColor,
-                                ),
-                                SizedBox(width: 5),
-                                Text(
-                                  '约 ${(totalWeight / 1000).toStringAsFixed(1)} 千克',
-                                  style: TextStyle(
+                                  SizedBox(width: 5),
+                                  Text(
+                                    '$itemCount 件物品',
+                                    style: TextStyle(
+                                      color: AppTheme.secondaryTextColor,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  SizedBox(width: 15),
+
+                                  Icon(
+                                    Icons.notifications_active,
+                                    size: 14,
                                     color: AppTheme.secondaryTextColor,
-                                    fontSize: 12,
+                                  ),
+                                  SizedBox(width: 5),
+                                  Text(
+                                    '包含 $forgottenCount 件易忘记物品',
+                                    style: TextStyle(
+                                      color: AppTheme.secondaryTextColor,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              // 为常被遗忘物品模板添加预览
+                              if (templateName == '常被遗忘物品')
+                                Container(
+                                  margin: EdgeInsets.only(top: 10),
+                                  padding: EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.backgroundColor.withOpacity(
+                                      0.5,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '常见易忘物品包括：',
+                                        style: TextStyle(
+                                          color: AppTheme.secondaryTextColor,
+                                          fontSize: 12,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      ),
+                                      SizedBox(height: 5),
+                                      Wrap(
+                                        spacing: 6,
+                                        runSpacing: 6,
+                                        children: [
+                                          for (var item in templateItems.take(
+                                            5,
+                                          ))
+                                            Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: AppTheme.neonOrange
+                                                    .withOpacity(0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                item['name'] as String,
+                                                style: TextStyle(
+                                                  color:
+                                                      AppTheme
+                                                          .secondaryTextColor,
+                                                  fontSize: 10,
+                                                ),
+                                              ),
+                                            ),
+                                          Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: AppTheme.neonOrange
+                                                  .withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Text(
+                                              '更多...',
+                                              style: TextStyle(
+                                                color:
+                                                    AppTheme.secondaryTextColor,
+                                                fontSize: 10,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ],
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ],
           ),
@@ -1153,6 +1533,12 @@ class _PackingListScreenState extends State<PackingListScreen>
     int packedCount = _items.where((item) => item.isPacked).length;
     int totalCount = _items.length;
 
+    // 计算易忘记物品的数量
+    int forgottenItemsCount =
+        _items.where((item) => item.isEasilyForgotten).length;
+    int unpackedForgottenItemsCount =
+        _items.where((item) => item.isEasilyForgotten && !item.isPacked).length;
+
     // 计算总重量和已打包重量
     double totalWeight = _totalWeight;
     double packedWeight = _packedWeight;
@@ -1164,7 +1550,7 @@ class _PackingListScreenState extends State<PackingListScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 进度指示器和重量显示
+            // 进度指示器和统计信息
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -1207,26 +1593,91 @@ class _PackingListScreenState extends State<PackingListScreen>
                     borderRadius: BorderRadius.circular(4),
                   ),
 
-                  // 重量信息
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildWeightInfo(
-                          '总重量',
-                          '${(totalWeight / 1000).toStringAsFixed(2)} 千克',
-                          AppTheme.neonBlue,
+                  // 易忘记物品提醒
+                  if (unpackedForgottenItemsCount > 0)
+                    Container(
+                      margin: EdgeInsets.only(top: 16),
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppTheme.neonOrange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppTheme.neonOrange.withOpacity(0.2),
+                          width: 1,
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildWeightInfo(
-                          '已打包',
-                          '${(packedWeight / 1000).toStringAsFixed(2)} 千克',
-                          AppTheme.neonGreen,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.notifications_active,
+                            color: AppTheme.neonOrange,
+                            size: 18,
+                          ),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '注意：易被遗忘的物品',
+                                  style: TextStyle(
+                                    color: AppTheme.neonOrange,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  '您有 $unpackedForgottenItemsCount 件容易忘记的物品尚未打包',
+                                  style: TextStyle(
+                                    color: AppTheme.secondaryTextColor,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  // 用ExpansionTile包装重量信息，减弱视觉重要性
+                  Theme(
+                    data: Theme.of(
+                      context,
+                    ).copyWith(dividerColor: Colors.transparent),
+                    child: ExpansionTile(
+                      tilePadding: EdgeInsets.zero,
+                      title: Text(
+                        '重量信息',
+                        style: TextStyle(
+                          color: AppTheme.secondaryTextColor,
+                          fontSize: 14,
                         ),
                       ),
-                    ],
+                      childrenPadding: EdgeInsets.zero,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildWeightInfo(
+                                '总重量',
+                                '${(totalWeight / 1000).toStringAsFixed(2)} 千克',
+                                AppTheme.secondaryTextColor,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildWeightInfo(
+                                '已打包',
+                                '${(packedWeight / 1000).toStringAsFixed(2)} 千克',
+                                AppTheme.secondaryTextColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -1286,6 +1737,16 @@ class _PackingListScreenState extends State<PackingListScreen>
                           String category = groupedItems.keys.elementAt(index);
                           List<PackingItem> items = groupedItems[category]!;
 
+                          // 计算类别中易忘记的物品数量
+                          int categoryForgottenCount =
+                              items
+                                  .where(
+                                    (item) =>
+                                        item.isEasilyForgotten &&
+                                        !item.isPacked,
+                                  )
+                                  .length;
+
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -1318,6 +1779,42 @@ class _PackingListScreenState extends State<PackingListScreen>
                                         fontSize: 14,
                                       ),
                                     ),
+
+                                    // 显示类别中易忘记物品的数量
+                                    if (categoryForgottenCount > 0)
+                                      Container(
+                                        margin: EdgeInsets.only(left: 8),
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 1,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.neonOrange
+                                              .withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.notifications_active,
+                                              color: AppTheme.neonOrange,
+                                              size: 12,
+                                            ),
+                                            SizedBox(width: 3),
+                                            Text(
+                                              '$categoryForgottenCount',
+                                              style: TextStyle(
+                                                color: AppTheme.neonOrange,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                   ],
                                 ),
                               ),
@@ -1493,6 +1990,45 @@ class _PackingListScreenState extends State<PackingListScreen>
                 ),
               ),
 
+            // 易忘记标记
+            if (item.isEasilyForgotten)
+              Positioned(
+                top: item.priority > 1 ? 24 : 0,
+                right: 0,
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(8, 2, 8, 2),
+                  decoration: BoxDecoration(
+                    color: AppTheme.neonOrange.withOpacity(0.2),
+                    borderRadius: BorderRadius.only(
+                      topRight:
+                          item.priority > 1
+                              ? Radius.circular(0)
+                              : Radius.circular(12),
+                      bottomLeft: Radius.circular(8),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.notifications_active,
+                        color: AppTheme.neonOrange,
+                        size: 12,
+                      ),
+                      SizedBox(width: 3),
+                      Text(
+                        '易忘记',
+                        style: TextStyle(
+                          color: AppTheme.neonOrange,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
             // 主要内容
             ListTile(
               contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -1503,6 +2039,8 @@ class _PackingListScreenState extends State<PackingListScreen>
                   color:
                       item.isPacked
                           ? AppTheme.successColor.withOpacity(0.2)
+                          : item.isEasilyForgotten
+                          ? AppTheme.neonOrange.withOpacity(0.15)
                           : AppTheme.secondaryTextColor.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
@@ -1511,6 +2049,8 @@ class _PackingListScreenState extends State<PackingListScreen>
                   color:
                       item.isPacked
                           ? AppTheme.successColor
+                          : item.isEasilyForgotten
+                          ? AppTheme.neonOrange
                           : AppTheme.secondaryTextColor,
                   size: 20,
                 ),
@@ -1535,7 +2075,7 @@ class _PackingListScreenState extends State<PackingListScreen>
                         color: AppTheme.cardColor.withOpacity(0.7),
                         borderRadius: BorderRadius.circular(4),
                         border: Border.all(
-                          color: AppTheme.secondaryTextColor.withOpacity(0.2),
+                          color: AppTheme.secondaryTextColor.withOpacity(0.1),
                           width: 0.5,
                         ),
                       ),
@@ -1544,19 +2084,23 @@ class _PackingListScreenState extends State<PackingListScreen>
                             ? '${item.weight.toInt()}克'
                             : '${(item.weight / 1000).toStringAsFixed(1)}千克',
                         style: TextStyle(
-                          color: AppTheme.secondaryTextColor,
+                          color: AppTheme.secondaryTextColor.withOpacity(0.7),
                           fontSize: 10,
                         ),
                       ),
                     ),
                 ],
               ),
-              subtitle: Text(
-                item.category,
-                style: TextStyle(
-                  color: AppTheme.secondaryTextColor,
-                  fontSize: 12,
-                ),
+              subtitle: Row(
+                children: [
+                  Text(
+                    item.category,
+                    style: TextStyle(
+                      color: AppTheme.secondaryTextColor,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ),
               trailing: Checkbox(
                 value: item.isPacked,
